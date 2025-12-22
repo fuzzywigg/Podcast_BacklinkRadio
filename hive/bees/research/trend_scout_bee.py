@@ -62,17 +62,27 @@ class TrendScoutBee(ScoutBee):
         # Evaluate and rank trends
         ranked_trends = self._rank_trends(discovered_trends)
 
-        # Store in intel
+        # Update intel directly to avoid merge issues with lists
         intel = self.read_intel()
-        intel["trends"]["current"] = ranked_trends[:10]  # Top 10
+
+        # Initialize structure if missing
+        if "trends" not in intel:
+            intel["trends"] = {"current": [], "archive": []}
 
         # Archive old trends
-        if "current" in intel.get("trends", {}):
-            old_trends = intel["trends"].get("current", [])
-            intel["trends"]["archive"].extend(old_trends[:5])
+        current_trends = intel["trends"].get("current", [])
+        if current_trends:
+            intel["trends"]["archive"].extend(current_trends[:5]) # Archive top 5 old ones
 
-        self.write_intel("trends", "current", ranked_trends[:10])
-        self.write_intel("trends", "last_scan", datetime.now(timezone.utc).isoformat())
+        # Set new current trends
+        intel["trends"]["current"] = ranked_trends[:10]  # Top 10
+
+        # Update timestamp
+        intel["trends"]["last_scan"] = datetime.now(timezone.utc).isoformat()
+        intel["_meta"]["last_updated"] = datetime.now(timezone.utc).isoformat()
+
+        # Write full intel object back
+        self._write_json("intel.json", intel)
 
         # Alert DJ if high-priority trend found
         hot_trends = [t for t in ranked_trends if t.get("priority") == "urgent"]

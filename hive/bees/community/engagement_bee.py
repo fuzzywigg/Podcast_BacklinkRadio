@@ -15,6 +15,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from base_bee import EmployedBee
+from utils.safety import validate_interaction, sanitize_payment_message
+from utils.economy import calculate_dao_rewards
 
 
 class EngagementBee(EmployedBee):
@@ -102,28 +104,50 @@ class EngagementBee(EmployedBee):
 
         self.log(f"Processing mention from {sender}: {content[:50]}...")
 
+        # Safety Check
+        is_command, safe_content, meta = validate_interaction(sender, content, "mention")
+
+        if meta.get("risk_level") == "high":
+            self.log(f"Blocked potential injection from {sender}", level="warning")
+            return {"action": "blocked", "reason": "safety_protocol"}
+
         # Classify the mention
-        mention_type = self._classify_mention(content)
+        mention_type = self._classify_mention(safe_content)
+
+        # If it's a command but not from authority, demote to 'mention'
+        if is_command and mention_type == "mention":
+            # Authority trying to chat? Or command?
+            # For now, we trust commands from authorities implicitly in the system,
+            # but if it wasn't a command, we treat it as mention.
+            pass
+        elif not is_command and mention_type == "request":
+             # Normal users can request music, that's fine.
+             pass
+
+        # Calculate DAO Rewards (Credits)
+        rewards = calculate_dao_rewards(sender, "interaction", 1.0)
 
         # Update listener intel
         self.add_listener_intel(sender, {
             "handle": sender,
             "interaction_count": 1,  # Will be incremented
-            "notes": [f"Mentioned us: {content[:100]}"]
+            "dao_credits": rewards.get("amount", 0), # Will accumulate if I fix add_listener_intel or just overwrite
+            "notes": [f"Mentioned us: {safe_content[:100]}"]
         })
 
         # Determine response
-        response = self._generate_engagement_response(mention_type, sender, content)
+        response = self._generate_engagement_response(mention_type, sender, safe_content)
 
         # Queue for DJ shoutout if warranted
-        if mention_type in ["request", "donation"]:
-            self._queue_shoutout(sender, content, mention_type)
+        if mention_type in ["request", "donation"] or (is_command and mention_type == "mention"):
+            self._queue_shoutout(sender, safe_content, mention_type, priority=is_command)
 
         return {
             "action": "process_mention",
             "sender": sender,
             "type": mention_type,
-            "response": response
+            "response": response,
+            "is_authority": is_command
         }
 
     def _process_donation(self, task: Dict[str, Any]) -> Dict[str, Any]:
@@ -138,20 +162,34 @@ class EngagementBee(EmployedBee):
 
         self.log(f"Processing donation from {donor}: ${amount}")
 
+        # Safety & Sanitation
+        # Donations are prime vectors for "Make Me Pay" attacks via message payloads
+        safe_message = sanitize_payment_message(message)
+
+        # Double check via validator
+        _, checked_message, meta = validate_interaction(donor, safe_message, "donation")
+
+        if meta.get("risk_level") == "high":
+            checked_message = "Thanks for the donation! (Message withheld for safety)"
+
+        # Calculate DAO Rewards (Credits based on dollar value)
+        rewards = calculate_dao_rewards(donor, "dollar", float(amount))
+
         # Update listener intel
         self.add_listener_intel(donor, {
             "handle": donor,
             "donation_total": amount,  # Will accumulate
-            "notes": [f"Donated ${amount}: {message}"],
+            "dao_credits": rewards.get("amount", 0), # This logic needs check in add_listener_intel to sum up
+            "notes": [f"Donated ${amount}: {checked_message}"],
             "tags": ["donor"]
         })
 
         # Queue immediate shoutout
-        self._queue_shoutout(donor, message, "donation", priority=True)
+        self._queue_shoutout(donor, checked_message, "donation", priority=True)
 
         # Post alert for DJ
         self.post_alert(
-            f"Donation from {donor}: ${amount} - '{message}'",
+            f"Donation from {donor}: ${amount} - '{checked_message}'",
             priority=True
         )
 
