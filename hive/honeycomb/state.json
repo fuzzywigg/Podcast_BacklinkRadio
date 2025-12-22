@@ -1,0 +1,36 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "last_updated": null,
+    "last_updated_by": null,
+    "description": "Live station state - the current moment"
+  },
+  "broadcast": {
+    "status": "offline",
+    "current_track": null,
+    "queue": [],
+    "vibe": null,
+    "time_slot": null,
+    "listener_count": 0
+  },
+  "persona": {
+    "active_mode": "evening",
+    "energy_level": "medium",
+    "last_spoke": null,
+    "next_update_at": null
+  },
+  "nodes": {
+    "active_listeners": [],
+    "recent_interactions": [],
+    "vip_nodes": []
+  },
+  "economy": {
+    "budget_remaining": 0,
+    "total_donations_today": 0,
+    "pending_shoutouts": []
+  },
+  "alerts": {
+    "priority": [],
+    "normal": []
+  }
+}

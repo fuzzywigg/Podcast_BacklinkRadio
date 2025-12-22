@@ -1,0 +1,66 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Accumulated knowledge - the hive memory"
+  },
+  "listeners": {
+    "_schema": {
+      "node_id": "string (unique identifier)",
+      "handle": "string (@username or null)",
+      "location": {
+        "city": "string",
+        "country": "string",
+        "timezone": "string"
+      },
+      "first_seen": "ISO timestamp",
+      "last_seen": "ISO timestamp",
+      "interaction_count": "number",
+      "donation_total": "number",
+      "preferences": {
+        "genres": ["array of strings"],
+        "time_slots": ["morning|afternoon|evening|night"],
+        "engagement_style": "quiet|active|superfan"
+      },
+      "notes": ["array of intel notes"],
+      "tags": ["array of tags"]
+    },
+    "known_nodes": {}
+  },
+  "artists": {
+    "_schema": {
+      "artist_id": "string",
+      "name": "string",
+      "contact_status": "unknown|researched|contacted|responded|partnered",
+      "socials": {},
+      "notes": [],
+      "tracks_played": [],
+      "last_contact": "ISO timestamp or null"
+    },
+    "known_artists": {}
+  },
+  "sponsors": {
+    "_schema": {
+      "sponsor_id": "string",
+      "company": "string",
+      "contact": "string",
+      "status": "prospect|pitched|negotiating|active|churned",
+      "value": "number",
+      "notes": [],
+      "last_contact": "ISO timestamp"
+    },
+    "pipeline": {}
+  },
+  "trends": {
+    "current": [],
+    "archive": []
+  },
+  "content_performance": {
+    "top_clips": [],
+    "top_moments": [],
+    "viral_attempts": []
+  },
+  "local_intel": {
+    "_description": "City/region specific knowledge for listener shoutouts",
+    "cities": {}
+  }
+}
