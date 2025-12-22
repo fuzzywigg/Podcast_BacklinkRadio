@@ -17,8 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 # Add bees directory to path for base_bee import
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from bees.base_bee import EmployedBee
+from base_bee import EmployedBee
 from utils.safety import validate_interaction, sanitize_payment_message
 from utils.economy import calculate_dao_rewards
 
