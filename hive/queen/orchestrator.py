@@ -12,6 +12,7 @@ The Queen is the heartbeat of the operation.
 
 import json
 import time
+import copy
 import importlib
 from datetime import datetime, timezone
 from pathlib import Path
@@ -44,6 +45,7 @@ class QueenOrchestrator:
         # State
         self.running = False
         self.last_heartbeat = None
+        self._state_cache = {}  # {filepath: {'mtime': float, 'content': dict}}
 
         # Load configuration
         self.config = self._load_config()
@@ -354,13 +356,35 @@ class QueenOrchestrator:
         timestamp = datetime.now(timezone.utc).isoformat()
         print(f"[{timestamp}] [QUEEN] [{level.upper()}] {message}")
 
+    def _read_json_cached(self, filename: str) -> Dict[str, Any]:
+        """Read a JSON file with mtime caching."""
+        filepath = self.honeycomb_path / filename
+        if not filepath.exists():
+            return {}
+
+        try:
+            mtime = filepath.stat().st_mtime
+            path_str = str(filepath)
+
+            cache_entry = self._state_cache.get(path_str)
+            if cache_entry and cache_entry['mtime'] == mtime:
+                return copy.deepcopy(cache_entry['content'])  # Deep copy to prevent mutation of cache
+
+            with open(filepath, 'r') as f:
+                content = json.load(f)
+
+            self._state_cache[path_str] = {
+                'mtime': mtime,
+                'content': content
+            }
+            return copy.deepcopy(content)
+        except Exception as e:
+            self.log(f"Error reading {filename}: {e}", level="error")
+            return {}
+
     def _read_state(self) -> Dict[str, Any]:
         """Read current state."""
-        state_path = self.honeycomb_path / "state.json"
-        if state_path.exists():
-            with open(state_path, 'r') as f:
-                return json.load(f)
-        return {}
+        return self._read_json_cached("state.json")
 
     def _update_state(self, updates: Dict[str, Any]) -> None:
         """Update state file."""
@@ -375,11 +399,7 @@ class QueenOrchestrator:
 
     def _read_tasks(self) -> Dict[str, Any]:
         """Read task queue."""
-        tasks_path = self.honeycomb_path / "tasks.json"
-        if tasks_path.exists():
-            with open(tasks_path, 'r') as f:
-                return json.load(f)
-        return {}
+        return self._read_json_cached("tasks.json")
 
     def _deep_merge(self, base: Dict, updates: Dict) -> Dict:
         """Deep merge two dictionaries."""
