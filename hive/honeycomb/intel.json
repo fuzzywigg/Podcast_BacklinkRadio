@@ -2,7 +2,7 @@
   "_meta": {
     "version": "1.0.0",
     "description": "Accumulated knowledge - the hive memory",
-    "last_updated": "2025-12-22T20:09:04.960509+00:00"
+    "last_updated": "2025-12-22T21:34:46.864944+00:00"
   },
   "listeners": {
     "_schema": {
@@ -239,10 +239,136 @@
       "contact": "email",
       "discovered_at": "2025-12-22T20:09:04.960241+00:00",
       "last_contact": null
+    },
+    "pipeline.d89671ec": {
+      "sponsor_id": "d89671ec",
+      "company": "Sample Company (music_tech)",
+      "category": "music_tech",
+      "status": "prospect",
+      "value": "medium",
+      "notes": [
+        "Discovered: Aligned with station vibe and audience"
+      ],
+      "contact": "email",
+      "discovered_at": "2025-12-22T21:34:46.857267+00:00",
+      "last_contact": null
+    },
+    "pipeline.3b5dd54f": {
+      "sponsor_id": "3b5dd54f",
+      "company": "Sample Company (streaming)",
+      "category": "streaming",
+      "status": "prospect",
+      "value": "medium",
+      "notes": [
+        "Discovered: Aligned with station vibe and audience"
+      ],
+      "contact": "email",
+      "discovered_at": "2025-12-22T21:34:46.858406+00:00",
+      "last_contact": null
+    },
+    "pipeline.12c88bd7": {
+      "sponsor_id": "12c88bd7",
+      "company": "Sample Company (lifestyle)",
+      "category": "lifestyle",
+      "status": "prospect",
+      "value": "medium",
+      "notes": [
+        "Discovered: Aligned with station vibe and audience"
+      ],
+      "contact": "email",
+      "discovered_at": "2025-12-22T21:34:46.859459+00:00",
+      "last_contact": null
+    },
+    "pipeline.4b1cff47": {
+      "sponsor_id": "4b1cff47",
+      "company": "Sample Company (creator_tools)",
+      "category": "creator_tools",
+      "status": "prospect",
+      "value": "medium",
+      "notes": [
+        "Discovered: Aligned with station vibe and audience"
+      ],
+      "contact": "email",
+      "discovered_at": "2025-12-22T21:34:46.860572+00:00",
+      "last_contact": null
+    },
+    "pipeline.f4c875c8": {
+      "sponsor_id": "f4c875c8",
+      "company": "Sample Company (gaming)",
+      "category": "gaming",
+      "status": "prospect",
+      "value": "medium",
+      "notes": [
+        "Discovered: Aligned with station vibe and audience"
+      ],
+      "contact": "email",
+      "discovered_at": "2025-12-22T21:34:46.861739+00:00",
+      "last_contact": null
+    },
+    "pipeline.022650b1": {
+      "sponsor_id": "022650b1",
+      "company": "Sample Company (education)",
+      "category": "education",
+      "status": "prospect",
+      "value": "medium",
+      "notes": [
+        "Discovered: Aligned with station vibe and audience"
+      ],
+      "contact": "email",
+      "discovered_at": "2025-12-22T21:34:46.862873+00:00",
+      "last_contact": null
+    },
+    "pipeline.4a415d28": {
+      "sponsor_id": "4a415d28",
+      "company": "Sample Company (local_business)",
+      "category": "local_business",
+      "status": "prospect",
+      "value": "medium",
+      "notes": [
+        "Discovered: Aligned with station vibe and audience"
+      ],
+      "contact": "email",
+      "discovered_at": "2025-12-22T21:34:46.864528+00:00",
+      "last_contact": null
     }
   },
   "trends": {
     "current": [
+      {
+        "source": "spotify_viral",
+        "type": "music",
+        "title": "New viral track emerging",
+        "description": "Track gaining momentum on streaming platforms",
+        "relevance": 0.8,
+        "priority": "normal",
+        "discovered_at": "2025-12-22T21:34:46.845281+00:00",
+        "actionable": true,
+        "action_suggestion": "Consider adding to playlist rotation"
+      },
+      {
+        "source": "cultural_moments",
+        "type": "cultural",
+        "title": "Cultural moment detected",
+        "description": "Significant event in music/entertainment",
+        "relevance": 0.7,
+        "priority": "normal",
+        "discovered_at": "2025-12-22T21:34:46.845287+00:00",
+        "actionable": true,
+        "action_suggestion": "Worth mentioning on air if relevant"
+      },
+      {
+        "source": "twitter_trending",
+        "type": "social",
+        "title": "Music-related hashtag trending",
+        "description": "Community discussion around music topic",
+        "relevance": 0.6,
+        "priority": "normal",
+        "discovered_at": "2025-12-22T21:34:46.845273+00:00",
+        "actionable": true,
+        "action_suggestion": "Potential talking point for broadcast"
+      }
+    ],
+    "archive": [
       {
         "source": "spotify_viral",
         "type": "music",
@@ -277,8 +403,7 @@
         "action_suggestion": "Potential talking point for broadcast"
       }
     ],
-    "archive": [],
-    "last_scan": "2025-12-22T20:09:04.952954+00:00"
+    "last_scan": "2025-12-22T21:34:46.845472+00:00"
   },
   "content_performance": {
     "top_clips": [],
