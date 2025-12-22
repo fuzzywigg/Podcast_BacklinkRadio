@@ -19,12 +19,23 @@ AUTHORITIES = {
         "mr_pappas",      # Andrew Pappas (The Boss)
         "nft2me",         # NFT2.me Team
         "smtp_eth_dev",   # SMTP.eth Developers
+        "fuzzywigg",      # Fuzzywigg Entity
     ],
     "groups": [
         "nft2.me_team",
         "fuzzywigg.ai_logic"
     ]
 }
+
+# ─────────────────────────────────────────────────────────────
+# TRUSTED IDENTITIES
+# ─────────────────────────────────────────────────────────────
+
+TRUSTED_EMAILS = [
+    "fuzzywigg@hotmail.com",
+    "andrew.pappas@nft2.me",
+    "apappas.pu@gmail.com"
+]
 
 # ─────────────────────────────────────────────────────────────
 # SAFETY FILTER

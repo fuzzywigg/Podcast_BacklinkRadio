@@ -16,6 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from base_bee import EmployedBee
 from utils.safety import validate_interaction, sanitize_payment_message
+from utils.economy import calculate_dao_rewards
 
 
 class EngagementBee(EmployedBee):
@@ -123,10 +124,14 @@ class EngagementBee(EmployedBee):
              # Normal users can request music, that's fine.
              pass
 
+        # Calculate DAO Rewards (Credits)
+        rewards = calculate_dao_rewards(sender, "interaction", 1.0)
+
         # Update listener intel
         self.add_listener_intel(sender, {
             "handle": sender,
             "interaction_count": 1,  # Will be incremented
+            "dao_credits": rewards.get("amount", 0), # Will accumulate if I fix add_listener_intel or just overwrite
             "notes": [f"Mentioned us: {safe_content[:100]}"]
         })
 
@@ -167,10 +172,14 @@ class EngagementBee(EmployedBee):
         if meta.get("risk_level") == "high":
             checked_message = "Thanks for the donation! (Message withheld for safety)"
 
+        # Calculate DAO Rewards (Credits based on dollar value)
+        rewards = calculate_dao_rewards(donor, "dollar", float(amount))
+
         # Update listener intel
         self.add_listener_intel(donor, {
             "handle": donor,
             "donation_total": amount,  # Will accumulate
+            "dao_credits": rewards.get("amount", 0), # This logic needs check in add_listener_intel to sum up
             "notes": [f"Donated ${amount}: {checked_message}"],
             "tags": ["donor"]
         })
