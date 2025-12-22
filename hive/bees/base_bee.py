@@ -151,6 +151,11 @@ class BaseBee(ABC):
         if "notes" in intel_data and "notes" in existing:
             intel_data["notes"] = existing["notes"] + intel_data["notes"]
 
+        # Ensure numeric fields like 'dao_credits' are accumulated, not overwritten
+        for field in ["dao_credits", "donation_total", "interaction_count"]:
+            if field in intel_data and field in existing:
+                intel_data[field] = existing[field] + intel_data[field]
+
         intel_data["last_seen"] = datetime.now(timezone.utc).isoformat()
         if "first_seen" not in existing:
             intel_data["first_seen"] = intel_data["last_seen"]

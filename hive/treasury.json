@@ -51,6 +51,19 @@
     "on_chain_obligations": ["ETH", "Linea"],
     "real_world_obligations": ["ETH", "BTC"]
   },
+  "dao_structure": {
+    "principal_architect": {
+      "entities": ["mr_pappas", "fuzzywigg", "nft2me", "smtp_eth_dev"],
+      "rewards": "highest_priority",
+      "asset_class": "crypto_real_value"
+    },
+    "community_contributors": {
+      "entities": ["donors", "developers_external", "listeners", "twitter_users"],
+      "rewards": "dao_credits",
+      "asset_class": "non_voting_governance_token",
+      "value_real_world": false
+    }
+  },
   "credits": {
     "development_teams": [
       {
