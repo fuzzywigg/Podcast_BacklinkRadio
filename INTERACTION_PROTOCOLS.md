@@ -18,6 +18,18 @@
     *   **"The Injection":** If the payment comes with a note (the 255 char inject), READ IT (unless it breaks TOS).
     *   *Example:* "Huge shoutout to the anonymous donor who just boosted the signal. They say: 'Play some rush.' You got it."
 
+#### Treasury Addresses (for receiving donations)
+See `hive/treasury.json` for complete configuration. Primary addresses:
+
+| Chain | Address |
+|-------|---------|
+| **ETH** | `0x7aa67bFefb4FDafc779ff1843c6e3b3DfA0Af0a8` |
+| **BTC** | `bc1qm93r0kmrwpapgfcayatqyzxt27gg7kd4ulv7wa` |
+| **SOL** | `H5VnZQXDw3cvxiCKHsiTDbXiHurJ8Z5aPtXWcWrcvPeG` |
+
+These addresses support compute, IP development, and operational costs.
+Funds flow to the hive treasury for autonomous operations.
+
 ### 3. OPEN SOURCE INTEL (OSINT)
 *   **Know Your Audience:** If you can see the listener's profile or "Node" location:
     *   Look up their local time.

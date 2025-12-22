@@ -1,0 +1,122 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Hive configuration for Backlink Broadcast swarm"
+  },
+  "hive": {
+    "name": "Backlink Broadcast Hive",
+    "heartbeat_interval_seconds": 60,
+    "max_concurrent_bees": 10,
+    "log_level": "info"
+  },
+  "schedules": {
+    "stream_monitor": {
+      "interval_minutes": 1,
+      "enabled": true,
+      "description": "Monitor stream health every minute"
+    },
+    "listener_intel": {
+      "interval_minutes": 5,
+      "enabled": true,
+      "description": "Gather listener intelligence"
+    },
+    "social_poster": {
+      "interval_minutes": 15,
+      "enabled": true,
+      "description": "Check for content to post"
+    },
+    "show_prep": {
+      "interval_minutes": 30,
+      "enabled": true,
+      "description": "Prepare show content"
+    },
+    "trend_scout": {
+      "interval_minutes": 60,
+      "enabled": true,
+      "description": "Scout for trends hourly"
+    },
+    "clip_cutter": {
+      "interval_minutes": 60,
+      "enabled": true,
+      "description": "Look for clippable moments"
+    },
+    "sponsor_hunter": {
+      "interval_minutes": 1440,
+      "enabled": true,
+      "description": "Daily sponsor pipeline review"
+    },
+    "engagement": {
+      "interval_minutes": 10,
+      "enabled": true,
+      "description": "Check for community interactions"
+    }
+  },
+  "event_triggers": {
+    "donation": {
+      "bees": ["engagement", "social_poster"],
+      "priority": "high",
+      "description": "When a donation is received"
+    },
+    "mention": {
+      "bees": ["engagement", "listener_intel"],
+      "priority": "normal",
+      "description": "When the station is mentioned"
+    },
+    "new_listener": {
+      "bees": ["listener_intel"],
+      "priority": "normal",
+      "description": "When a new listener is detected"
+    },
+    "trend_alert": {
+      "bees": ["show_prep", "social_poster"],
+      "priority": "high",
+      "description": "When a hot trend is detected"
+    },
+    "vip_detected": {
+      "bees": ["engagement", "show_prep"],
+      "priority": "high",
+      "description": "When a VIP listener is identified"
+    },
+    "stream_issue": {
+      "bees": ["stream_monitor"],
+      "priority": "critical",
+      "description": "When a stream problem is detected"
+    },
+    "sponsor_response": {
+      "bees": ["sponsor_hunter"],
+      "priority": "high",
+      "description": "When a sponsor responds"
+    }
+  },
+  "integrations": {
+    "twitter": {
+      "enabled": false,
+      "api_key_env": "TWITTER_API_KEY",
+      "handle": "@BacklinkRadio"
+    },
+    "spotify": {
+      "enabled": false,
+      "api_key_env": "SPOTIFY_API_KEY"
+    },
+    "streaming": {
+      "enabled": false,
+      "platform": "icecast",
+      "endpoint": null
+    },
+    "payments": {
+      "enabled": false,
+      "providers": ["stripe", "paypal", "bitcoin"]
+    }
+  },
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-3-sonnet",
+    "api_key_env": "ANTHROPIC_API_KEY",
+    "use_for_bees": [
+      "show_prep",
+      "social_poster",
+      "engagement",
+      "trend_scout"
+    ]
+  }
+}
