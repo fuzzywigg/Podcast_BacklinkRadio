@@ -1,0 +1,74 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Treasury configuration for Backlink Broadcast hive operations",
+    "purpose": "Receipt addresses for donations, tips, compute support, and operational funds",
+    "note": "Non-contractually obligated funds - burns, transit losses, accidents, tips, treasury operations"
+  },
+  "wallets": {
+    "ETH": {
+      "address": "0x7aa67bFefb4FDafc779ff1843c6e3b3DfA0Af0a8",
+      "network": "Ethereum Mainnet",
+      "primary": true
+    },
+    "BTC": {
+      "address": "bc1qm93r0kmrwpapgfcayatqyzxt27gg7kd4ulv7wa",
+      "network": "Bitcoin"
+    },
+    "SOL": {
+      "address": "H5VnZQXDw3cvxiCKHsiTDbXiHurJ8Z5aPtXWcWrcvPeG",
+      "network": "Solana"
+    },
+    "Linea": {
+      "address": "0x7aa67bFefb4FDafc779ff1843c6e3b3DfA0Af0a8",
+      "network": "Linea"
+    },
+    "SHIB": {
+      "address": "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
+      "network": "Ethereum",
+      "token": "SHIB"
+    },
+    "PEPE": {
+      "address": "0x6982508145454Ce325dDbE47a25d4ec3d2311933",
+      "network": "Ethereum",
+      "token": "PEPE"
+    },
+    "SHIB_ALT": {
+      "address": "0xFCa95aeb5bF44aE355806A5ad14659c940dC6BF7",
+      "network": "Ethereum",
+      "token": "Shiba Inu"
+    },
+    "BASED": {
+      "address": "0x07d15798a67253D76cea61F0eA6F57AeDC59DffB",
+      "network": "Base",
+      "token": "Based Coin"
+    }
+  },
+  "usage": {
+    "donations": ["ETH", "BTC", "SOL"],
+    "tips": ["ETH", "BTC", "SOL", "Linea"],
+    "compute_support": ["ETH", "SOL"],
+    "on_chain_obligations": ["ETH", "Linea"],
+    "real_world_obligations": ["ETH", "BTC"]
+  },
+  "credits": {
+    "development_teams": [
+      {
+        "name": "SMTP.eth Team",
+        "role": "Core infrastructure and support",
+        "website": null
+      },
+      {
+        "name": "nft2.me",
+        "role": "Platform and tooling",
+        "website": "https://nft2.me"
+      },
+      {
+        "name": "fuzzywigg.ai Development Team",
+        "role": "Hive architecture and AI development",
+        "website": null
+      }
+    ],
+    "note": "Credit for this work belongs to the teams listed above"
+  }
+}

@@ -173,6 +173,71 @@ class BaseBee(ABC):
         self.write_state({"alerts": state["alerts"]})
 
     # ─────────────────────────────────────────────────────────────
+    # TREASURY ACCESS (Web3 wallet addresses for operations)
+    # ─────────────────────────────────────────────────────────────
+
+    def read_treasury(self) -> Dict[str, Any]:
+        """
+        Read treasury configuration for wallet addresses.
+
+        Used for:
+        - Receiving donations/tips
+        - Compute support funding
+        - On-chain obligations
+        - Real-world payment obligations
+
+        Returns wallet addresses for ETH, BTC, SOL, and other chains.
+        """
+        treasury_path = self.hive_path / "treasury.json"
+        if treasury_path.exists():
+            with open(treasury_path, 'r') as f:
+                return json.load(f)
+        return {}
+
+    def get_wallet_address(self, chain: str = "ETH") -> Optional[str]:
+        """
+        Get wallet address for a specific chain.
+
+        Args:
+            chain: Chain identifier (ETH, BTC, SOL, Linea, SHIB, PEPE, BASED)
+
+        Returns:
+            Wallet address string or None if not configured.
+        """
+        treasury = self.read_treasury()
+        wallet = treasury.get("wallets", {}).get(chain, {})
+        return wallet.get("address")
+
+    def get_donation_addresses(self) -> Dict[str, str]:
+        """
+        Get all wallet addresses configured for donations.
+
+        Returns:
+            Dict mapping chain names to addresses.
+        """
+        treasury = self.read_treasury()
+        wallets = treasury.get("wallets", {})
+        donation_chains = treasury.get("usage", {}).get("donations", [])
+
+        return {
+            chain: wallets[chain]["address"]
+            for chain in donation_chains
+            if chain in wallets
+        }
+
+    def get_credits(self) -> Dict[str, Any]:
+        """
+        Get development team credits.
+
+        Credit belongs to:
+        - SMTP.eth Team
+        - nft2.me
+        - fuzzywigg.ai Development Team
+        """
+        treasury = self.read_treasury()
+        return treasury.get("credits", {})
+
+    # ─────────────────────────────────────────────────────────────
     # CORE BEE LIFECYCLE
     # ─────────────────────────────────────────────────────────────
 
