@@ -13,6 +13,9 @@ from datetime import datetime, timezone
 import sys
 from pathlib import Path
 
+# Add hive root to path to allow importing utils
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+# Add bees directory to path for base_bee import
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from base_bee import EmployedBee
 from utils.safety import validate_interaction, sanitize_payment_message
