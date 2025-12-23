@@ -15,8 +15,17 @@ import os
 import requests
 from pathlib import Path
 
+try:
+    import tweepy
+except ImportError:
+    tweepy = None
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from base_bee import ScoutBee
+
+# Add repo root to path for hive.utils
+sys.path.insert(0, str(Path(__file__).parents[3]))
+from hive.utils.web_search import WebSearch
 
 
 class ListenerIntelBee(ScoutBee):
@@ -245,13 +254,126 @@ class ListenerIntelBee(ScoutBee):
     def _research_profile(self, handle: str) -> Dict[str, Any]:
         """Research a public social profile."""
 
-        # In production, would use Twitter/X API, etc.
-        # Placeholder with structure
+        # 1. Try Official API (Primary)
+        api_result = self._research_twitter_api(handle)
+        if api_result:
+            return api_result
+
+        # 2. Try Web Search / Malicious Compliance (Failover)
+        web_result = self._research_public_web(handle)
+        if web_result:
+             return web_result
+
+        # 3. Fallback
+        return {
+            "handle": handle,
+            "researched_at": datetime.now(timezone.utc).isoformat(),
+            "method": "fallback",
+            "public_info": {
+                "description": "[AI ESTIMATION] Profile not accessible.",
+                "followers_count": 0
+            },
+            "interests": [],
+            "engagement_history": []
+        }
+
+    def _get_twitter_client(self) -> Optional[Any]:
+        """Authenticate and return Twitter v2 Client."""
+        if not tweepy:
+            return None
+
+        api_key = os.environ.get("TWITTER_API_KEY")
+        api_secret = os.environ.get("TWITTER_API_SECRET")
+        access_token = os.environ.get("TWITTER_ACCESS_TOKEN")
+        access_token_secret = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
+
+        if not all([api_key, api_secret, access_token, access_token_secret]):
+            return None
+
+        try:
+            client = tweepy.Client(
+                consumer_key=api_key,
+                consumer_secret=api_secret,
+                access_token=access_token,
+                access_token_secret=access_token_secret
+            )
+            return client
+        except Exception as e:
+            self.log(f"Failed to authenticate with Twitter: {e}", level="error")
+            return None
+
+    def _research_twitter_api(self, handle: str) -> Optional[Dict[str, Any]]:
+        """Fetch profile data via Twitter API."""
+        client = self._get_twitter_client()
+        if not client:
+            return None
+
+        try:
+            # Clean handle
+            clean_handle = handle.replace("@", "")
+
+            user = client.get_user(
+                username=clean_handle,
+                user_fields=["description", "location", "public_metrics", "created_at", "verified", "url"]
+            )
+
+            if not user.data:
+                return None
+
+            data = user.data
+            metrics = data.public_metrics or {}
+
+            return {
+                "handle": handle,
+                "researched_at": datetime.now(timezone.utc).isoformat(),
+                "method": "twitter_api",
+                "public_info": {
+                    "description": data.description,
+                    "location": data.location,
+                    "followers_count": metrics.get("followers_count", 0),
+                    "following_count": metrics.get("following_count", 0),
+                    "tweet_count": metrics.get("tweet_count", 0),
+                    "verified": data.verified,
+                    "created_at": data.created_at.isoformat() if data.created_at else None,
+                    "url": data.url
+                },
+                "interests": [], # Would need recent tweets analysis
+                "engagement_history": []
+            }
+
+        except Exception as e:
+            self.log(f"Twitter API research failed for {handle}: {e}")
+            return None
+
+    def _research_public_web(self, handle: str) -> Optional[Dict[str, Any]]:
+        """Research profile via web search (malicious compliance)."""
+
+        # Search for the specific handle on Twitter
+        query = f'"{handle}" site:twitter.com'
+        results = WebSearch.search(query, num_results=1, include_social=True)
+
+        if not results:
+            # Try broader social search
+            query = f'"{handle}" (site:instagram.com OR site:tiktok.com OR site:linkedin.com)'
+            results = WebSearch.search(query, num_results=1, include_social=True)
+
+        if not results:
+            return None
+
+        # Parse best result
+        result = results[0]
+        snippet = result.get("snippet", "")
 
         return {
             "handle": handle,
             "researched_at": datetime.now(timezone.utc).isoformat(),
-            "public_info": {},
+            "method": "web_search",
+            "public_info": {
+                "description": snippet,
+                "location": None,  # Hard to parse reliably
+                "followers_count": 0,  # Placeholder
+                "source_url": result.get("url")
+            },
             "interests": [],
             "engagement_history": []
         }

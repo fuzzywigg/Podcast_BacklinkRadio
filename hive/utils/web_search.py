@@ -27,7 +27,7 @@ class WebSearch:
     }
 
     @staticmethod
-    def search(query: str, num_results: int = 10) -> List[Dict[str, Any]]:
+    def search(query: str, num_results: int = 10, include_social: bool = False) -> List[Dict[str, Any]]:
         """
         Perform a web search and return parsed results.
         """
@@ -39,14 +39,14 @@ class WebSearch:
             response = requests.post(WebSearch.BASE_URL, data=payload, headers=WebSearch.HEADERS, timeout=10)
             response.raise_for_status()
 
-            return WebSearch._parse_ddg_html(response.text, num_results)
+            return WebSearch._parse_ddg_html(response.text, num_results, include_social)
 
         except Exception as e:
             print(f"[WebSearch] Error searching for '{query}': {e}")
             return []
 
     @staticmethod
-    def _parse_ddg_html(html: str, limit: int) -> List[Dict[str, Any]]:
+    def _parse_ddg_html(html: str, limit: int, include_social: bool = False) -> List[Dict[str, Any]]:
         """Parse DuckDuckGo HTML results."""
         soup = BeautifulSoup(html, 'html.parser')
         results = []
@@ -72,7 +72,7 @@ class WebSearch:
                 snippet = snippet_tag.get_text(strip=True) if snippet_tag else ""
 
                 # Filter out generic or non-useful links
-                if WebSearch._is_ignored_domain(link):
+                if not include_social and WebSearch._is_ignored_domain(link):
                     continue
 
                 results.append({
