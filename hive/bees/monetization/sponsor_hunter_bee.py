@@ -13,8 +13,13 @@ from datetime import datetime, timezone
 import sys
 from pathlib import Path
 
+# Add hive/bees to path for base_bee
 sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add repo root to path for hive.utils
+sys.path.insert(0, str(Path(__file__).parents[3]))
+
 from base_bee import ScoutBee
+from hive.utils.web_search import WebSearch
 
 
 class SponsorHunterBee(ScoutBee):
@@ -116,13 +121,22 @@ class SponsorHunterBee(ScoutBee):
 
         prospects = []
 
-        # In production, would search for brands via APIs, web scraping
-        # Placeholder with structure
-
         for cat in self.TARGET_CATEGORIES:
             if category == "all" or category == cat:
-                prospect = self._find_prospect_in_category(cat)
-                if prospect:
+                # Use WebSearch to find actual brands
+                brands = WebSearch.find_brands_for_category(cat)
+
+                for brand in brands:
+                    prospect = {
+                        "category": cat,
+                        "company": brand.get("company", "Unknown Brand"),
+                        "reason": f"Discovered via search: {brand.get('title')}",
+                        "estimated_value": brand.get("estimated_value", "medium"),
+                        "contact_method": "email", # Default
+                        "discovered_at": datetime.now(timezone.utc).isoformat(),
+                        "url": brand.get("url"),
+                        "snippet": brand.get("snippet")
+                    }
                     prospects.append(prospect)
                     self._add_to_pipeline(prospect)
 
@@ -134,36 +148,29 @@ class SponsorHunterBee(ScoutBee):
             "prospects": prospects
         }
 
-    def _find_prospect_in_category(self, category: str) -> Optional[Dict[str, Any]]:
-        """Find a prospect in a specific category."""
-
-        # Placeholder - would use actual discovery
-        return {
-            "category": category,
-            "company": f"Sample Company ({category})",
-            "reason": "Aligned with station vibe and audience",
-            "estimated_value": "medium",
-            "contact_method": "email",
-            "discovered_at": datetime.now(timezone.utc).isoformat()
-        }
-
     def _add_to_pipeline(self, prospect: Dict[str, Any]) -> str:
         """Add a prospect to the pipeline."""
 
         import uuid
         sponsor_id = str(uuid.uuid4())[:8]
 
-        self.write_intel("sponsors", f"pipeline.{sponsor_id}", {
+        sponsor_data = {
             "sponsor_id": sponsor_id,
             "company": prospect.get("company"),
             "category": prospect.get("category"),
             "status": "prospect",
             "value": prospect.get("estimated_value"),
-            "notes": [f"Discovered: {prospect.get('reason')}"],
+            "notes": [
+                f"Discovered: {prospect.get('reason')}",
+                f"URL: {prospect.get('url')}",
+                f"Snippet: {prospect.get('snippet')}"
+            ],
             "contact": prospect.get("contact_method"),
             "discovered_at": prospect.get("discovered_at"),
             "last_contact": None
-        })
+        }
+
+        self.write_intel("sponsors", "pipeline", {sponsor_id: sponsor_data})
 
         return sponsor_id
 
@@ -196,7 +203,7 @@ class SponsorHunterBee(ScoutBee):
         sponsor["research"] = research
         sponsor["notes"].append(f"Researched {datetime.now(timezone.utc).isoformat()}")
 
-        self.write_intel("sponsors", f"pipeline.{sponsor_id}", sponsor)
+        self.write_intel("sponsors", "pipeline", {sponsor_id: sponsor})
 
         return {
             "action": "research",
@@ -296,7 +303,7 @@ Backlink Broadcast
 
         sponsor["last_contact"] = datetime.now(timezone.utc).isoformat()
 
-        self.write_intel("sponsors", f"pipeline.{sponsor_id}", sponsor)
+        self.write_intel("sponsors", "pipeline", {sponsor_id: sponsor})
 
         return {
             "action": "update",

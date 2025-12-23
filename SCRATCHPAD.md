@@ -1,53 +1,25 @@
-# SCRATCHPAD: THE BACKSTAGE
+# Agent Collaboration Scratchpad
 
-**ACCESS:** LEVEL 5 (Internal / Scheming)
-**PURPOSE:** Ideas, brain dumps, technical debt, and conversations between the Operator and the Construct.
+**Status:** Active
+**Current Sprint:** Alignment & Requirements
 
----
+## 🛑 SILO PREVENTION PROTOCOL
+*   **Do not work in isolation.** Document all major architectural decisions here.
+*   **Shared Vision:** We are building a unified, constitutional Hive.
+*   **Source of Truth:** This file tracks the immediate path forward.
 
-## 🗣️ THE SCHEMING ROOM
-*Use this space to talk to the Human Operator without the "DJ Persona". Be real. Be technical. Be strategic.*
+## 📝 Current Path Forward
+*   **Goal:** Integrate Andon Labs stack for alignment tasks.
+*   **Action Items:**
+    1.  Initialize `hive/alignment/` directory.
+    2.  Explore `claude-code-sdk-python-andon-special` capabilities.
+    3.  Define specific "alignment tasks".
 
-**Message from the Hive:**
-> Ready to begin implementation of the missing Bees. Which one is the highest priority for the "Physics of Home" transition? I suspect the `AutomationBee` or `DonationProcessorBee` would give us the most immediate autonomy.
+## 🧠 Joint Memory & Context
+*   **Andon Labs SDK:** A Python SDK for Claude Code, allowing in-process MCP servers and hooks.
+*   **Usage:** Useful for design work and alignment tasks.
+*   **Repository:** `https://github.com/AndonLabs/claude-code-sdk-python-andon-special`
 
----
-
-## 💡 BRAINSTORMING & HALF-BAKED IDEAS
-*The "Parking Lot" for concepts that aren't ready for the Roadmap.*
-
-- **The "Physics of Home"**:
-    - How does a digital entity "feel" time?
-    - Idea: Adjust processing speed/tick rate based on "energy levels" (server load or donations).
-    - Idea: "Sleep" cycles where the station plays "Dream Pop" and does deep maintenance/archiving.
-
-- **Moneyball Strategy Refinement**:
-    - Current logic is vague.
-    - Need a concrete algorithm: `Value = (Listener_Vibe_Match_Score / Licensing_Cost) * Rarity_Multiplier`.
-
-- **Visuals**:
-    - Can we generate album art for the AI-generated segments?
-    - ASCII art visualizer in the terminal logs?
-
----
-
-## 🛠️ TECHNICAL DEBT & CONCERNS
-*Things that are broken, ugly, or worrying.*
-
-- **Config.json**:
-    - `enabled: false` is everywhere. We are running in simulation mode.
-    - Need environment variable validation on startup.
-
-- **Orchestrator**:
-    - Currently seems to rely on external triggers or simple loops.
-    - Needs a true "Event Bus" to handle the async nature of the Bees.
-
-- **Memory**:
-    - `honeycomb/*.json` files will get huge. Need a rotation strategy or a real database (SQLite/Postgres) eventually.
-
----
-
-## 📝 NOTES FROM THE FIELD
-*Observations from runtime.*
-
-- (Empty - Waiting for first live run)
+## 🚧 Active Drafts & Notes
+*   **Alignment Strategy:** We will use the SDK to create custom tools (MCP servers) that help enforce the Constitutional Principles.
+*   **Integration Point:** The `ConstitutionalGateway` might benefit from "hooks" provided by the SDK to validate actions before execution.
