@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional
 from datetime import datetime, timezone
 import sys
 import json
-import requests
+import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -76,6 +76,15 @@ class StreamMonitorBee(OnlookerBee):
         # Get listener count
         listener_count = self._get_listener_count()
         health_status["listener_count"] = listener_count
+
+        # Check bitrate
+        bitrate_check = self._check_bitrate()
+        health_status["bitrate_ok"] = bitrate_check.get("ok", False)
+        health_status["bitrate_kbps"] = bitrate_check.get("bitrate_kbps", 0)
+
+        if not bitrate_check.get("ok"):
+            if bitrate_check.get("bitrate_kbps", 0) > 0:
+                health_status["issues"].append(f"Low bitrate: {bitrate_check['bitrate_kbps']}kbps")
 
         # Update broadcast state
         self.write_state({
@@ -178,13 +187,40 @@ class StreamMonitorBee(OnlookerBee):
 
         return 0
 
+    def _get_stream_url(self) -> str:
+        """Get stream URL from config or fallback."""
+        fallback_url = "https://stream.backlink.radio/live"
+        config_path = self.hive_path / "config.json"
+
+        if config_path.exists():
+            try:
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+                    endpoint = config.get("integrations", {}).get("streaming", {}).get("endpoint")
+                    if endpoint:
+                        return endpoint
+            except Exception as e:
+                self.log(f"Error reading config: {e}", level="error")
+
+        return fallback_url
+
     def _check_bitrate(self) -> Dict[str, Any]:
         """Check stream bitrate."""
+        url = self._get_stream_url()
+        bitrate_kbps = 0
 
-        # In production, would check actual bitrate
-        # Placeholder
-
-        bitrate_kbps = 192
+        try:
+            with urllib.request.urlopen(url, timeout=5) as response:
+                bitrate_header = response.getheader('icy-br')
+                if bitrate_header:
+                    bitrate_kbps = int(bitrate_header)
+        except Exception as e:
+            self.log(f"Bitrate check failed: {e}", level="warning")
+            return {
+                "ok": False,
+                "bitrate_kbps": 0,
+                "error": str(e)
+            }
 
         return {
             "ok": bitrate_kbps >= self.THRESHOLDS["bitrate_min_kbps"],
