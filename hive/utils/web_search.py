@@ -28,7 +28,7 @@ class WebSearch:
     }
 
     @staticmethod
-    def search(query: str, num_results: int = 10) -> List[Dict[str, Any]]:
+    def search(query: str, num_results: int = 10, include_social: bool = False) -> List[Dict[str, Any]]:
         """
         Perform a web search and return parsed results.
         """
@@ -62,7 +62,7 @@ class WebSearch:
             return WebSearch._simulate_results(query, num_results)
 
     @staticmethod
-    def _parse_ddg_html(html: str, limit: int) -> List[Dict[str, Any]]:
+    def _parse_ddg_html(html: str, limit: int, include_social: bool = False) -> List[Dict[str, Any]]:
         """Parse DuckDuckGo HTML results."""
         if not html:
             return []
@@ -94,7 +94,7 @@ class WebSearch:
                 snippet = snippet_tag.get_text(strip=True) if snippet_tag else ""
 
                 # Filter out generic or non-useful links
-                if WebSearch._is_ignored_domain(link):
+                if not include_social and WebSearch._is_ignored_domain(link):
                     continue
 
                 results.append({
