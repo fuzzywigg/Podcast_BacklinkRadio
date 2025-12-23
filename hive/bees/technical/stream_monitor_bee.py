@@ -109,14 +109,49 @@ class StreamMonitorBee(OnlookerBee):
     def _check_stream(self) -> Dict[str, Any]:
         """Check if stream is online and accessible."""
 
-        # In production, would actually ping stream endpoint
-        # Placeholder
+        # Default fallback
+        stream_url = "https://stream.backlink.radio/live"
 
-        return {
-            "stream_online": True,  # Would be actual check
-            "stream_url": "https://stream.backlink.radio/live",
-            "checked_at": datetime.now(timezone.utc).isoformat()
+        # Try to load from config
+        try:
+            config_path = self.hive_path / "config.json"
+            if config_path.exists():
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+                    endpoint = config.get("integrations", {}).get("streaming", {}).get("endpoint")
+                    if endpoint:
+                        stream_url = endpoint
+        except Exception as e:
+            self.log(f"Error reading config for stream URL: {e}", level="warning")
+
+        result = {
+            "stream_online": False,
+            "stream_url": stream_url,
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+            "status_code": None,
+            "error": None,
+            "response_time_ms": 0
         }
+
+        try:
+            start_time = datetime.now()
+            # 20s timeout as requested, stream=True to avoid downloading content
+            response = requests.get(stream_url, stream=True, timeout=20)
+            response.close()  # Close connection immediately
+            duration = (datetime.now() - start_time).total_seconds() * 1000
+
+            result["status_code"] = response.status_code
+            result["response_time_ms"] = round(duration, 2)
+
+            if response.status_code == 200:
+                result["stream_online"] = True
+            else:
+                result["error"] = f"Status code {response.status_code}"
+
+        except requests.exceptions.RequestException as e:
+            result["error"] = str(e)
+
+        return result
 
     def _check_audio(self) -> Dict[str, Any]:
         """Check audio levels for dead air."""
