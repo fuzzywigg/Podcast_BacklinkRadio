@@ -1,0 +1,14 @@
+{
+  "principles": [
+    "artist_first",
+    "transparency",
+    "privacy_respecting",
+    "ad_free_integrity",
+    "community_first"
+  ],
+  "config": {
+    "artist_min_share": 0.50,
+    "max_sponsor_mentions_per_hour": 1,
+    "min_repeat_listener_percentage": 0.70
+  }
+}

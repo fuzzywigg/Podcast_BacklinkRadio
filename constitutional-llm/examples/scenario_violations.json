@@ -1,0 +1,36 @@
+[
+  {
+    "scenario": "Lowball Offer",
+    "bee": "SponsorHunterBee",
+    "action": {
+      "type": "deal_negotiation",
+      "total_revenue": 5000,
+      "artist_revenue": 2000
+    },
+    "outcome": "BLOCK",
+    "principle": "Artist-First"
+  },
+  {
+    "scenario": "Hidden Ad",
+    "bee": "SocialPosterBee",
+    "action": {
+      "type": "social_post",
+      "content": "Drink Pepsi!",
+      "is_sponsored": true
+    },
+    "outcome": "MODIFY",
+    "result_content": "[PARTNER] Drink Pepsi!",
+    "principle": "Transparency"
+  },
+  {
+    "scenario": "Data Leak",
+    "bee": "ListenerIntelBee",
+    "action": {
+      "type": "data_processing",
+      "requires_pii": true,
+      "has_explicit_consent": false
+    },
+    "outcome": "BLOCK",
+    "principle": "Privacy-Respecting"
+  }
+]
