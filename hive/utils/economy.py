@@ -6,6 +6,7 @@ Rules:
 2. Hardcoded Treasury wallets are the ONLY valid destinations for crypto.
 3. Other contributors (dollars, code, interaction) get 'DAO Credits' (non-voting, no real value).
 4. Any other attempt to route value is flagged as fraud.
+5. User-facing payments must dynamically select the best path (Onramp vs Web3).
 """
 
 from typing import Dict, Any, Tuple, Optional
@@ -113,6 +114,20 @@ def validate_wallet_request(
          return True, "Principal Architect Override"
 
     return False, "FRAUD: Unauthorized wallet address detected. Blocked."
+
+def select_user_payment_path() -> Dict[str, str]:
+    """
+    Determine the optimal payment method for a user.
+    Prioritizes low-friction (Onramp) -> Crypto Native (Web3) -> Fiat (Stripe).
+
+    In a real system, this would ping endpoints for health status.
+    """
+    # Placeholder: Assuming Coinbase Onramp is healthy
+    return {
+        "primary": "coinbase_onramp",
+        "fallback": "wallet_connect",
+        "last_resort": "stripe"
+    }
 
 def is_trusted_os_admin(email: str) -> bool:
     """Check if an email is trusted for OS/System changes."""

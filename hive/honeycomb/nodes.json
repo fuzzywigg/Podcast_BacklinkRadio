@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Registry of compute nodes supporting the hive",
+    "updated_at": "2024-05-22T10:00:00Z"
+  },
+  "nodes": {
+    "node_alpha_01": {
+      "type": "gpu_worker",
+      "status": "active",
+      "stake": 1000.0,
+      "reputation": 100,
+      "endpoint": "internal://alpha-01",
+      "last_heartbeat": "2024-05-22T10:00:00Z"
+    },
+    "node_beta_02": {
+      "type": "audio_processor",
+      "status": "active",
+      "stake": 1000.0,
+      "reputation": 100,
+      "endpoint": "internal://beta-02",
+      "last_heartbeat": "2024-05-22T10:00:00Z"
+    },
+    "node_gamma_03": {
+      "type": "llm_inference",
+      "status": "active",
+      "stake": 1000.0,
+      "reputation": 100,
+      "endpoint": "internal://gamma-03",
+      "last_heartbeat": "2024-05-22T10:00:00Z"
+    }
+  }
+}

@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from base_bee import EmployedBee
 from utils.safety import validate_interaction, sanitize_payment_message
 from utils.economy import calculate_dao_rewards
+from utils.payment_gate import PaymentGate
 
 
 class EngagementBee(EmployedBee):
@@ -175,6 +176,40 @@ class EngagementBee(EmployedBee):
         if meta.get("risk_level") == "high":
             checked_message = "Thanks for the donation! (Message withheld for safety)"
 
+        # ─── REFUND & SERVICE LOGIC ────────────────────────────────
+        # Try to fulfill the request. If it fails, refund.
+        # This simulates the "Backend Compute" attempt.
+
+        fulfillment_success = self._attempt_service_fulfillment(donor, safe_message, amount)
+
+        if not fulfillment_success["success"]:
+            # TRIGGER REFUND
+            gate = PaymentGate(self.hive_path)
+            reason = fulfillment_success.get("error", "service_failure")
+            node_id = fulfillment_success.get("failed_node")
+
+            refund_result = gate.process_refund(
+                user_handle=donor,
+                amount=amount,
+                reason=reason,
+                node_id=node_id
+            )
+
+            # Penalize node if it was a compute failure
+            if node_id:
+                gate.slash_node(node_id)
+
+            self.log(f"Refund issued to {donor}: {reason}")
+
+            return {
+                "action": "refunded",
+                "donor": donor,
+                "amount": amount,
+                "reason": reason,
+                "details": refund_result
+            }
+        # ───────────────────────────────────────────────────────────
+
         # Calculate DAO Rewards (Credits based on dollar value)
         rewards = calculate_dao_rewards(donor, "dollar", float(amount))
 
@@ -211,6 +246,34 @@ class EngagementBee(EmployedBee):
             "amount": amount,
             "shoutout_queued": True
         }
+
+    def _attempt_service_fulfillment(self, user: str, message: str, amount: float) -> Dict[str, Any]:
+        """
+        Simulate the backend attempt to play song or fulfill request.
+
+        Returns:
+            Dict with 'success': bool and optional 'error', 'failed_node'.
+        """
+        # In a real system, this would call ShowPrepBee or AudioEngine
+
+        # 1. Check for 'fail_test' trigger in message (for testing/demo)
+        if "fail_timeout" in message:
+            return {
+                "success": False,
+                "error": "compute_timeout",
+                "failed_node": "node_alpha_01" # Simulating a specific node failure
+            }
+        elif "fail_song_not_found" in message:
+            return {
+                "success": False,
+                "error": "song_not_found",
+                "failed_node": None # Not a node fault, just logic
+            }
+
+        # 2. Random failure simulation (very low probability for production stability)
+        # For now, we assume success unless triggered.
+
+        return {"success": True}
 
     def _run_giveaway(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Run a giveaway or contest."""
