@@ -1,12 +1,12 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "last_updated": "2025-12-23T06:18:09.443612+00:00",
-    "last_updated_by": "show_prep_86ab07eb",
+    "last_updated": "2025-12-23T19:31:53.858719+00:00",
+    "last_updated_by": "stream_monitor_75372940",
     "description": "Live station state - the current moment"
   },
   "broadcast": {
-    "status": "offline",
+    "status": "online",
     "current_track": null,
     "queue": [],
     "vibe": null,
@@ -71,5 +71,17 @@
       }
     ],
     "local_context": {}
+  },
+  "health": {
+    "timestamp": "2025-12-23T19:31:53.419108+00:00",
+    "stream_online": true,
+    "audio_ok": true,
+    "latency_ok": true,
+    "bitrate_ok": false,
+    "listener_count": 0,
+    "issues": [],
+    "stream_url": "https://streaming.live365.com/a13541",
+    "checked_at": "2025-12-23T19:31:53.688970+00:00",
+    "latency_ms": 169.27
   }
 }

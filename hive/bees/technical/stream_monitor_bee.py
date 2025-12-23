@@ -39,6 +39,9 @@ class StreamMonitorBee(OnlookerBee):
         "latency_max_ms": 5000
     }
 
+    # Stream configuration
+    STREAM_URL = "https://streaming.live365.com/a13541"
+
     def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Monitor stream health.
@@ -168,15 +171,23 @@ class StreamMonitorBee(OnlookerBee):
 
     def _check_latency(self) -> Dict[str, Any]:
         """Check stream latency."""
+        start_time = time.perf_counter()
 
-        # In production, would measure actual latency
-        # Placeholder
+        try:
+            # Measure time to first byte (connection + header receipt)
+            with urllib.request.urlopen(self.STREAM_URL, timeout=10) as _:
+                pass
 
-        latency_ms = 2500
+            latency_ms = (time.perf_counter() - start_time) * 1000
+            ok = True
+        except (urllib.error.URLError, Exception) as e:
+            self.log(f"Latency check failed: {str(e)}", level="warning")
+            latency_ms = -1
+            ok = False
 
         return {
-            "ok": latency_ms < self.THRESHOLDS["latency_max_ms"],
-            "latency_ms": latency_ms
+            "ok": ok and (latency_ms > 0) and (latency_ms < self.THRESHOLDS["latency_max_ms"]),
+            "latency_ms": round(latency_ms, 2) if latency_ms > 0 else 0
         }
 
     def _get_listener_count(self) -> int:
