@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "last_updated": "2025-12-23T19:31:53.858719+00:00",
-    "last_updated_by": "stream_monitor_75372940",
+    "last_updated": "2025-12-23T20:48:42.503410+00:00",
+    "last_updated_by": "payout_processor_43123446",
     "description": "Live station state - the current moment"
   },
   "broadcast": {
@@ -30,7 +30,14 @@
     "pending_shoutouts": []
   },
   "alerts": {
-    "priority": [],
+    "priority": [
+      {
+        "id": "c961269a-7e7e-43da-b3f8-52d82a059253",
+        "message": "REFUND ISSUED: 0.5 to 0x123 (content_failed)",
+        "from": "payout_processor_43123446",
+        "at": "2025-12-23T20:48:42.503269+00:00"
+      }
+    ],
     "normal": []
   },
   "show_prep": {
@@ -83,5 +90,22 @@
     "stream_url": "https://streaming.live365.com/a13541",
     "checked_at": "2025-12-23T19:31:53.688970+00:00",
     "latency_ms": 169.27
+  },
+  "queen": {
+    "last_heartbeat": "2025-12-23T20:47:02.704353+00:00",
+    "status": "alive"
+  },
+  "scheduler": {
+    "last_runs": {
+      "stream_monitor": "2025-12-23T20:46:51.186220+00:00",
+      "listener_intel": "2025-12-23T20:46:51.186220+00:00",
+      "social_poster": "2025-12-23T20:46:51.186220+00:00",
+      "show_prep": "2025-12-23T20:46:51.186220+00:00",
+      "trend_scout": "2025-12-23T20:46:51.186220+00:00",
+      "clip_cutter": "2025-12-23T20:46:51.186220+00:00",
+      "sponsor_hunter": "2025-12-23T20:46:51.186220+00:00",
+      "engagement": "2025-12-23T20:46:51.186220+00:00"
+    },
+    "last_schedule_check": "2025-12-23T20:47:02.705894+00:00"
   }
 }

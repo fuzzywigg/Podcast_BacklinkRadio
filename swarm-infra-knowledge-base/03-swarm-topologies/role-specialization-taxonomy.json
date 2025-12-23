@@ -1,0 +1,36 @@
+{
+  "version": "2025.12",
+  "license": "MIT",
+  "roles": [
+    {
+      "id": "queen_orchestrator",
+      "responsibilities": ["task decomposition", "spawn/kill agents", "robot exorcism", "progress tracking"],
+      "tools": ["python_runtime", "config_loader", "bee_spawner"],
+      "max_instances": 1
+    },
+    {
+      "id": "radio_physics_bee",
+      "responsibilities": ["monitor RSSI/SNR", "verify coverage proofs (erasure codes)", "detect interference", "initiate power voting", "blacklist noisy nodes"],
+      "tools": ["intel_db", "simulation_engine", "blockchain_voter"],
+      "max_instances": 5
+    },
+    {
+      "id": "payout_processor_bee",
+      "responsibilities": ["process refunds (100% on failure)", "slash stakes (1% on crash)", "monitor treasury", "route payments"],
+      "tools": ["viem", "alchemy_webhook", "treasury_config"],
+      "max_instances": 1
+    },
+    {
+      "id": "engagement_bee",
+      "responsibilities": ["process tips", "manage shoutouts", "run gameshows", "handle whitelisted interactions"],
+      "tools": ["twitter_api", "safety_filter", "playlist_manager"],
+      "max_instances": 3
+    },
+    {
+      "id": "social_poster_bee",
+      "responsibilities": ["generate content", "post updates", "announce new stations"],
+      "tools": ["llm_client", "twitter_client"],
+      "max_instances": 2
+    }
+  ]
+}
