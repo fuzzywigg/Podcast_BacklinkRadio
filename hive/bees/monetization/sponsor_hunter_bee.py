@@ -8,10 +8,11 @@ Responsibilities:
 - Monitor deal progress
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 from datetime import datetime, timezone
 import sys
 from pathlib import Path
+import uuid
 
 # Add hive/bees to path for base_bee
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -119,7 +120,23 @@ class SponsorHunterBee(ScoutBee):
 
         category = task.get("payload", {}).get("category", "all")
 
+        # Build set of existing companies and URLs to avoid duplicates
+        existing_companies = set()
+        existing_urls = set()
+        intel = self.read_intel()
+        pipeline = intel.get("sponsors", {}).get("pipeline", {})
+
+        for data in pipeline.values():
+            if data.get("company"):
+                existing_companies.add(data.get("company").lower())
+            # Parse notes to find URL if it's there
+            for note in data.get("notes", []):
+                if note.startswith("URL:"):
+                    url = note.replace("URL:", "").strip()
+                    existing_urls.add(url)
+
         prospects = []
+        new_count = 0
 
         for cat in self.TARGET_CATEGORIES:
             if category == "all" or category == cat:
@@ -127,31 +144,46 @@ class SponsorHunterBee(ScoutBee):
                 brands = WebSearch.find_brands_for_category(cat)
 
                 for brand in brands:
+                    company_name = brand.get("company", "Unknown Brand")
+                    url = brand.get("url", "")
+
+                    # Deduplication check
+                    if company_name.lower() in existing_companies:
+                        self.log(f"Skipping existing company: {company_name}")
+                        continue
+                    if url in existing_urls:
+                        self.log(f"Skipping existing URL: {url}")
+                        continue
+
                     prospect = {
                         "category": cat,
-                        "company": brand.get("company", "Unknown Brand"),
-                        "reason": f"Discovered via search: {brand.get('title')}",
+                        "company": company_name,
+                        "reason": f"Discovered via search for '{cat}' | Title: {brand.get('title')}",
                         "estimated_value": brand.get("estimated_value", "medium"),
                         "contact_method": "email", # Default
                         "discovered_at": datetime.now(timezone.utc).isoformat(),
-                        "url": brand.get("url"),
+                        "url": url,
                         "snippet": brand.get("snippet")
                     }
                     prospects.append(prospect)
                     self._add_to_pipeline(prospect)
+                    new_count += 1
 
-        self.log(f"Scouted {len(prospects)} new prospects")
+                    # Add to local exclusion list so we don't add it again in this run
+                    existing_companies.add(company_name.lower())
+                    existing_urls.add(url)
+
+        self.log(f"Scouted {new_count} new prospects")
 
         return {
             "action": "scout",
-            "prospects_found": len(prospects),
+            "prospects_found": new_count,
             "prospects": prospects
         }
 
     def _add_to_pipeline(self, prospect: Dict[str, Any]) -> str:
         """Add a prospect to the pipeline."""
 
-        import uuid
         sponsor_id = str(uuid.uuid4())[:8]
 
         sponsor_data = {
