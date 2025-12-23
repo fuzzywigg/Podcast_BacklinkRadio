@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "last_updated": null,
-    "last_updated_by": null,
+    "last_updated": "2025-12-23T06:18:09.443612+00:00",
+    "last_updated_by": "show_prep_86ab07eb",
     "description": "Live station state - the current moment"
   },
   "broadcast": {
@@ -32,5 +32,44 @@
   "alerts": {
     "priority": [],
     "normal": []
+  },
+  "show_prep": {
+    "time_slot": "morning",
+    "talking_points": [
+      {
+        "type": "energy",
+        "text": "Rise and grind. New day, new frequencies."
+      },
+      {
+        "type": "weather",
+        "text": "Check your local conditions before heading out."
+      },
+      {
+        "type": "motivation",
+        "text": "The queue is locked and loaded. Let's move."
+      }
+    ],
+    "listener_shoutouts": [],
+    "trivia": [
+      {
+        "type": "fact",
+        "text": "You can lead a cow upstairs but not downstairs.",
+        "use_after_genre": null,
+        "source": "UselessFacts"
+      },
+      {
+        "type": "fact",
+        "text": "Average number of people airborne over the US any given hour: 61,000.",
+        "use_after_genre": null,
+        "source": "UselessFacts"
+      },
+      {
+        "type": "fact",
+        "text": "It takes 3,000 cows to supply the NFL with enough leather for a year`s supply of footballs.",
+        "use_after_genre": null,
+        "source": "UselessFacts"
+      }
+    ],
+    "local_context": {}
   }
 }

@@ -90,8 +90,11 @@
   },
   "integrations": {
     "twitter": {
-      "enabled": false,
+      "enabled": true,
       "api_key_env": "TWITTER_API_KEY",
+      "api_secret_env": "TWITTER_API_SECRET",
+      "access_token_env": "TWITTER_ACCESS_TOKEN",
+      "access_token_secret_env": "TWITTER_ACCESS_TOKEN_SECRET",
       "handle": "@BacklinkRadio"
     },
     "spotify": {
@@ -106,6 +109,27 @@
     "payments": {
       "enabled": false,
       "providers": ["stripe", "paypal", "bitcoin"]
+    },
+    "trivia": {
+      "enabled": true,
+      "providers": [
+        {
+          "name": "opentdb",
+          "enabled": true,
+          "requires_key": false
+        },
+        {
+          "name": "uselessfacts",
+          "enabled": true,
+          "requires_key": false
+        },
+        {
+          "name": "api_ninjas",
+          "enabled": true,
+          "requires_key": true,
+          "api_key_env": "API_NINJAS_KEY"
+        }
+      ]
     }
   },
   "llm": {
