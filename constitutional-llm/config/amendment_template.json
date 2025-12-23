@@ -1,0 +1,14 @@
+{
+  "amendment_id": "AMD-YYYY-MM-DD-001",
+  "proposer": "user_id",
+  "current_rule": "Describe the current rule/principle being changed",
+  "proposed_rule": "Describe the new rule/principle",
+  "rationale": "Why is this change necessary?",
+  "impact_analysis": {
+    "artists": "Impact on artists...",
+    "listeners": "Impact on listeners...",
+    "revenue": "Impact on revenue..."
+  },
+  "implementation_plan": "Steps to deploy code changes...",
+  "rollback_plan": "Steps to revert if necessary..."
+}
