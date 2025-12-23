@@ -11,8 +11,13 @@ Responsibilities:
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
 import sys
-import json
+import os
 from pathlib import Path
+
+try:
+    import tweepy
+except ImportError:
+    tweepy = None
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from base_bee import EmployedBee
@@ -174,15 +179,19 @@ class SocialPosterBee(EmployedBee):
     ) -> Dict[str, Any]:
         """Post to a specific platform."""
 
-        # In production, would use platform APIs
-        # Placeholder with structure
-
         config = self.PLATFORMS.get(platform, {})
 
         # Validate content length
-        if len(content) > config.get("max_chars", 280):
-            content = content[:config.get("max_chars", 280) - 3] + "..."
+        max_chars = config.get("max_chars", 280)
+        if len(content) > max_chars:
+            content = content[:max_chars - 3] + "..."
 
+        # Dispatch to platform-specific handler
+        if platform == "twitter":
+            return self._post_to_twitter(content, media)
+
+        # In production, would use platform APIs
+        # Placeholder for other platforms
         return {
             "platform": platform,
             "success": True,  # Would be actual API result
@@ -191,6 +200,79 @@ class SocialPosterBee(EmployedBee):
             "media": media,
             "posted_at": datetime.now(timezone.utc).isoformat()
         }
+
+    def _get_twitter_client(self) -> Optional[Any]:
+        """Authenticate and return Twitter v2 Client."""
+        if not tweepy:
+            self.log("Tweepy not installed", level="warning")
+            return None
+
+        api_key = os.environ.get("TWITTER_API_KEY")
+        api_secret = os.environ.get("TWITTER_API_SECRET")
+        access_token = os.environ.get("TWITTER_ACCESS_TOKEN")
+        access_token_secret = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
+
+        if not all([api_key, api_secret, access_token, access_token_secret]):
+            self.log("Missing Twitter API credentials", level="warning")
+            return None
+
+        try:
+            client = tweepy.Client(
+                consumer_key=api_key,
+                consumer_secret=api_secret,
+                access_token=access_token,
+                access_token_secret=access_token_secret
+            )
+            return client
+        except Exception as e:
+            self.log(f"Failed to authenticate with Twitter: {e}", level="error")
+            return None
+
+    def _post_to_twitter(self, content: str, media: Optional[Dict] = None) -> Dict[str, Any]:
+        """Post to Twitter using API."""
+        client = self._get_twitter_client()
+
+        if not client:
+            # Fallback to simulation
+            self.log("Using simulation mode for Twitter post")
+            return {
+                "platform": "twitter",
+                "success": True,
+                "post_id": f"twitter_sim_{datetime.now().timestamp()}",
+                "content": content,
+                "media": media,
+                "posted_at": datetime.now(timezone.utc).isoformat(),
+                "note": "SIMULATED - Missing Credentials or Tweepy"
+            }
+
+        try:
+            # TODO: Handle media upload (requires API v1.1 usually or separate v2 endpoint)
+            if media:
+                self.log("Media upload not yet implemented for Twitter API v2", level="warning")
+
+            response = client.create_tweet(text=content)
+            data = response.data
+
+            # Access data as dictionary if it's not one (Tweepy models)
+            post_id = data.get("id") if isinstance(data, dict) else data.id
+            text = data.get("text") if isinstance(data, dict) else data.text
+
+            return {
+                "platform": "twitter",
+                "success": True,
+                "post_id": post_id,
+                "content": text,
+                "media": media,
+                "posted_at": datetime.now(timezone.utc).isoformat()
+            }
+        except Exception as e:
+            self.log(f"Twitter post failed: {e}", level="error")
+            return {
+                "platform": "twitter",
+                "success": False,
+                "error": str(e),
+                "content": content
+            }
 
     def _schedule_post(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Schedule a post for later."""

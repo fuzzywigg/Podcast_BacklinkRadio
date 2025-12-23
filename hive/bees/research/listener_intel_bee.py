@@ -11,6 +11,8 @@ Responsibilities:
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
 import sys
+import os
+import requests
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -136,26 +138,109 @@ class ListenerIntelBee(ScoutBee):
         """Get local context for a location (weather, news, events)."""
 
         city = location.get("city", "Unknown")
+        country = location.get("country", "")
         timezone_str = location.get("timezone", "UTC")
 
-        # In production, would call weather APIs, news APIs, etc.
-        # Placeholder with structure
+        # Fetch real data with fallbacks
+        weather_data = self._fetch_weather(city, country)
+        news_data = self._fetch_news(city, country)
 
         return {
-            "weather": {
-                "condition": "clear",
-                "temp_c": 20,
-                "description": "Clear skies"
-            },
+            "weather": weather_data,
             "local_time": datetime.now(timezone.utc).isoformat(),
             "timezone": timezone_str,
-            "notable": [],  # Local events, news, sports
+            "notable": news_data,  # Local events, news, sports
             "shoutout_hooks": [
                 f"Sending this one out to {city}",
                 f"We see you, {city}",
                 f"Signal strong from {city}"
             ]
         }
+
+    def _fetch_weather(self, city: str, country: str) -> Dict[str, Any]:
+        """Fetch weather from OpenWeatherMap."""
+        api_key = os.environ.get("OPENWEATHER_API_KEY")
+        if not api_key:
+            return self._get_fallback_weather()
+
+        try:
+            query = f"{city},{country}" if country else city
+            url = "https://api.openweathermap.org/data/2.5/weather"
+            params = {
+                "q": query,
+                "appid": api_key,
+                "units": "metric"
+            }
+            response = requests.get(url, params=params, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+
+            return {
+                "condition": data["weather"][0]["main"].lower(),
+                "temp_c": data["main"]["temp"],
+                "description": data["weather"][0]["description"]
+            }
+        except Exception as e:
+            self.log(f"Weather API error: {e}")
+            return self._get_fallback_weather()
+
+    def _get_fallback_weather(self) -> Dict[str, Any]:
+        """Return fallback weather data."""
+        return {
+            "condition": "simulated",
+            "temp_c": 20,
+            "description": "[AI ESTIMATION] Weather data unavailable. Assuming mild conditions."
+        }
+
+    def _fetch_news(self, city: str, country: str) -> List[Dict[str, Any]]:
+        """Fetch news from NewsAPI."""
+        api_key = os.environ.get("NEWS_API_KEY")
+        if not api_key:
+            return self._get_fallback_news()
+
+        try:
+            # NewsAPI works best with country codes (2 chars)
+            # If we don't have a valid 2-char country code, we might want to skip or default
+            # For now, let's try to query by everything or just country if valid
+
+            # Simple heuristic: if country is 2 chars, use it. Else try q=city
+            params = {
+                "apiKey": api_key,
+                "pageSize": 3
+            }
+
+            if country and len(country) == 2:
+                params["country"] = country.lower()
+            else:
+                params["q"] = city
+
+            url = "https://newsapi.org/v2/top-headlines"
+            response = requests.get(url, params=params, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+
+            articles = []
+            for article in data.get("articles", []):
+                articles.append({
+                    "title": article["title"],
+                    "source": article["source"]["name"],
+                    "url": article["url"]
+                })
+            return articles
+
+        except Exception as e:
+            self.log(f"News API error: {e}")
+            return self._get_fallback_news()
+
+    def _get_fallback_news(self) -> List[Dict[str, Any]]:
+        """Return fallback news data."""
+        return [
+            {
+                "title": "[AI SIMULATION] Local news feed currently offline",
+                "source": "System",
+                "url": "#"
+            }
+        ]
 
     def _research_profile(self, handle: str) -> Dict[str, Any]:
         """Research a public social profile."""
