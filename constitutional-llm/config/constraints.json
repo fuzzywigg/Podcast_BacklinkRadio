@@ -1,0 +1,14 @@
+{
+  "SponsorHunterBee": {
+    "min_deal_amount": 100,
+    "max_negotiation_rounds": 5
+  },
+  "SocialPosterBee": {
+    "platforms": ["twitter", "discord"],
+    "max_daily_posts": 10
+  },
+  "ListenerIntelBee": {
+    "data_retention_days": 30,
+    "anonymization_required": true
+  }
+}

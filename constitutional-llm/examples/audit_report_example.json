@@ -1,0 +1,22 @@
+{
+  "date": "2025-12-23",
+  "total_actions": 142,
+  "compliance_score": 98.59,
+  "violations_blocked": 2,
+  "modifications_applied": 15,
+  "violation_details": [
+    {
+      "timestamp": "2025-12-23T14:30:00Z",
+      "bee_type": "SponsorHunterBee",
+      "action_type": "deal_negotiation",
+      "decision_reason": "Artist share 40.00% is below minimum 50%"
+    },
+    {
+      "timestamp": "2025-12-23T16:45:00Z",
+      "bee_type": "ListenerIntelBee",
+      "action_type": "data_processing",
+      "decision_reason": "Action requires PII but lacks explicit user consent"
+    }
+  ],
+  "status": "HEALTHY"
+}
