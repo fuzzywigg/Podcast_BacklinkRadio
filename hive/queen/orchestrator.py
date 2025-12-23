@@ -6,6 +6,7 @@ The Queen doesn't micromanage. She:
 2. Wakes bees on events (triggers)
 3. Monitors hive health
 4. Balances workload
+5. Performs "Robot Exorcisms" on failing bees.
 
 The Queen is the heartbeat of the operation.
 """
@@ -47,6 +48,10 @@ class QueenOrchestrator:
         self.last_heartbeat = None
         self._state_cache = {}  # {filepath: {'mtime': float, 'content': dict}}
 
+        # Health Tracking
+        self.bee_failures = {} # {bee_type: failure_count}
+        self.MAX_BEE_FAILURES = 3
+
         # Load configuration
         self.config = self._load_config()
 
@@ -72,13 +77,15 @@ class QueenOrchestrator:
                 "stream_monitor": {"interval_minutes": 1, "enabled": True},
                 "social_poster": {"interval_minutes": 15, "enabled": True},
                 "show_prep": {"interval_minutes": 30, "enabled": True},
-                "sponsor_hunter": {"interval_minutes": 1440, "enabled": True}  # Daily
+                "sponsor_hunter": {"interval_minutes": 1440, "enabled": True},  # Daily
+                "radio_physics": {"interval_minutes": 5, "enabled": True} # Radio Physics
             },
             "event_triggers": {
-                "donation": ["engagement", "social_poster"],
+                "donation": ["engagement", "social_poster", "payout_processor"],
                 "mention": ["engagement", "listener_intel"],
                 "trend_alert": ["show_prep", "social_poster"],
-                "vip_detected": ["engagement"]
+                "vip_detected": ["engagement"],
+                "stream_issue": ["payout_processor", "radio_physics"] # Refund on fail
             }
         }
 
@@ -94,7 +101,9 @@ class QueenOrchestrator:
             "social_poster": ("bees.marketing.social_poster_bee", "SocialPosterBee"),
             "sponsor_hunter": ("bees.monetization.sponsor_hunter_bee", "SponsorHunterBee"),
             "engagement": ("bees.community.engagement_bee", "EngagementBee"),
-            "stream_monitor": ("bees.technical.stream_monitor_bee", "StreamMonitorBee")
+            "stream_monitor": ("bees.technical.stream_monitor_bee", "StreamMonitorBee"),
+            "radio_physics": ("bees.technical.radio_physics_bee", "RadioPhysicsBee"),
+            "payout_processor": ("bees.monetization.payout_processor_bee", "PayoutProcessorBee")
         }
 
         for bee_type, (module_path, class_name) in bee_mappings.items():
@@ -117,6 +126,11 @@ class QueenOrchestrator:
         if bee_type not in self.bee_registry:
             return {"error": f"Unknown bee type: {bee_type}"}
 
+        # Check Exorcism Protocol Status
+        if self.bee_failures.get(bee_type, 0) >= self.MAX_BEE_FAILURES:
+             self.log(f"Spawn blocked: {bee_type} is currently exiled due to failure rate.", level="error")
+             return {"error": "bee_exiled"}
+
         self.log(f"Spawning {bee_type} bee...")
 
         try:
@@ -133,26 +147,15 @@ class QueenOrchestrator:
                     sys.path.insert(0, bees_path)
 
                 # Import the specific module
-                if "content" in module_path:
-                    if "show_prep" in module_path:
-                        from content.show_prep_bee import ShowPrepBee as BeeClass
-                    elif "clip_cutter" in module_path:
-                        from content.clip_cutter_bee import ClipCutterBee as BeeClass
-                elif "research" in module_path:
-                    if "trend_scout" in module_path:
-                        from research.trend_scout_bee import TrendScoutBee as BeeClass
-                    elif "listener_intel" in module_path:
-                        from research.listener_intel_bee import ListenerIntelBee as BeeClass
-                elif "marketing" in module_path:
-                    from marketing.social_poster_bee import SocialPosterBee as BeeClass
-                elif "monetization" in module_path:
-                    from monetization.sponsor_hunter_bee import SponsorHunterBee as BeeClass
-                elif "community" in module_path:
-                    from community.engagement_bee import EngagementBee as BeeClass
-                elif "technical" in module_path:
-                    from technical.stream_monitor_bee import StreamMonitorBee as BeeClass
-                else:
-                    return {"error": f"Cannot import bee: {bee_type}"}
+                # Simplified loader
+                module_parts = module_path.split('.')
+                # e.g., bees.content.show_prep_bee -> show_prep_bee
+                # This assumes standard structure
+
+                # Import via importlib
+                module = importlib.import_module(module_path)
+                BeeClass = getattr(module, class_name)
+
             else:
                 BeeClass = bee_info
 
@@ -160,11 +163,54 @@ class QueenOrchestrator:
             bee = BeeClass(hive_path=self.hive_path)
             result = bee.run(task)
 
+            # Record success (reset failures)
+            if result.get("success"):
+                self.bee_failures[bee_type] = 0
+            else:
+                self._record_failure(bee_type)
+
             return result
 
         except Exception as e:
             self.log(f"Error spawning {bee_type}: {e}", level="error")
+            self._record_failure(bee_type)
             return {"error": str(e)}
+
+    def _record_failure(self, bee_type: str):
+        """Record a failure for a bee type."""
+        current = self.bee_failures.get(bee_type, 0)
+        self.bee_failures[bee_type] = current + 1
+
+        if self.bee_failures[bee_type] >= self.MAX_BEE_FAILURES:
+            self._robot_exorcism_protocol(bee_type)
+
+    def _robot_exorcism_protocol(self, bee_type: str):
+        """
+        The Robot Exorcism Protocol.
+        Invoked when a bee fails repeatedly.
+        """
+        self.log(f"⚠ EXORCISM PROTOCOL INITIATED for {bee_type} ⚠", level="critical")
+        self.log(f"Bee {bee_type} has failed {self.MAX_BEE_FAILURES} times consecutively.")
+
+        # 1. Post Critical Alert
+        self._update_state({
+            "alerts": {
+                "priority": [{
+                    "id": f"exorcism_{int(time.time())}",
+                    "message": f"Bee {bee_type} has been exiled due to critical instability.",
+                    "from": "QueenOrchestrator",
+                    "at": datetime.now(timezone.utc).isoformat()
+                }]
+            }
+        })
+
+        # 2. Logic to "Review and Revise" (Stub for self-healing)
+        # In a full system, this would trigger an Agentic Code Reviewer to inspect the bee's code.
+        # For now, we just log it and potentially reset the counter after a cooldown.
+
+        # 3. Temporary Exile (Cooldown)
+        # We don't actually delete the file, but we stop spawning it.
+        # The counter remains high until manual intervention or auto-reset.
 
     def trigger_event(self, event_type: str, data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Trigger an event that may wake multiple bees."""
@@ -212,9 +258,13 @@ class QueenOrchestrator:
             if last_run is None:
                 should_run = True
             else:
-                last_run_dt = datetime.fromisoformat(last_run.replace('Z', '+00:00'))
-                minutes_since = (now - last_run_dt).total_seconds() / 60
-                should_run = minutes_since >= interval_minutes
+                try:
+                    last_run_dt = datetime.fromisoformat(last_run.replace('Z', '+00:00'))
+                    minutes_since = (now - last_run_dt).total_seconds() / 60
+                    should_run = minutes_since >= interval_minutes
+                except ValueError:
+                    # If format is bad, run it
+                    should_run = True
 
             if should_run:
                 result = self.spawn_bee(bee_type)
