@@ -11,6 +11,9 @@ Responsibilities:
 from typing import Any, Dict, Optional
 from datetime import datetime, timezone
 import sys
+import time
+import urllib.request
+import urllib.error
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -36,6 +39,9 @@ class StreamMonitorBee(OnlookerBee):
         "listener_drop_percent": 20,
         "latency_max_ms": 5000
     }
+
+    # Stream configuration
+    STREAM_URL = "https://streaming.live365.com/a13541"
 
     def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -97,13 +103,19 @@ class StreamMonitorBee(OnlookerBee):
 
     def _check_stream(self) -> Dict[str, Any]:
         """Check if stream is online and accessible."""
-
-        # In production, would actually ping stream endpoint
-        # Placeholder
+        try:
+            # Use HEAD request to check status without downloading
+            req = urllib.request.Request(self.STREAM_URL, method='HEAD')
+            # Set a reasonable timeout
+            with urllib.request.urlopen(req, timeout=10) as response:
+                is_online = response.status == 200
+        except (urllib.error.URLError, Exception) as e:
+            self.log(f"Stream check failed: {str(e)}", level="warning")
+            is_online = False
 
         return {
-            "stream_online": True,  # Would be actual check
-            "stream_url": "https://stream.backlink.radio/live",
+            "stream_online": is_online,
+            "stream_url": self.STREAM_URL,
             "checked_at": datetime.now(timezone.utc).isoformat()
         }
 
@@ -122,15 +134,23 @@ class StreamMonitorBee(OnlookerBee):
 
     def _check_latency(self) -> Dict[str, Any]:
         """Check stream latency."""
+        start_time = time.perf_counter()
 
-        # In production, would measure actual latency
-        # Placeholder
+        try:
+            # Measure time to first byte (connection + header receipt)
+            with urllib.request.urlopen(self.STREAM_URL, timeout=10) as _:
+                pass
 
-        latency_ms = 2500
+            latency_ms = (time.perf_counter() - start_time) * 1000
+            ok = True
+        except (urllib.error.URLError, Exception) as e:
+            self.log(f"Latency check failed: {str(e)}", level="warning")
+            latency_ms = -1
+            ok = False
 
         return {
-            "ok": latency_ms < self.THRESHOLDS["latency_max_ms"],
-            "latency_ms": latency_ms
+            "ok": ok and (latency_ms > 0) and (latency_ms < self.THRESHOLDS["latency_max_ms"]),
+            "latency_ms": round(latency_ms, 2) if latency_ms > 0 else 0
         }
 
     def _get_listener_count(self) -> int:
