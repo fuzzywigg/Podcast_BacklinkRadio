@@ -106,6 +106,27 @@
     "payments": {
       "enabled": false,
       "providers": ["stripe", "paypal", "bitcoin"]
+    },
+    "trivia": {
+      "enabled": true,
+      "providers": [
+        {
+          "name": "opentdb",
+          "enabled": true,
+          "requires_key": false
+        },
+        {
+          "name": "uselessfacts",
+          "enabled": true,
+          "requires_key": false
+        },
+        {
+          "name": "api_ninjas",
+          "enabled": true,
+          "requires_key": true,
+          "api_key_env": "API_NINJAS_KEY"
+        }
+      ]
     }
   },
   "llm": {

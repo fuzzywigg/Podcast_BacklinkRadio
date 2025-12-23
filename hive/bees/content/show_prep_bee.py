@@ -14,6 +14,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from base_bee import EmployedBee
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from utils.trivia_fetcher import TriviaFetcher
 
 
 class ShowPrepBee(EmployedBee):
@@ -124,24 +126,20 @@ class ShowPrepBee(EmployedBee):
     def _generate_trivia(self) -> list:
         """Generate trivia for commercial break replacements."""
 
-        # Static trivia for now - could be enhanced to pull from APIs
-        return [
-            {
-                "type": "music",
-                "text": "The first song played on MTV was 'Video Killed the Radio Star.' Ironic.",
-                "use_after_genre": "rock"
-            },
-            {
-                "type": "tech",
-                "text": "The first radio broadcast was in 1906. We've been connecting nodes ever since.",
-                "use_after_genre": None
-            },
-            {
-                "type": "station",
-                "text": "Commercial-free since day one. That's the Backlink promise.",
-                "use_after_genre": None
-            }
-        ]
+        # Load config to pass to fetcher
+        config = self._read_json("../config.json")
+        if not config:
+            # Fallback if config read fails, though base bee usually handles hive path
+            # Try to read from hive root
+            try:
+                import json
+                with open(self.hive_path / "config.json", 'r') as f:
+                    config = json.load(f)
+            except Exception:
+                config = {}
+
+        fetcher = TriviaFetcher(config)
+        return fetcher.fetch(count=3)
 
 
 if __name__ == "__main__":
