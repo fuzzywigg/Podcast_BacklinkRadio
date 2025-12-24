@@ -89,6 +89,11 @@
     }
   },
   "integrations": {
+    "browser_use": {
+      "enabled": true,
+      "api_key_env": "BROWSER_USE_API_KEY",
+      "description": "Cloud browser automation for social posting and research"
+    },
     "twitter": {
       "enabled": true,
       "api_key_env": "TWITTER_API_KEY",
