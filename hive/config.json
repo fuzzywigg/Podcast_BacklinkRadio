@@ -109,7 +109,7 @@
     "streaming": {
       "enabled": false,
       "platform": "icecast",
-      "endpoint": null
+      "endpoint": "https://das-edge12-live365-dal02.cdnstream.com/a13541"
     },
     "payments": {
       "enabled": false,

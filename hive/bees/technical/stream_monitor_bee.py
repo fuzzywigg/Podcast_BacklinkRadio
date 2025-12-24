@@ -13,6 +13,8 @@ from datetime import datetime, timezone
 import sys
 import json
 import urllib.request
+import time
+import requests
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -40,7 +42,7 @@ class StreamMonitorBee(OnlookerBee):
     }
 
     # Stream configuration
-    STREAM_URL = "https://streaming.live365.com/a13541"
+    STREAM_URL = "https://das-edge12-live365-dal02.cdnstream.com/a13541"
 
     def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -66,7 +68,8 @@ class StreamMonitorBee(OnlookerBee):
         health_status.update(stream_check)
 
         # Check audio levels
-        audio_check = self._check_audio()
+        loudness_db = stream_check.get("loudness_db")
+        audio_check = self._check_audio(loudness_db=loudness_db)
         health_status["audio_ok"] = audio_check.get("ok", False)
         if not audio_check.get("ok"):
             health_status["issues"].append(audio_check.get("issue"))
@@ -113,7 +116,7 @@ class StreamMonitorBee(OnlookerBee):
         """Check if stream is online and accessible."""
 
         # Default fallback
-        stream_url = "https://stream.backlink.radio/live"
+        stream_url = "https://das-edge12-live365-dal02.cdnstream.com/a13541"
 
         # Try to load from config
         try:
@@ -133,13 +136,22 @@ class StreamMonitorBee(OnlookerBee):
             "checked_at": datetime.now(timezone.utc).isoformat(),
             "status_code": None,
             "error": None,
-            "response_time_ms": 0
+            "response_time_ms": 0,
+            "loudness_db": None
         }
 
         try:
             start_time = datetime.now()
             # 20s timeout as requested, stream=True to avoid downloading content
             response = requests.get(stream_url, stream=True, timeout=20)
+
+            # Extract headers before closing
+            if "X-Loudness" in response.headers:
+                try:
+                    result["loudness_db"] = float(response.headers["X-Loudness"])
+                except (ValueError, TypeError):
+                    pass
+
             response.close()  # Close connection immediately
             duration = (datetime.now() - start_time).total_seconds() * 1000
 
@@ -156,17 +168,26 @@ class StreamMonitorBee(OnlookerBee):
 
         return result
 
-    def _check_audio(self) -> Dict[str, Any]:
-        """Check audio levels for dead air."""
+    def _check_audio(self, loudness_db: Optional[float] = None) -> Dict[str, Any]:
+        """
+        Check audio levels for dead air.
 
-        # In production, would analyze audio levels
-        # Placeholder
+        Args:
+            loudness_db: Optional loudness value from stream headers (X-Loudness)
+        """
+
+        # Use real telemetry if available, otherwise fallback to placeholder
+        avg_db = loudness_db if loudness_db is not None else -18.0
+
+        # Determine if audio is okay based on threshold (e.g., above -60dB)
+        # Dead air usually drops below -50dB or -60dB
+        is_ok = avg_db > -60.0
 
         return {
-            "ok": True,
-            "peak_db": -6.0,
-            "avg_db": -18.0,
-            "issue": None
+            "ok": is_ok,
+            "peak_db": -6.0, # Still placeholder as X-Loudness is likely avg/integrated
+            "avg_db": avg_db,
+            "issue": f"Dead air detected ({avg_db} dB)" if not is_ok else None
         }
 
     def _check_latency(self) -> Dict[str, Any]:
@@ -200,7 +221,7 @@ class StreamMonitorBee(OnlookerBee):
 
     def _get_stream_url(self) -> str:
         """Get stream URL from config or fallback."""
-        fallback_url = "https://stream.backlink.radio/live"
+        fallback_url = "https://das-edge12-live365-dal02.cdnstream.com/a13541"
         config_path = self.hive_path / "config.json"
 
         if config_path.exists():
