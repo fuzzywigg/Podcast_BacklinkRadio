@@ -1,0 +1,24 @@
+{
+  "project_name": "Backlink Broadcast Hive",
+  "requirement": "Google Cloud Service Account with Workspace Domain Delegation",
+  "apis_to_enable": [
+    "Google Sheets API",
+    "Google Drive API",
+    "Google Docs API"
+  ],
+  "scopes_required": [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/documents",
+    "https://www.googleapis.com/auth/drive"
+  ],
+  "setup_instructions": {
+    "step_1": "Create a Service Account in Google Cloud Console.",
+    "step_2": "Download the JSON Key file and save as 'hive/google_workspace_key.json'.",
+    "step_3": "Share the specific Google Sheets/Docs with the 'client_email' found in that JSON file (treat the bot like a human user)."
+  },
+  "implementation_plan": {
+    "sponsor_hunter_bee": "Writes leads directly into a 'Sales CRM' Google Sheet.",
+    "show_prep_bee": "Writes the daily script directly into a shared 'Run of Show' Google Doc.",
+    "listener_intel_bee": "Reads 'Listener Feedback' form responses from a linked Google Sheet."
+  }
+}
