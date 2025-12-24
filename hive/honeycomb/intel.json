@@ -2,7 +2,7 @@
   "_meta": {
     "version": "1.0.0",
     "description": "Accumulated knowledge - the hive memory",
-    "last_updated": "2025-12-23T07:17:27.278966+00:00"
+    "last_updated": "2025-12-24T20:41:51.224746+00:00"
   },
   "listeners": {
     "_schema": {
@@ -462,6 +462,28 @@
       "id": "track_1",
       "started_at": "2025-12-24T03:40:07.186150+00:00"
     },
-    "queue": []
+    "queue": [
+      {
+        "title": "Never Gonna Give You Up",
+        "source": "owned",
+        "acquired_by": "tip",
+        "id": "track_1",
+        "started_at": "2025-12-24T03:40:07.186150+00:00"
+      },
+      {
+        "title": "Never Gonna Give You Up",
+        "source": "owned",
+        "acquired_by": "tip",
+        "id": "track_1",
+        "started_at": "2025-12-24T03:40:07.186150+00:00"
+      },
+      {
+        "title": "Never Gonna Give You Up",
+        "source": "owned",
+        "acquired_by": "tip",
+        "id": "track_1",
+        "started_at": "2025-12-24T03:40:07.186150+00:00"
+      }
+    ]
   }
 }
