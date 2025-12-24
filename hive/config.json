@@ -144,7 +144,8 @@
   },
   "llm": {
     "provider": "google",
-    "model": "gemini-1.5-flash",
+    "model": "gemini-2.0-flash-exp",
+    "temperature": 0.3,
     "api_key_env": "GOOGLE_API_KEY",
     "use_for_bees": [
       "show_prep",
