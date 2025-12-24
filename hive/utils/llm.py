@@ -5,8 +5,10 @@ Handles interactions with Large Language Models (specifically Google Gemini).
 """
 
 import google.generativeai as genai
+from google.generativeai import caching
 import asyncio
-from typing import Optional, Dict, Any
+import datetime
+from typing import Optional, Dict, Any, Union, List
 from pathlib import Path
 import sys
 
@@ -44,13 +46,47 @@ class LLMClient:
         else:
             print("Warning: No API key found for LLM. functionality disabled.")
 
-    def generate_text(self, prompt: str, system_instruction: Optional[str] = None) -> Optional[str]:
+    def create_cache(self, content: str, ttl_minutes: int = 5, model: Optional[str] = None) -> Optional[Any]:
         """
-        Generate text response from LLM.
+        Create a cached content object for efficient reuse.
 
         Args:
-            prompt: The user prompt or content to process.
+            content: The content to cache (e.g., station manifesto).
+            ttl_minutes: Time to live in minutes.
+            model: The model to use for the cache (defaults to configured model).
+
+        Returns:
+            The cached content object or None.
+        """
+        if not self.enabled:
+            return None
+
+        try:
+            target_model = model if model else self.model_name
+            # Ensure model name is in the format expected by caching (usually 'models/...')
+            if not target_model.startswith("models/"):
+                 target_model = f"models/{target_model}"
+
+            cache = caching.CachedContent.create(
+                model=target_model,
+                display_name=f"hive_cache_{datetime.datetime.now().timestamp()}",
+                system_instruction=content,
+                contents=[], # Contents can be empty if system_instruction holds the main context
+                ttl=datetime.timedelta(minutes=ttl_minutes),
+            )
+            return cache
+        except Exception as e:
+            print(f"Error creating cache: {e}")
+            return None
+
+    def generate_text(self, prompt: Union[str, List[Any]], system_instruction: Optional[str] = None, cached_content: Optional[Any] = None) -> Optional[str]:
+        """
+        Generate text response from LLM, supporting multimodal inputs and caching.
+
+        Args:
+            prompt: The user prompt (string) or list of parts (text, images).
             system_instruction: Optional system instruction/persona override.
+            cached_content: Optional CachedContent object.
 
         Returns:
             Generated text or None if failed.
@@ -60,8 +96,11 @@ class LLMClient:
             return None
 
         try:
-            # Instantiate model with system instruction if provided
-            if system_instruction:
+            # Instantiate model
+            if cached_content:
+                # When using cached content, the model is tied to the cache
+                model = genai.GenerativeModel.from_cached_content(cached_content=cached_content)
+            elif system_instruction:
                 model = genai.GenerativeModel(self.model_name, system_instruction=system_instruction)
             else:
                 model = self.default_model
@@ -72,7 +111,7 @@ class LLMClient:
             print(f"Error generating text: {e}")
             return None
 
-    async def generate_text_async(self, prompt: str, system_instruction: Optional[str] = None) -> Optional[str]:
+    async def generate_text_async(self, prompt: Union[str, List[Any]], system_instruction: Optional[str] = None, cached_content: Optional[Any] = None) -> Optional[str]:
         """
         Async generation to prevent blocking the Hive.
         """
@@ -80,7 +119,9 @@ class LLMClient:
             return None
 
         try:
-            if system_instruction:
+            if cached_content:
+                model = genai.GenerativeModel.from_cached_content(cached_content=cached_content)
+            elif system_instruction:
                 model = genai.GenerativeModel(self.model_name, system_instruction=system_instruction)
             else:
                 model = self.default_model
