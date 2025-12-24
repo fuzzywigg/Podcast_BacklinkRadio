@@ -9,13 +9,9 @@ Responsibilities:
 """
 
 from typing import Any, Dict, Optional
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from base_bee import EmployedBee
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from utils.trivia_fetcher import TriviaFetcher
+from hive.bees.base_bee import EmployedBee
+from hive.utils.trivia_fetcher import TriviaFetcher
 
 
 class ShowPrepBee(EmployedBee):

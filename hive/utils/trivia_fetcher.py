@@ -8,11 +8,6 @@ import requests
 import html
 import random
 from typing import List, Dict, Any, Optional
-from pathlib import Path
-import sys
-
-# Ensure hive module is in path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from hive.utils.keys import KeyManager
 

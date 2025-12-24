@@ -10,21 +10,15 @@ Responsibilities:
 
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
-import sys
 import os
 import requests
-from pathlib import Path
 
 try:
     import tweepy
 except ImportError:
     tweepy = None
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from base_bee import ScoutBee
-
-# Add repo root to path for hive.utils
-sys.path.insert(0, str(Path(__file__).parents[3]))
+from hive.bees.base_bee import ScoutBee
 from hive.utils.web_search import WebSearch
 
 

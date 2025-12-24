@@ -8,24 +8,19 @@ Responsibilities:
 - Track post performance
 """
 
-from typing import Any, Dict, List, Optional
-from datetime import datetime, timezone
-import sys
+import json
 import os
-from pathlib import Path
+from datetime import datetime, timezone
+from typing import Any, Optional
 
 try:
     import tweepy
 except ImportError:
     tweepy = None
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from base_bee import EmployedBee
-
-# Import LLM Client (needs to add repo root to path for hive package)
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-from hive.utils.llm import LLMClient
+from hive.bees.base_bee import EmployedBee
 from hive.utils.browser_use_client import BrowserUseClient
+from hive.utils.llm import LLMClient
 
 
 class SocialPosterBee(EmployedBee):

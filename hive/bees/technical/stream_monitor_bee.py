@@ -10,16 +10,13 @@ Responsibilities:
 
 from typing import Any, Dict, Optional
 from datetime import datetime, timezone
-import sys
 import json
 import urllib.request
 import time
 import requests
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from base_bee import OnlookerBee
-from utils.plausible_andon import analytics
+from hive.bees.base_bee import OnlookerBee
+from hive.utils.plausible_andon import analytics
 
 
 class StreamMonitorBee(OnlookerBee):

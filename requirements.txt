@@ -1,6 +1,19 @@
-requests
-beautifulsoup4
-google-api-python-client
-google-auth-httplib2
-google-auth-oauthlib
-google-genai
+# Backlink Broadcast - Python Dependencies
+# For full development setup, use: pip install -e ".[dev]"
+# See pyproject.toml for comprehensive dependency management
+
+# Core dependencies
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+google-api-python-client>=2.88.0
+google-auth-httplib2>=0.1.0
+google-auth-oauthlib>=1.0.0
+google-genai>=0.3.0
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+
+# Optional: Twitter/X integration
+# tweepy>=4.14.0
+
+# Optional: Browser automation
+# browser-use>=0.1.0

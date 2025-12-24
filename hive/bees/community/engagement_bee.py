@@ -10,18 +10,12 @@ Responsibilities:
 
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
-import sys
-from pathlib import Path
 
-# Add hive root to path to allow importing utils
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-# Add bees directory to path for base_bee import
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from base_bee import EmployedBee
-from utils.safety import validate_interaction, sanitize_payment_message, sanitize_payment_injection
-from utils.economy import calculate_dao_rewards
-from utils.payment_gate import PaymentGate
-from utils.plausible_andon import analytics
+from hive.bees.base_bee import EmployedBee
+from hive.utils.safety import validate_interaction, sanitize_payment_message, sanitize_payment_injection
+from hive.utils.economy import calculate_dao_rewards
+from hive.utils.payment_gate import PaymentGate
+from hive.utils.plausible_andon import analytics
 
 
 class EngagementBee(EmployedBee):

@@ -9,11 +9,8 @@ Responsibilities:
 
 from typing import Any, Dict, Optional
 from datetime import datetime, timezone
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from base_bee import EmployedBee
+from hive.bees.base_bee import EmployedBee
 from hive.utils.plausible_andon import analytics
 
 class WeatherBee(EmployedBee):

@@ -10,16 +10,9 @@ Responsibilities:
 
 from typing import Any, Dict, List, Optional, Set
 from datetime import datetime, timezone
-import sys
-from pathlib import Path
 import uuid
 
-# Add hive/bees to path for base_bee
-sys.path.insert(0, str(Path(__file__).parent.parent))
-# Add repo root to path for hive.utils
-sys.path.insert(0, str(Path(__file__).parents[3]))
-
-from base_bee import ScoutBee
+from hive.bees.base_bee import ScoutBee
 from hive.utils.web_search import WebSearch
 
 
