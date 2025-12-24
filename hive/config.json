@@ -89,6 +89,11 @@
     }
   },
   "integrations": {
+    "plausible": {
+      "enabled": true,
+      "domain": "andonlabs.com",
+      "api_host": "https://plausible.io"
+    },
     "browser_use": {
       "enabled": true,
       "api_key_env": "BROWSER_USE_API_KEY",
