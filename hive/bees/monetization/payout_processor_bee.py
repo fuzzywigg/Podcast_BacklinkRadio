@@ -10,14 +10,9 @@ Responsibilities:
 
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
-import sys
-from pathlib import Path
 
-# Add bees directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from base_bee import BaseBee
-# Import utility for payment path selection (we'll implement the logic here)
-from utils.economy import calculate_dao_rewards
+from hive.bees.base_bee import BaseBee
+from hive.utils.economy import calculate_dao_rewards
 
 class PayoutProcessorBee(BaseBee):
     """

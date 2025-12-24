@@ -1,11 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import sys
 import os
-from pathlib import Path
-
-# Add repo root to path so we can import modules
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from hive.bees.research.listener_intel_bee import ListenerIntelBee
 

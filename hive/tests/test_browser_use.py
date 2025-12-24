@@ -1,11 +1,6 @@
-
-import sys
 import json
 import os
 from pathlib import Path
-
-# Add repo root to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from hive.utils.browser_use_client import BrowserUseClient
 

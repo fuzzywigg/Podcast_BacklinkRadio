@@ -9,14 +9,11 @@ Responsibilities:
 """
 
 from typing import Any, Dict, Optional
-import sys
 import random
 from datetime import datetime, timezone
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from base_bee import EmployedBee
-from utils.plausible_andon import analytics
+from hive.bees.base_bee import EmployedBee
+from hive.utils.plausible_andon import analytics
 
 
 class DjBee(EmployedBee):

@@ -9,11 +9,6 @@ from google.generativeai import caching
 import asyncio
 import datetime
 from typing import Optional, Dict, Any, Union, List
-from pathlib import Path
-import sys
-
-# Ensure hive module is in path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from hive.utils.keys import KeyManager
 
