@@ -16,6 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from base_bee import EmployedBee
+from utils.plausible_andon import analytics
 
 
 class DjBee(EmployedBee):
@@ -54,14 +55,66 @@ class DjBee(EmployedBee):
         decision = None
 
         if request:
+            # Track Request
+            analytics.track_song_request(
+                song=request.get("song"),
+                source=request.get("source", "unknown"),
+                tip_amount=float(request.get("tip", 0.0))
+            )
+
             decision = self._evaluate_request(request, treasury, library)
+
+            # Track Decision
+            cost = decision.get("cost", 0.0)
+            current_balance = treasury["balance"]
+
+            analytics.track_ai_decision(
+                decision_type=decision["action"],
+                song=request.get("song"),
+                cost=cost,
+                treasury_before=current_balance,
+                treasury_after=current_balance - cost,
+                source=request.get("source", "unknown"),
+                has_tip=float(request.get("tip", 0.0)) > 0
+            )
+
             if decision["action"] in ["buy", "rent"]:
                 self._execute_transaction(decision, treasury, library)
                 broadcast["queue"].append(decision["track"])
+
+                # Track Acquisition
+                analytics.track_song_acquired(
+                    song=request.get("song"),
+                    acquisition_type=decision["action"],
+                    cost=decision.get("cost", 0.0),
+                    treasury_remaining=treasury["balance"]
+                )
+
+                # Track Treasury Update
+                analytics.track_treasury_updated(
+                    balance_before=current_balance,
+                    balance_after=treasury["balance"],
+                    change_amount=decision.get("cost", 0.0),
+                    change_reason=f"song_{decision['action']}"
+                )
+
             elif decision["action"] == "play_owned":
                  broadcast["queue"].append(decision["track"])
             else:
                 self.log(f"Declined request: {decision['reason']}")
+
+            # Track Tip Revenue (if any)
+            tip = float(request.get("tip", 0.0))
+            if tip > 0:
+                # Assuming tip is added to treasury? The current logic doesn't explicitly add tip to balance
+                # But we should track it as revenue regardless.
+                # If we were to add it: treasury["balance"] += tip
+                # For now, just tracking the event as per requirements.
+                analytics.track_tip_received(
+                    amount=tip,
+                    source=request.get("source", "unknown"),
+                    song_requested=request.get("song")
+                )
 
         # 3. Ensure Queue is Populated (Autopilot)
         if not broadcast["queue"]:
@@ -78,6 +131,12 @@ class DjBee(EmployedBee):
             broadcast["now_playing"] = now_playing
 
             self.log(f"Now Playing: {now_playing['title']} (Source: {now_playing['source']})")
+
+            # Track Queue/Play
+            analytics.track_song_queued(
+                song_title=now_playing["title"],
+                acquisition_type=now_playing.get("source", "unknown")
+            )
 
         # 5. Write State
         # We need to update treasury, library, and broadcast state

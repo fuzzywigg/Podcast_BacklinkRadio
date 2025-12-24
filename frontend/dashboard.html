@@ -1,0 +1,61 @@
+<!-- Andon Labs Dashboard Scaffold -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andon Labs - AI DJ Dashboard</title>
+
+    <!-- Plausible Analytics Integration -->
+    <script defer data-domain="andonlabs.com" src="https://plausible.io/js/script.js"></script>
+
+    <style>
+        body { font-family: sans-serif; margin: 2rem; background: #111; color: #eee; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { background: #222; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; }
+        h1, h2 { color: #fff; }
+        button { padding: 0.5rem 1rem; cursor: pointer; background: #4caf50; border: none; color: white; border-radius: 4px; }
+        input { padding: 0.5rem; background: #333; color: white; border: 1px solid #555; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Andon Labs Dashboard</h1>
+
+        <div class="card">
+            <h2>Treasury Status</h2>
+            <div id="treasury-display">Loading...</div>
+        </div>
+
+        <div class="card">
+            <h2>Request a Song</h2>
+            <form id="song-request">
+                <input type="text" id="song-input" placeholder="Song Title" required>
+                <input type="number" id="tip-input" placeholder="Tip (optional)" step="0.50">
+                <button type="submit">Submit Request</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Example Frontend Tracking
+        document.getElementById('song-request').addEventListener('submit', (e) => {
+            // Note: In production, this would be handled by the backend API call return
+            // But we track the intent here for frontend metrics
+            const song = document.getElementById('song-input').value;
+            const tip = document.getElementById('tip-input').value;
+
+            // Only using Plausible global if it loaded
+            if (window.plausible) {
+                plausible('Song Request Submitted', {
+                    props: {
+                        song: song,
+                        tip_amount: tip || '0',
+                        source: 'web_dashboard'
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

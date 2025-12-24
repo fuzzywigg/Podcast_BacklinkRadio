@@ -17,6 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from base_bee import OnlookerBee
+from utils.plausible_andon import analytics
 
 
 class StreamMonitorBee(OnlookerBee):
@@ -50,6 +51,10 @@ class StreamMonitorBee(OnlookerBee):
         - action: health_check|quality_check|listener_count
         """
         self.log("Running stream health check...")
+
+        # Read previous state for transition detection
+        previous_state = self.read_state()
+        was_online = previous_state.get("broadcast", {}).get("status") == "online"
 
         health_status = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -97,6 +102,16 @@ class StreamMonitorBee(OnlookerBee):
             },
             "health": health_status
         })
+
+        # Track transitions and metrics
+        is_online = health_status["stream_online"]
+        if is_online and not was_online:
+            analytics.track_broadcast_status("started")
+        elif not is_online and was_online:
+            analytics.track_broadcast_status("ended")
+
+        # Always track listener count for RLVR engagement metrics
+        analytics.track_event("Listener Count", props={"count": listener_count})
 
         # Alert on critical issues
         if health_status["issues"]:

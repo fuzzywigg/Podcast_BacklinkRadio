@@ -12,6 +12,15 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
+try:
+    # Try importing from relative path if inside package
+    from .plausible_andon import analytics
+except ImportError:
+    # Fallback for when running as script/different context
+    import sys
+    sys.path.append(str(Path(__file__).parent))
+    from plausible_andon import analytics
+
 class PaymentGate:
     """
     Manages the 'Customer Service' logic:
@@ -64,6 +73,16 @@ class PaymentGate:
         }
         self._log_incident(log_entry)
 
+        # 3. Track in Plausible (RLVR Penalty)
+        analytics.track_event(
+            event_name="Refund Issued",
+            props={
+                "user": user_handle,
+                "amount": str(amount),
+                "reason": reason
+            }
+        )
+
         return {
             "status": "refunded",
             "amount": amount,
@@ -115,6 +134,15 @@ class PaymentGate:
                 "slash_amount": slash_amount,
                 "new_stake": new_stake
             })
+
+            # Track in Plausible (System Health)
+            analytics.track_event(
+                event_name="Node Slashed",
+                props={
+                    "node_id": node_id,
+                    "amount": str(slash_amount)
+                }
+            )
 
             return {
                 "status": "slashed",
