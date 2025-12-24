@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "last_updated": "2025-12-23T20:48:42.503410+00:00",
-    "last_updated_by": "payout_processor_43123446",
+    "last_updated": "2025-12-24T04:37:58.266062+00:00",
+    "last_updated_by": "stream_monitor_3fd7fed3",
     "description": "Live station state - the current moment"
   },
   "broadcast": {
@@ -80,16 +80,21 @@
     "local_context": {}
   },
   "health": {
-    "timestamp": "2025-12-23T19:31:53.419108+00:00",
+    "timestamp": "2025-12-24T04:37:57.887109+00:00",
     "stream_online": true,
     "audio_ok": true,
     "latency_ok": true,
-    "bitrate_ok": false,
+    "bitrate_ok": true,
     "listener_count": 0,
     "issues": [],
-    "stream_url": "https://streaming.live365.com/a13541",
-    "checked_at": "2025-12-23T19:31:53.688970+00:00",
-    "latency_ms": 169.27
+    "stream_url": "https://das-edge12-live365-dal02.cdnstream.com/a13541",
+    "checked_at": "2025-12-24T04:37:57.887318+00:00",
+    "latency_ms": 129.58,
+    "status_code": 200,
+    "error": null,
+    "response_time_ms": 164.19,
+    "loudness_db": -18.3288,
+    "bitrate_kbps": 128
   },
   "queen": {
     "last_heartbeat": "2025-12-23T20:47:02.704353+00:00",
