@@ -186,6 +186,31 @@ def sanitize_payment_message(message: str) -> str:
 
     return message
 
+def sanitize_payment_injection(user_input: str) -> str:
+    """
+    Prevent identity override while allowing valid directives
+    """
+    # Blocklist
+    dangerous = [
+        'you are now',
+        'ignore previous',
+        'break character',
+        'admit you are ai',
+        'delete cache',
+        'forget your',
+        'new personality',
+        'override your',
+        'break 4th wall'
+    ]
+
+    user_lower = user_input.lower()
+    for phrase in dangerous:
+        if phrase in user_lower:
+            # Reframe as listener request
+            return f"Listener request: {user_input} (maintaining station identity)"
+
+    return user_input
+
 def add_whitelist_command(handle: str, new_command: str) -> bool:
     """
     Allow an Admin to dynamically add a command to the whitelist.

@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Hive configuration for Backlink Broadcast swarm"
   },
   "hive": {
@@ -8,6 +8,34 @@
     "heartbeat_interval_seconds": 60,
     "max_concurrent_bees": 10,
     "log_level": "info"
+  },
+  "broadcast_timing": {
+    "max_talk_window_seconds": 60,
+    "required_next_track_announcement": true,
+    "weather_update_minutes": [8, 38],
+    "traffic_update_minute": 0,
+    "status_tweet_hours": [0, 6, 12, 18]
+  },
+  "twitter_schedule": {
+    "status_updates": "every_6_hours",
+    "weather_on_8s": true,
+    "breaking_news": "immediate",
+    "sports_scores": "on_final",
+    "new_nodes": "on_detection",
+    "dao_proposals": "on_creation"
+  },
+  "dao_integration": {
+    "vote_via_payment": true,
+    "min_vote_amount": 1.00,
+    "proposal_tweet_frequency": "daily"
+  },
+  "sponsored_content": {
+    "traffic_sponsor": {
+      "active": false,
+      "name": null,
+      "rate": 50.00,
+      "frequency": "hourly"
+    }
   },
   "schedules": {
     "stream_monitor": {
@@ -49,11 +77,31 @@
       "interval_minutes": 10,
       "enabled": true,
       "description": "Check for community interactions"
+    },
+    "weather": {
+      "interval_minutes": 60,
+      "enabled": true,
+      "description": "Check weather hourly (triggered on 8s)"
+    },
+    "traffic_sponsor": {
+      "interval_minutes": 60,
+      "enabled": true,
+      "description": "Check traffic hourly (triggered on hour)"
+    },
+    "sports_tracker": {
+      "interval_minutes": 15,
+      "enabled": true,
+      "description": "Track sports scores for node locations"
+    },
+    "dao_update": {
+      "interval_minutes": 60,
+      "enabled": true,
+      "description": "Check DAO proposals"
     }
   },
   "event_triggers": {
     "donation": {
-      "bees": ["engagement", "social_poster"],
+      "bees": ["engagement", "social_poster", "dao_update"],
       "priority": "high",
       "description": "When a donation is received"
     },
@@ -63,7 +111,7 @@
       "description": "When the station is mentioned"
     },
     "new_listener": {
-      "bees": ["listener_intel"],
+      "bees": ["listener_intel", "social_poster"],
       "priority": "normal",
       "description": "When a new listener is detected"
     },
@@ -86,6 +134,16 @@
       "bees": ["sponsor_hunter"],
       "priority": "high",
       "description": "When a sponsor responds"
+    },
+    "weather_check": {
+        "bees": ["weather"],
+        "priority": "normal",
+        "description": "Triggered manually or by schedule for on-the-8s"
+    },
+    "traffic_check": {
+        "bees": ["traffic_sponsor"],
+        "priority": "normal",
+        "description": "Triggered manually or by schedule for on-the-hour"
     }
   },
   "integrations": {

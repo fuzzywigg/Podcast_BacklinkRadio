@@ -104,7 +104,11 @@ class QueenOrchestrator:
             "engagement": ("bees.community.engagement_bee", "EngagementBee"),
             "stream_monitor": ("bees.technical.stream_monitor_bee", "StreamMonitorBee"),
             "radio_physics": ("bees.technical.radio_physics_bee", "RadioPhysicsBee"),
-            "payout_processor": ("bees.monetization.payout_processor_bee", "PayoutProcessorBee")
+            "payout_processor": ("bees.monetization.payout_processor_bee", "PayoutProcessorBee"),
+            "weather": ("bees.research.weather_bee", "WeatherBee"),
+            "traffic_sponsor": ("bees.monetization.traffic_sponsor_bee", "TrafficSponsorBee"),
+            "dao_update": ("bees.marketing.dao_update_bee", "DAOUpdateBee"),
+            "sports_tracker": ("bees.research.sports_tracker_bee", "SportsTrackerBee")
         }
 
         for bee_type, (module_path, class_name) in bee_mappings.items():
