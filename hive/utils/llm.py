@@ -5,6 +5,7 @@ Handles interactions with Large Language Models (specifically Google Gemini).
 """
 
 import google.generativeai as genai
+import asyncio
 from typing import Optional, Dict, Any
 from pathlib import Path
 import sys
@@ -69,4 +70,24 @@ class LLMClient:
             return response.text
         except Exception as e:
             print(f"Error generating text: {e}")
+            return None
+
+    async def generate_text_async(self, prompt: str, system_instruction: Optional[str] = None) -> Optional[str]:
+        """
+        Async generation to prevent blocking the Hive.
+        """
+        if not self.enabled:
+            return None
+
+        try:
+            if system_instruction:
+                model = genai.GenerativeModel(self.model_name, system_instruction=system_instruction)
+            else:
+                model = self.default_model
+
+            # Use the async version of the API call
+            response = await model.generate_content_async(prompt)
+            return response.text
+        except Exception as e:
+            print(f"Async LLM Error: {e}")
             return None
