@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 import threading
 import queue
+from hive.utils.cache_manager import BacklinkCacheManager
 
 
 class QueenOrchestrator:
@@ -357,6 +358,14 @@ class QueenOrchestrator:
         Args:
             once: If True, run one cycle and exit. If False, run continuously.
         """
+        # Ensure station identity cache is fresh
+        try:
+            cache_manager = BacklinkCacheManager()
+            cache_manager.refresh_cache_if_needed()
+            self.log("Station identity cache validated.")
+        except Exception as e:
+            self.log(f"Cache validation failed: {e}", level="warning")
+
         self.running = True
         self.log("Queen is online. Hive is active.")
 

@@ -192,3 +192,21 @@ The station is **AD-FREE** but not **REVENUE-FREE**.
 > "We are the Backlink. Connect the nodes."
 
 > "The swarm is greater than the sum of its parts."
+
+## CACHE MANAGEMENT
+
+The station uses Gemini Context Caching to maintain consistent identity and persona.
+
+```bash
+# Reset cache (do this after updating manifesto/persona files)
+python hive/utils/cache_manager.py reset
+
+# Check cache status
+python hive/utils/cache_manager.py status
+
+# Refresh cache if expiring soon
+python hive/utils/cache_manager.py refresh
+
+# Start broadcast with fresh cache
+python -m hive.queen.orchestrator run
+```
