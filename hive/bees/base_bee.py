@@ -3,20 +3,22 @@ Base Bee Agent - The template for all worker bees in the hive.
 
 All bees inherit from this class and implement their specific work() method.
 Bees communicate through the honeycomb (shared state files), not directly.
+Updated to support Constitutional Governance.
 """
 
 import json
 import os
+import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
-import uuid
 
 
 class BaseBee(ABC):
     """
     Abstract base class for all bee agents.
+    Now equipped with a Constitutional Gateway for ethical checks.
 
     Bees follow the stigmergy pattern:
     - Read from honeycomb (shared state)
@@ -30,16 +32,38 @@ class BaseBee(ABC):
     BEE_NAME = "unnamed"
     CATEGORY = "general"  # content, technical, marketing, monetization, community, research
 
-    def __init__(self, hive_path: Optional[str] = None):
-        """Initialize the bee with path to hive."""
+    def __init__(self, hive_path: Optional[str] = None, gateway: Any = None):
+        """
+        Initialize the bee with path to hive.
+
+        Args:
+            hive_path: Path to the root hive directory.
+            gateway: Instance of ConstitutionalGateway for governance checks.
+        """
         if hive_path is None:
             # Default to hive directory relative to this file
             hive_path = Path(__file__).parent.parent
         self.hive_path = Path(hive_path)
         self.honeycomb_path = self.hive_path / "honeycomb"
+        self.gateway = gateway
         self.bee_id = f"{self.BEE_TYPE}_{uuid.uuid4().hex[:8]}"
         self.started_at = None
         self.completed_at = None
+
+    def validate_action(self, action: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Pass an action through the Constitutional Gateway.
+        Returns the evaluated result (APPROVE/BLOCK/MODIFY).
+        """
+        if not self.gateway:
+            # If no gateway provided, assume safe (or log warning)
+            return {"status": "APPROVE", "action": action, "reason": "No gateway present"}
+
+        # Inject bee identity into the action for context
+        action['bee_type'] = self.BEE_TYPE
+        action['bee_id'] = self.bee_id
+
+        return self.gateway.evaluate_action(action)
 
     # ─────────────────────────────────────────────────────────────
     # HONEYCOMB ACCESS (Read/Write to shared state)

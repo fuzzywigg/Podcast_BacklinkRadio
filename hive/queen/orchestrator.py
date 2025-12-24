@@ -21,6 +21,18 @@ from typing import Any, Dict, List, Optional, Type
 import threading
 import queue
 from hive.utils.cache_manager import BacklinkCacheManager
+import sys
+
+# Ensure we can find the sibling constitutional-llm package
+ROOT_DIR = Path(__file__).parent.parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
+
+try:
+    from constitutional_llm.src.constitutional_gateway import ConstitutionalGateway
+except ImportError:
+    print("WARNING: Constitutional Gateway not found. Governance disabled.")
+    ConstitutionalGateway = None
 
 
 class QueenOrchestrator:
@@ -37,6 +49,14 @@ class QueenOrchestrator:
             hive_path = Path(__file__).parent.parent
         self.hive_path = Path(hive_path)
         self.honeycomb_path = self.hive_path / "honeycomb"
+
+        # Initialize the Governance Layer
+        if ConstitutionalGateway:
+            self.gateway = ConstitutionalGateway(bee_type="QUEEN")
+            self.log("Constitutional Gateway: ONLINE")
+        else:
+            self.gateway = None
+            self.log("Constitutional Gateway: OFFLINE (Security Risk)", level="warning")
 
         # Registered bees
         self.bee_registry: Dict[str, Type] = {}
@@ -165,7 +185,8 @@ class QueenOrchestrator:
                 BeeClass = bee_info
 
             # Instantiate and run
-            bee = BeeClass(hive_path=self.hive_path)
+            # INJECT GATEWAY HERE
+            bee = BeeClass(hive_path=self.hive_path, gateway=self.gateway)
             result = bee.run(task)
 
             # Record success (reset failures)
