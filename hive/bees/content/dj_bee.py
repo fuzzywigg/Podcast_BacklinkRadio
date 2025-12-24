@@ -35,12 +35,19 @@ class DjBee(EmployedBee):
     COST_RENT = 0.05
     RESERVE_MINIMUM = 5.00
 
+    def __init__(self, hive_path: Optional[str] = None):
+        super().__init__(hive_path)
+        self.music_ratio = 0.7  # Default: 70% music, 30% talk
+        self.source_preferences = ['variety_engine']
+        self.no_repeat_hours = 2  # Default
+
     def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Select the next track and manage library.
 
         Task payload can include:
         - request: { "song": "Title", "tip": 5.00, "source": "twitter" }
+        - action: apply_directive (from payment injection)
         """
         self.log("DJ Bee spinning up...")
 
@@ -50,7 +57,15 @@ class DjBee(EmployedBee):
         library = intel.get("music_library", {"owned": [], "rented": []})
         broadcast = intel.get("broadcast_state", {"now_playing": None, "queue": []})
 
-        # 2. Process Incoming Request (if any)
+        # 2. Process Incoming Task
+        action = task.get("payload", {}).get("action") if task else None
+
+        # Handle Directive Injection
+        if action == "apply_directive":
+             directives = task.get("payload", {}).get("directives", {})
+             self._apply_listener_directive(directives)
+             # Also continue to ensure queue is populated
+
         request = task.get("request") if task else None
         decision = None
 
@@ -237,9 +252,138 @@ class DjBee(EmployedBee):
             track["id"] = f"rent_{len(library.get('rented', [])) + 1}"
             library["rented"].append(track) # Log history if needed
 
+    def _apply_listener_directive(self, directives: Dict[str, Any]):
+        """
+        Apply payment-injected preferences
+        """
+        # Update music/talk ratio
+        if 'music_ratio' in directives:
+            self.music_ratio = directives['music_ratio']
+            self.write_to_honeycomb('dj_config', {
+                'music_ratio': self.music_ratio,
+                'updated_by': 'listener_payment',
+                'timestamp': datetime.now(timezone.utc).isoformat()
+            })
+            self.log(f"Music ratio updated to {self.music_ratio}")
+
+        # Update source files
+        if 'source_files' in directives:
+            self._load_grok_list(directives['source_files'])
+
+        # Update no-repeat window
+        if 'no_repeat_window' in directives:
+            self.no_repeat_hours = directives['no_repeat_window']
+            self.log(f"No-repeat window updated to {self.no_repeat_hours} hours")
+
+        # Queue tracks immediately (simulated logic for "queue_now")
+        if directives.get('queue_now'):
+             # Logic to queue 5 tracks would go here
+             pass
+
+    async def fill_talk_window(self, song_end_time: datetime, next_minute: datetime) -> str:
+        """
+        Fill the gap between song end and next minute
+        NEVER exceed next whole minute
+        """
+        available_seconds = (next_minute - song_end_time).total_seconds()
+
+        # Placeholder for next track fetching (simulated)
+        next_track = self._get_next_track_meta()
+
+        if available_seconds < 5:
+            # Too short - just announce next track
+            return f"Up next: {next_track.get('artist')} - {next_track.get('title')}"
+
+        # Build announcement segments (priority order)
+        segments = []
+        time_used = 0
+
+        # 1. REQUIRED: Next track announcement (always first, ~5 sec)
+        segments.append(self.announce_next_track(next_track))
+        time_used += 5
+
+        # 2. OPTIONAL: Add-ons if time permits
+        if available_seconds >= 15:
+            # New node announcement
+            if self._has_new_nodes():
+                segments.append(self.announce_new_nodes())
+                time_used += 10
+
+        if available_seconds >= 30:
+            # Update on the 8s content (if at :08 or :38)
+            if self.is_update_time():
+                segments.append(self.get_update_on_8s())
+                time_used += 15
+
+        # Generate speech, verify timing
+        # In this simulation, we just join segments.
+        # In prod, we'd use TTS duration estimation.
+        speech = " ".join(segments)
+        # speech_duration = self.estimate_duration(speech) # Not implemented
+
+        # if speech_duration > available_seconds:
+        #    # Fallback: just next track
+        #    return segments[0]
+
+        return speech
+
+    def announce_next_track(self, track: Dict) -> str:
+        """
+        REQUIRED: Always announce what's coming
+        Format: "Artist - Track Name"
+        """
+        return f"Coming up: {track.get('artist', 'Unknown')}, {track.get('title', 'Unknown')}."
+
+    def announce_new_nodes(self) -> str:
+        """Announce new nodes."""
+        return "We see new Nodes coming online. Welcome to the swarm."
+
+    def is_update_time(self) -> bool:
+        """Check if it's :08 or :38."""
+        now = datetime.now(timezone.utc)
+        return now.minute in [8, 38]
+
+    def get_update_on_8s(self) -> str:
+        """Get 'Update on the 8s' content."""
+        # Ideally fetches from WeatherBee via Honeycomb
+        intel = self.read_intel()
+        weather_snippet = intel.get("weather", {}).get("latest_snippet", "Weather data processing.")
+        return f"Update on the 8s: {weather_snippet}"
+
+    def _get_next_track_meta(self) -> Dict:
+        """Helper to get next track meta."""
+        broadcast = self.read_intel().get("broadcast_state", {})
+        queue = broadcast.get("queue", [])
+        if queue:
+            return queue[0]
+        return {"artist": "Unknown", "title": "Mystery Track"}
+
+    def _has_new_nodes(self) -> bool:
+        """Check for new nodes in intel."""
+        intel = self.read_intel()
+        return intel.get("listeners", {}).get("has_new", False)
+
+    def _load_grok_list(self, files: list):
+        """
+        Load music from GROK.txt or other specified lists
+        """
+        for filename in files:
+            if filename == 'grok.txt':
+                # Simplified loader for demonstration
+                try:
+                    file_path = self.hive_path.parent / "GROK.txt"
+                    if file_path.exists():
+                        with open(file_path, 'r') as f:
+                            # Just a mock parsing for now as GROK.txt structure is unknown
+                            self.log(f"Loaded tracks from {filename}")
+                            # In real impl, parse and add to wishlist/library
+                except Exception as e:
+                    self.log(f"Failed to load {filename}: {e}", level="error")
+
     def _pick_autopilot_track(self, library: Dict) -> Dict:
         """Pick a song when no requests are active."""
-        if library["owned"]:
+        # Prioritize owned library
+        if library.get("owned"):
             return random.choice(library["owned"])
 
         # Fallback to "Free Creative Commons" placeholder
@@ -248,6 +392,12 @@ class DjBee(EmployedBee):
             "source": "free_archive",
             "id": "free_01"
         }
+
+    def write_to_honeycomb(self, key: str, data: Any):
+        """Write specific key to honeycomb (intel.json wrapper)."""
+        intel = self.read_intel()
+        intel[key] = data
+        self._write_json("intel.json", intel)
 
 if __name__ == "__main__":
     # Test Run

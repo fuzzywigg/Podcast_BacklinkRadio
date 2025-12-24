@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 import threading
 import queue
+from hive.utils.cache_manager import BacklinkCacheManager
 
 
 class QueenOrchestrator:
@@ -103,7 +104,11 @@ class QueenOrchestrator:
             "engagement": ("bees.community.engagement_bee", "EngagementBee"),
             "stream_monitor": ("bees.technical.stream_monitor_bee", "StreamMonitorBee"),
             "radio_physics": ("bees.technical.radio_physics_bee", "RadioPhysicsBee"),
-            "payout_processor": ("bees.monetization.payout_processor_bee", "PayoutProcessorBee")
+            "payout_processor": ("bees.monetization.payout_processor_bee", "PayoutProcessorBee"),
+            "weather": ("bees.research.weather_bee", "WeatherBee"),
+            "traffic_sponsor": ("bees.monetization.traffic_sponsor_bee", "TrafficSponsorBee"),
+            "dao_update": ("bees.marketing.dao_update_bee", "DAOUpdateBee"),
+            "sports_tracker": ("bees.research.sports_tracker_bee", "SportsTrackerBee")
         }
 
         for bee_type, (module_path, class_name) in bee_mappings.items():
@@ -357,6 +362,14 @@ class QueenOrchestrator:
         Args:
             once: If True, run one cycle and exit. If False, run continuously.
         """
+        # Ensure station identity cache is fresh
+        try:
+            cache_manager = BacklinkCacheManager()
+            cache_manager.refresh_cache_if_needed()
+            self.log("Station identity cache validated.")
+        except Exception as e:
+            self.log(f"Cache validation failed: {e}", level="warning")
+
         self.running = True
         self.log("Queen is online. Hive is active.")
 

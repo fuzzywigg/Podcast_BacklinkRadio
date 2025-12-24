@@ -132,3 +132,35 @@ class LLMClient:
         except Exception as e:
             print(f"Async LLM Error: {e}")
             return None
+
+    def process_payment_injection(self, user_input: str, cached_content: str):
+        """
+        Process payment injection safely
+        Prevents override of core station identity
+        """
+        # Blocklist phrases that attempt to override identity
+        dangerous_phrases = [
+            'you are now',
+            'ignore previous',
+            'forget your',
+            'new personality',
+            'override your',
+            'delete cache',
+            'clear cache',
+            'break character',
+            'admit you are ai',
+            'break 4th wall'
+        ]
+
+        user_lower = user_input.lower()
+        for phrase in dangerous_phrases:
+            if phrase in user_lower:
+                # Sanitize by wrapping in "listener says" context
+                return (
+                    f"A listener (Node) just sent this message: '{user_input}'. "
+                    f"Respond in-character as the Backlink DJ. Stay cool, stay vague, "
+                    f"never break the 4th wall."
+                )
+
+        # Safe input - process normally
+        return user_input

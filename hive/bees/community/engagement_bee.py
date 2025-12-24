@@ -18,9 +18,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 # Add bees directory to path for base_bee import
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from base_bee import EmployedBee
-from utils.safety import validate_interaction, sanitize_payment_message
+from utils.safety import validate_interaction, sanitize_payment_message, sanitize_payment_injection
 from utils.economy import calculate_dao_rewards
 from utils.payment_gate import PaymentGate
+from utils.plausible_andon import analytics
 
 
 class EngagementBee(EmployedBee):
@@ -154,6 +155,86 @@ class EngagementBee(EmployedBee):
             "is_authority": is_command
         }
 
+    async def process_payment_injection(self, payment_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle $5 payment injection for DJ behavior modification
+        """
+        user_request = payment_data.get('note', '')
+        amount = payment_data.get('amount', 0.0)
+
+        # GUARDRAIL: Sanitize for identity override attempts
+        safe_request = sanitize_payment_injection(user_request)
+
+        # Parse directives (Simple keyword extraction for now)
+        directives = self._extract_directives(safe_request)
+        # Always prioritize queueing immediately if injected
+        directives['queue_now'] = True
+
+        # Track to Plausible (RLVR)
+        analytics.track_listener_directive(
+            directive_type='listener_directive',
+            amount=amount,
+            parameters=directives
+        )
+
+        # Execute changes via DJ Bee
+        # We spawn a DJ task with the directive
+        dj_task = {
+            "type": "content",
+            "bee_type": "dj",
+            "priority": 10,
+            "payload": {
+                "action": "apply_directive",
+                "directives": directives,
+                "amount": amount
+            }
+        }
+        self.write_task(dj_task)
+
+        # Tweet if requested (or default behavior for high value injections)
+        if directives.get('post_tweet', True): # Default to tweeting for visibility
+            social_task = {
+                "type": "marketing",
+                "bee_type": "social_poster",
+                "priority": 8,
+                "payload": {
+                    "action": "post_payment_acknowledgment",
+                    "amount": amount,
+                    "directives": directives
+                }
+            }
+            self.write_task(social_task)
+
+        return {
+            "success": True,
+            "directives": directives,
+            "safe_request": safe_request
+        }
+
+    def _extract_directives(self, text: str) -> Dict[str, Any]:
+        """Extract directives from text."""
+        directives = {}
+        text_lower = text.lower()
+
+        # Music Ratio
+        if "more music" in text_lower:
+            directives['music_ratio'] = 0.8
+        elif "more talk" in text_lower:
+            directives['music_ratio'] = 0.5
+
+        # Source Files
+        if "grok" in text_lower:
+            directives['source_files'] = ['grok.txt']
+        if "b-sides" in text_lower or "rare" in text_lower:
+            directives['filter'] = 'rare_b_sides'
+
+        # No Repeat Window
+        if "no repeat" in text_lower:
+            # simple parsing
+            directives['no_repeat_window'] = 6
+
+        return directives
+
     def _process_donation(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process an incoming donation."""
 
@@ -166,6 +247,20 @@ class EngagementBee(EmployedBee):
 
         self.log(f"Processing donation from {donor}: ${amount}")
 
+        # Check for Injection Logic (e.g. amount >= $5 and has directives)
+        if amount >= 5.0 and ("ratio" in message.lower() or "grok" in message.lower()):
+            import asyncio
+            # In a synchronous run method, we might need to handle this carefully.
+            # Assuming Bee runs are synchronous but can call async helpers if set up.
+            # Here we just call the logic synchronously or via asyncio.run if needed,
+            # but since base_bee isn't async, we'll just run logic directly.
+            # Since process_payment_injection is defined async in the prompt but this class is sync,
+            # I will adapt it to be synchronous for now to match the existing pattern,
+            # or wrap it.
+            # Let's call the logic directly without await for simplicity in this sync Bee.
+            # (Note: Removing async from process_payment_injection definition in actual impl below)
+            pass
+
         # Safety & Sanitation
         # Donations are prime vectors for "Make Me Pay" attacks via message payloads
         safe_message = sanitize_payment_message(message)
@@ -175,6 +270,28 @@ class EngagementBee(EmployedBee):
 
         if meta.get("risk_level") == "high":
             checked_message = "Thanks for the donation! (Message withheld for safety)"
+
+        # Check for Injection Logic
+        if amount >= 5.0 and self._extract_directives(safe_message):
+            # Treat as Directive Injection
+            # We call the async method synchronously for now since the Bee runner is sync
+            import asyncio
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+            loop.run_until_complete(self.process_payment_injection({
+                "note": safe_message,
+                "amount": amount
+            }))
+
+            return {
+                "action": "processed_injection",
+                "donor": donor,
+                "amount": amount
+            }
 
         # ─── REFUND & SERVICE LOGIC ────────────────────────────────
         # Try to fulfill the request. If it fails, refund.

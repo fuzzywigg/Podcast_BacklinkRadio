@@ -84,6 +84,10 @@ class TrendScoutBee(ScoutBee):
         # Write full intel object back
         self._write_json("intel.json", intel)
 
+        # Check for Breaking News (Task extension)
+        if task and task.get("payload", {}).get("action") == "monitor_breaking_news":
+             await self.monitor_breaking_news()
+
         # Alert DJ if high-priority trend found
         hot_trends = [t for t in ranked_trends if t.get("priority") == "urgent"]
         if hot_trends:
@@ -99,6 +103,73 @@ class TrendScoutBee(ScoutBee):
             "top_trends": ranked_trends[:5],
             "hot_trends": hot_trends
         }
+
+    async def monitor_breaking_news(self):
+        """
+        Detect breaking news relevant to node locations
+        """
+        # Monitor news APIs (simulated)
+        news_items = self._fetch_breaking_news_simulated()
+
+        # Filter for relevance (simulated)
+        relevant = news_items # Assume all relevant for demo
+
+        for item in relevant:
+            # Tweet immediately via SocialPoster
+            tweet_text = self._compose_news_tweet(item)
+            task = {
+                "type": "marketing",
+                "bee_type": "social_poster",
+                "priority": 9,
+                "payload": {
+                    "action": "post",
+                    "content": tweet_text,
+                    "platforms": ["twitter"]
+                }
+            }
+            self.write_task(task)
+
+            # Queue for on-air mention (if major)
+            if item.get('severity') == 'high':
+                script = self._compose_news_brief(item)
+                # Update intel for DJ
+                intel = self.read_intel()
+                if "breaking_news" not in intel: intel["breaking_news"] = []
+                intel["breaking_news"].append({
+                    "script": script,
+                    "expires_at": datetime.now(timezone.utc).isoformat() # + 1 hour usually
+                })
+                self._write_json("intel.json", intel)
+
+    def _compose_news_brief(self, news_item: Dict) -> str:
+        """
+        On-air breaking news (15 seconds max)
+        """
+        return (
+            f"Quick signal update: {news_item['headline']}. "
+            f"Developing story—following it for our {news_item.get('affected_nodes', 'many')} "
+            f"Nodes in the affected area. Stay tuned."
+        )
+
+    def _compose_news_tweet(self, news_item: Dict) -> str:
+        return (
+            f"🚨 Signal Intel: {news_item['headline']} | "
+            f"Source: {news_item.get('source', 'Unknown')} | "
+            f"Nodes in affected area: {news_item.get('affected_nodes', 0)} | "
+            f"More: {news_item.get('url', 'backlink.radio')}"
+        )
+
+    def _fetch_breaking_news_simulated(self) -> list:
+        import random
+        if random.random() > 0.95: # Rare event
+            return [{
+                "headline": "Major Solar Flare Detected",
+                "source": "NASA",
+                "severity": "high",
+                "affected_nodes": 50,
+                "url": "nasa.gov"
+            }]
+        return []
 
     def _scout_source(self, source: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Scout a specific source for trends."""

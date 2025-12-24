@@ -25,6 +25,8 @@ class EventType(Enum):
     BROADCAST_ENDED = "Broadcast Ended"
     DECISION_DECLINED = "Decision Declined"
     METADATA_UPDATED = "Metadata Updated"
+    LISTENER_DIRECTIVE = "Listener Directive"
+    SOCIAL_POST = "Social Post"
 
 
 @dataclass
@@ -377,6 +379,49 @@ class PlausibleAnalytics:
         return self._send(payload)
 
     # Generic Events
+
+    def track_listener_directive(self,
+                                directive_type: str,
+                                amount: float,
+                                source: str = "payment_injection",
+                                parameters: Dict[str, Any] = None) -> bool:
+        """
+        Track listener directive events
+        """
+        props = {
+            "directive_type": directive_type,
+            "amount": str(amount),
+            "source": source
+        }
+        if parameters:
+            # Flatten parameters for Plausible properties (which are simple key-values)
+            for k, v in parameters.items():
+                props[f"param_{k}"] = str(v)
+
+        payload = self._build_payload(
+            event_name=EventType.LISTENER_DIRECTIVE.value,
+            page_url="app://andon-dj/directive",
+            props=props
+        )
+        return self._send(payload)
+
+    def track_social_post(self,
+                         event: str,
+                         properties: Dict[str, Any] = None) -> bool:
+        """
+        Track social posting events
+        """
+        # 'event' argument here corresponds to specific social actions like 'payment_acknowledgment_tweet'
+        # but we map it to the broader SOCIAL_POST event name for Plausible
+        props = properties or {}
+        props["social_event_type"] = event
+
+        payload = self._build_payload(
+            event_name=EventType.SOCIAL_POST.value,
+            page_url="app://marketing/social",
+            props=props
+        )
+        return self._send(payload)
 
     def track_event(self,
                    event_name: str,
