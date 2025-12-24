@@ -428,5 +428,40 @@
   "local_intel": {
     "_description": "City/region specific knowledge for listener shoutouts",
     "cities": {}
+  },
+  "treasury": {
+    "balance": 12.0,
+    "currency": "USD",
+    "history": [
+      {
+        "timestamp": "2025-12-24T03:40:07.186135+00:00",
+        "amount": -8.0,
+        "type": "buy",
+        "item": "Never Gonna Give You Up"
+      }
+    ]
+  },
+  "music_library": {
+    "owned": [
+      {
+        "title": "Never Gonna Give You Up",
+        "source": "owned",
+        "acquired_by": "tip",
+        "id": "track_1",
+        "started_at": "2025-12-24T03:40:07.186150+00:00"
+      }
+    ],
+    "rented": [],
+    "wishlist": []
+  },
+  "broadcast_state": {
+    "now_playing": {
+      "title": "Never Gonna Give You Up",
+      "source": "owned",
+      "acquired_by": "tip",
+      "id": "track_1",
+      "started_at": "2025-12-24T03:40:07.186150+00:00"
+    },
+    "queue": []
   }
 }
