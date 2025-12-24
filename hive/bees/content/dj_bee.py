@@ -96,7 +96,8 @@ class DjBee(EmployedBee):
         # To update intel.json directly (shared state):
         full_intel = self.read_intel()
         full_intel.update(updates)
-        self._write_json(self.hive_path / "honeycomb/intel.json", full_intel)
+        # BaseBee._write_json prepends honeycomb_path, so we just pass the filename
+        self._write_json("intel.json", full_intel)
 
         return {
             "status": "success",

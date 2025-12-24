@@ -25,6 +25,7 @@ from base_bee import EmployedBee
 # Import LLM Client (needs to add repo root to path for hive package)
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 from hive.utils.llm import LLMClient
+from hive.utils.browser_use_client import BrowserUseClient
 
 
 class SocialPosterBee(EmployedBee):
@@ -66,23 +67,49 @@ class SocialPosterBee(EmployedBee):
     def __init__(self, hive_path: Optional[str] = None):
         """Initialize and setup LLM client."""
         super().__init__(hive_path)
+        self.config = self._load_config()
         self.llm_client = self._init_llm_client()
+        self.browser_client = self._init_browser_client()
+
+    def _load_config(self) -> Dict:
+        """Load configuration."""
+        try:
+            config_path = self.hive_path / "config.json"
+            if config_path.exists():
+                with open(config_path, "r") as f:
+                    return json.load(f)
+        except Exception:
+            pass
+        return {}
 
     def _init_llm_client(self) -> Optional[LLMClient]:
         """Initialize the LLM client."""
         try:
-            config_path = self.hive_path / "config.json"
-            if not config_path.exists():
-                return None
-
-            with open(config_path, "r") as f:
-                config = json.load(f)
-
-            client = LLMClient(config)
-            if client.enabled:
-                return client
+            if self.config:
+                client = LLMClient(self.config)
+                if client.enabled:
+                    return client
         except Exception as e:
             self.log(f"Failed to initialize LLM client: {e}", level="error")
+        return None
+
+    def _init_browser_client(self) -> Optional[BrowserUseClient]:
+        """Initialize Browser Use client."""
+        try:
+            browser_config = self.config.get("integrations", {}).get("browser_use", {})
+            if not browser_config.get("enabled"):
+                return None
+
+            # Get key from env or config
+            api_key = os.environ.get(browser_config.get("api_key_env", "BROWSER_USE_API_KEY"))
+            if not api_key:
+                # Fallback to direct key if present (legacy/dev)
+                api_key = browser_config.get("api_key")
+
+            if api_key:
+                return BrowserUseClient(api_key)
+        except Exception as e:
+            self.log(f"Failed to initialize Browser Use client: {e}", level="error")
         return None
 
     def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -190,6 +217,11 @@ class SocialPosterBee(EmployedBee):
         if platform == "twitter":
             return self._post_to_twitter(content, media)
 
+        # Fallback/Alternative for supported platforms using Browser Use
+        if self.browser_client:
+            self.log(f"Attempting browser automation for {platform}")
+            return self._post_via_browser_use(platform, content)
+
         # In production, would use platform APIs
         # Placeholder for other platforms
         return {
@@ -233,6 +265,11 @@ class SocialPosterBee(EmployedBee):
         client = self._get_twitter_client()
 
         if not client:
+            # Try Browser Automation fallback
+            if self.browser_client:
+                self.log("Tweepy/Creds missing. Falling back to Browser Automation.")
+                return self._post_via_browser_use("twitter", content)
+
             # Fallback to simulation
             self.log("Using simulation mode for Twitter post")
             return {
@@ -387,6 +424,46 @@ class SocialPosterBee(EmployedBee):
             return response
 
         return None
+
+    def _post_via_browser_use(self, platform: str, content: str) -> Dict[str, Any]:
+        """Post content using Browser Use automation."""
+        if not self.browser_client:
+            return {"error": "Browser Client not initialized"}
+
+        # Construct task for the browser agent
+        task_prompt = f"Go to {platform}.com. If not logged in, try to log in (ask for credentials if needed, but I expect cookies to be synced). Create a new post/tweet with the text: '{content}'. Confirm when posted."
+
+        self.log(f"Dispatching browser task: {task_prompt}")
+
+        try:
+            task = self.browser_client.create_task(task_prompt)
+            if "error" in task:
+                return {"success": False, "error": task["error"]}
+
+            task_id = task.get("id")
+            if not task_id:
+                return {"success": False, "error": "No task ID returned"}
+
+            # Wait for completion (blocking for now, or could just fire and forget)
+            # For a bee, blocking is okay if not too long, but better to check later.
+            # Here we'll wait up to 60s to see if it starts/finishes.
+            result = self.browser_client.wait_for_completion(task_id, timeout=60)
+
+            is_success = result.get("status") == "finished"
+            output = result.get("output")
+
+            return {
+                "platform": platform,
+                "success": is_success,
+                "method": "browser_automation",
+                "task_id": task_id,
+                "output": output,
+                "posted_at": datetime.now(timezone.utc).isoformat()
+            }
+
+        except Exception as e:
+            self.log(f"Browser automation failed: {e}", level="error")
+            return {"success": False, "error": str(e)}
 
     def _build_system_prompt(self) -> str:
         """Build the system prompt from AGENTS.md and PERSONA_DYNAMIC.md."""
