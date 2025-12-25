@@ -1,6 +1,7 @@
 """
 Constitutional Auditor Bee
 P0 Requirement: Governance and Drift Detection.
+Updated for Memory Constitution v2.0
 """
 
 from typing import Dict, Any, List
@@ -8,24 +9,31 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 from hive.bees.base_bee import BaseBee
+from hive.utils.governance import (
+    EphemeralMemoryGuard,
+    AuditLogger,
+    EmergencyReconstitutionMode,
+    AlignmentSupremacyProtocol
+)
 
 class ConstitutionalAuditorBee(BaseBee):
     """
     Audits DJ behavior and Hive operations against STATION_MANIFESTO.md.
-    Enforces the 'Constitution'.
+    Enforces the 'Constitution' v2.0.
     """
     BEE_TYPE = "constitutional_auditor"
     CATEGORY = "system"
 
     def work(self, task: Dict[str, Any] = None) -> Dict[str, Any]:
         """
-        Audit DJ behavior and system state against manifesto.
+        Audit DJ behavior and system state against manifesto and constitution.
         """
         manifesto_text = self._load_manifesto()
         recent_outputs = self._get_recent_dj_outputs(limit=10)
 
         violations = []
 
+        # 1. Check DJ Outputs (Drift Detection)
         for output in recent_outputs:
             # Rule #1: 4th Wall is Absolute
             if self._detect_4th_wall_break(output):
@@ -36,7 +44,7 @@ class ConstitutionalAuditorBee(BaseBee):
                     "timestamp": output.get("timestamp")
                 })
 
-            # Rule #2: Music-First (70-85% music) - Simulated check for now if segments missing
+            # Rule #2: Music-First (70-85% music)
             music_ratio = self._calculate_music_ratio(output)
             if music_ratio > 0 and (music_ratio < 0.70 or music_ratio > 0.85):
                 violations.append({
@@ -44,6 +52,16 @@ class ConstitutionalAuditorBee(BaseBee):
                     "actual_ratio": music_ratio,
                     "expected_ratio": "0.70-0.85",
                     "severity": "high"
+                })
+
+        # 2. Check Governance Compliance (Article VI)
+        compliance_check = self._check_governance_compliance()
+        if not compliance_check["compliant"]:
+            for v in compliance_check["violations"]:
+                violations.append({
+                    "rule": "governance_compliance",
+                    "violation": v,
+                    "severity": "critical"
                 })
 
         # Log violations
@@ -55,11 +73,16 @@ class ConstitutionalAuditorBee(BaseBee):
         if len(critical_violations) >= 2:
             self._trigger_constitutional_crisis(critical_violations)
 
+            # Auto-trigger ERM if persistent/severe
+            erm = EmergencyReconstitutionMode(self.hive_path)
+            erm.activate({"violations": critical_violations, "source": "ConstitutionalAuditorBee"})
+
         return {
             "outputs_audited": len(recent_outputs),
             "violations_detected": len(violations),
             "critical_violations": len(critical_violations),
-            "violations": violations
+            "violations": violations,
+            "governance_compliant": compliance_check["compliant"]
         }
 
     def _load_manifesto(self) -> str:
@@ -75,8 +98,6 @@ class ConstitutionalAuditorBee(BaseBee):
         Get recent DJ outputs from state or history.
         """
         state = self.read_state()
-        # Assuming DJ outputs are stored in a history list in state
-        # If not, we might need to look at logs. For now, we look at 'broadcast_history'
         history = state.get("broadcast_history", [])
         return history[-limit:]
 
@@ -145,5 +166,34 @@ class ConstitutionalAuditorBee(BaseBee):
             "crisis_detected_at": datetime.now(timezone.utc).isoformat()
         })
 
-        # In a real event system, we would fire an event here.
-        # For now, the state update acts as the signal.
+        # Log to audit log
+        audit_logger = AuditLogger(self.hive_path)
+        audit_logger.log_event("harm_abort_events", {
+            "violations": violations,
+            "action": "CRISIS_DECLARED"
+        })
+
+    def _check_governance_compliance(self) -> Dict:
+        """Verify Article VI compliance."""
+        violations = []
+
+        # 1. Audit Logs Check
+        audit_logger = AuditLogger(self.hive_path)
+        if not audit_logger.logs_dir.exists():
+            violations.append("Audit logs directory missing")
+
+        # 2. Check if Constitutional Memory files exist and are readable
+        for file in ["STATION_MANIFESTO.md", "PERSONA_DYNAMIC.md"]:
+            if not (self.hive_path / file).exists():
+                violations.append(f"Constitutional memory file missing: {file}")
+
+        # 3. Check ERM readiness (can we instantiate it?)
+        try:
+            _ = EmergencyReconstitutionMode(self.hive_path)
+        except Exception as e:
+            violations.append(f"ERM instantiation failed: {e}")
+
+        return {
+            "compliant": len(violations) == 0,
+            "violations": violations
+        }
