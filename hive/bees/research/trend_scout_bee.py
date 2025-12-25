@@ -9,6 +9,7 @@ Responsibilities:
 
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
+import asyncio
 
 from hive.bees.base_bee import ScoutBee
 
@@ -83,7 +84,11 @@ class TrendScoutBee(ScoutBee):
 
         # Check for Breaking News (Task extension)
         if task and task.get("payload", {}).get("action") == "monitor_breaking_news":
-             await self.monitor_breaking_news()
+             # Fix: asyncio.run for async method in synchronous work()
+             try:
+                 asyncio.run(self.monitor_breaking_news())
+             except Exception as e:
+                 self.log(f"Error running async breaking news monitor: {e}", level="error")
 
         # Alert DJ if high-priority trend found
         hot_trends = [t for t in ranked_trends if t.get("priority") == "urgent"]
