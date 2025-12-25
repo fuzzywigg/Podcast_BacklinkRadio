@@ -8,15 +8,22 @@ This package contains all worker bee agents organized by category:
 - monetization: Sponsors, donations, revenue
 - community: Listener engagement, VIPs, events
 - research: Trends, intel, discovery
+- system: Governance, security, audits
 
 All bees inherit from BaseBee and communicate via the honeycomb.
 """
 
 from .base_bee import BaseBee, ScoutBee, EmployedBee, OnlookerBee
+from .community.engagement_bee import EngagementBee
+from .monetization.treasury_guardian_bee import TreasuryGuardianBee
+from .system.constitutional_auditor_bee import ConstitutionalAuditorBee
 
 __all__ = [
     "BaseBee",
     "ScoutBee",
     "EmployedBee",
-    "OnlookerBee"
+    "OnlookerBee",
+    "EngagementBee",
+    "TreasuryGuardianBee",
+    "ConstitutionalAuditorBee"
 ]
