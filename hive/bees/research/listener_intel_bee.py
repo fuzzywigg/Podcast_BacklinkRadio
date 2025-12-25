@@ -59,7 +59,9 @@ class ListenerIntelBee(ScoutBee):
 
         elif task and task.get("refresh_all"):
             # Refresh all known nodes
-            known = self.read_intel().get("listeners", {}).get("known_nodes", {})
+            known = self.read_intel().get(
+                "listeners", {}).get(
+                "known_nodes", {})
             for node_id in known.keys():
                 intel = self._research_node(node_id)
                 intel_gathered.append(intel)
@@ -75,13 +77,20 @@ class ListenerIntelBee(ScoutBee):
             "intel": intel_gathered
         }
 
-    def _research_node(self, node_id: str, handle: Optional[str] = None) -> Dict[str, Any]:
+    def _research_node(self, node_id: str,
+                       handle: Optional[str] = None) -> Dict[str, Any]:
         """Research a specific listener node."""
 
         self.log(f"Researching node: {node_id}")
 
         # Get existing intel
-        existing = self.read_intel().get("listeners", {}).get("known_nodes", {}).get(node_id, {})
+        existing = self.read_intel().get(
+            "listeners",
+            {}).get(
+            "known_nodes",
+            {}).get(
+            node_id,
+            {})
 
         intel = {
             "node_id": node_id,
@@ -204,7 +213,8 @@ class ListenerIntelBee(ScoutBee):
         try:
             # NewsAPI works best with country codes (2 chars)
             # If we don't have a valid 2-char country code, we might want to skip or default
-            # For now, let's try to query by everything or just country if valid
+            # For now, let's try to query by everything or just country if
+            # valid
 
             # Simple heuristic: if country is 2 chars, use it. Else try q=city
             params = {
@@ -256,7 +266,7 @@ class ListenerIntelBee(ScoutBee):
         # 2. Try Web Search / Malicious Compliance (Failover)
         web_result = self._research_public_web(handle)
         if web_result:
-             return web_result
+            return web_result
 
         # 3. Fallback
         return {
@@ -293,7 +303,9 @@ class ListenerIntelBee(ScoutBee):
             )
             return client
         except Exception as e:
-            self.log(f"Failed to authenticate with Twitter: {e}", level="error")
+            self.log(
+                f"Failed to authenticate with Twitter: {e}",
+                level="error")
             return None
 
     def _research_twitter_api(self, handle: str) -> Optional[Dict[str, Any]]:
@@ -308,8 +320,13 @@ class ListenerIntelBee(ScoutBee):
 
             user = client.get_user(
                 username=clean_handle,
-                user_fields=["description", "location", "public_metrics", "created_at", "verified", "url"]
-            )
+                user_fields=[
+                    "description",
+                    "location",
+                    "public_metrics",
+                    "created_at",
+                    "verified",
+                    "url"])
 
             if not user.data:
                 return None
@@ -331,7 +348,7 @@ class ListenerIntelBee(ScoutBee):
                     "created_at": data.created_at.isoformat() if data.created_at else None,
                     "url": data.url
                 },
-                "interests": [], # Would need recent tweets analysis
+                "interests": [],  # Would need recent tweets analysis
                 "engagement_history": []
             }
 
@@ -349,7 +366,8 @@ class ListenerIntelBee(ScoutBee):
         if not results:
             # Try broader social search
             query = f'"{handle}" (site:instagram.com OR site:tiktok.com OR site:linkedin.com)'
-            results = WebSearch.search(query, num_results=1, include_social=True)
+            results = WebSearch.search(
+                query, num_results=1, include_social=True)
 
         if not results:
             return None

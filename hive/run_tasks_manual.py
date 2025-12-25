@@ -1,3 +1,4 @@
+from hive.queen.orchestrator import QueenOrchestrator
 import json
 import sys
 import os
@@ -8,7 +9,6 @@ current_dir = Path(__file__).parent
 hive_dir = current_dir.parent
 sys.path.append(str(hive_dir))
 
-from hive.queen.orchestrator import QueenOrchestrator
 
 def main():
     # UX Improvements: Colors and Formatting
@@ -23,7 +23,15 @@ def main():
         BOLD = '\033[1m'
 
     def print_header(text):
-        print(f"\n{Colors.HEADER}{Colors.BOLD}{'='*60}\n {text}\n{'='*60}{Colors.ENDC}")
+        print(
+            f"\n{
+                Colors.HEADER}{
+                Colors.BOLD}{
+                '=' *
+                60}\n {text}\n{
+                    '=' *
+                    60}{
+                        Colors.ENDC}")
 
     def print_result(bee_type, task_id, result, duration=None):
         is_success = result.get("success", False)
@@ -34,7 +42,11 @@ def main():
         if duration:
             duration_str = f" in {duration:.2f}s"
 
-        print(f"{color}{status_text} {Colors.ENDC} {Colors.CYAN}{bee_type}{Colors.ENDC} -> Task: {task_id}{duration_str}")
+        print(
+            f"{color}{status_text} {
+                Colors.ENDC} {
+                Colors.CYAN}{bee_type}{
+                Colors.ENDC} -> Task: {task_id}{duration_str}")
 
         error = result.get("error")
         if not is_success and error:
@@ -58,7 +70,14 @@ def main():
         "monetization": "sponsor_hunter"
     }
 
-    print(f"\n🔎 Found {Colors.BOLD}{len(pending_tasks)}{Colors.ENDC} pending tasks and {Colors.BOLD}{len(recurring_tasks)}{Colors.ENDC} recurring tasks.")
+    print(
+        f"\n🔎 Found {
+            Colors.BOLD}{
+            len(pending_tasks)}{
+                Colors.ENDC} pending tasks and {
+                    Colors.BOLD}{
+                        len(recurring_tasks)}{
+                            Colors.ENDC} recurring tasks.")
 
     stats = {"success": 0, "failed": 0, "skipped": 0}
 
@@ -70,7 +89,10 @@ def main():
             mapped_bee = bee_mapping.get(bee_type, bee_type)
             task_id = task.get('id', 'unknown')
 
-            print(f"\n{Colors.BOLD}▶ Executing:{Colors.ENDC} {task_id} ({mapped_bee})")
+            print(
+                f"\n{
+                    Colors.BOLD}▶ Executing:{
+                    Colors.ENDC} {task_id} ({mapped_bee})")
             result = queen.spawn_bee(mapped_bee, task)
 
             if result.get("success"):
@@ -78,7 +100,11 @@ def main():
             else:
                 stats["failed"] += 1
 
-            print_result(mapped_bee, task_id, result, result.get("duration_seconds"))
+            print_result(
+                mapped_bee,
+                task_id,
+                result,
+                result.get("duration_seconds"))
     else:
         print(f"\n{Colors.BLUE}ℹ️  No pending tasks to execute.{Colors.ENDC}")
 
@@ -87,7 +113,8 @@ def main():
     for task in recurring_tasks:
         task_id = task.get('id')
         if not task.get("enabled", True):
-            print(f"{Colors.WARNING}⚠️  Skipping disabled task: {task_id}{Colors.ENDC}")
+            print(
+                f"{Colors.WARNING}⚠️  Skipping disabled task: {task_id}{Colors.ENDC}")
             stats["skipped"] += 1
             continue
 
@@ -95,11 +122,17 @@ def main():
         mapped_bee = bee_mapping.get(bee_short_type)
 
         if not mapped_bee:
-            print(f"{Colors.WARNING}⚠️  Warning: Could not map bee type '{bee_short_type}' for task '{task_id}'. Skipping.{Colors.ENDC}")
+            print(
+                f"{
+                    Colors.WARNING}⚠️  Warning: Could not map bee type '{bee_short_type}' for task '{task_id}'. Skipping.{
+                    Colors.ENDC}")
             stats["skipped"] += 1
             continue
 
-        print(f"\n{Colors.BOLD}▶ Executing:{Colors.ENDC} {task_id} ({mapped_bee})")
+        print(
+            f"\n{
+                Colors.BOLD}▶ Executing:{
+                Colors.ENDC} {task_id} ({mapped_bee})")
         result = queen.spawn_bee(mapped_bee)
 
         if result.get("success"):
@@ -107,14 +140,22 @@ def main():
         else:
             stats["failed"] += 1
 
-        print_result(mapped_bee, task_id, result, result.get("duration_seconds"))
+        print_result(
+            mapped_bee,
+            task_id,
+            result,
+            result.get("duration_seconds"))
 
     # Summary
     print_header("Execution Summary")
     print(f"{Colors.GREEN}✅ Success: {stats['success']}{Colors.ENDC}")
     print(f"{Colors.FAIL}❌ Failed:  {stats['failed']}{Colors.ENDC}")
     print(f"{Colors.WARNING}⏭️  Skipped: {stats['skipped']}{Colors.ENDC}")
-    print(f"\n{Colors.BLUE}All scheduled tasks execution attempt complete.{Colors.ENDC}")
+    print(
+        f"\n{
+            Colors.BLUE}All scheduled tasks execution attempt complete.{
+            Colors.ENDC}")
+
 
 if __name__ == "__main__":
     main()

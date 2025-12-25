@@ -4,10 +4,14 @@ import os
 
 from hive.bees.research.listener_intel_bee import ListenerIntelBee
 
+
 class TestListenerIntelBeeIntegration(unittest.TestCase):
     def setUp(self):
         self.bee = ListenerIntelBee()
-        self.location = {"city": "New York", "country": "US", "timezone": "America/New_York"}
+        self.location = {
+            "city": "New York",
+            "country": "US",
+            "timezone": "America/New_York"}
 
     def test_fallback_when_no_keys(self):
         """Test that we get fallback data when no API keys are present."""
@@ -52,7 +56,8 @@ class TestListenerIntelBeeIntegration(unittest.TestCase):
     def test_news_api_success(self, mock_get):
         """Test successful news API call."""
         # We need to handle multiple calls if weather is also tried.
-        # But if we only set NEWS_API_KEY, weather will fallback immediately without call.
+        # But if we only set NEWS_API_KEY, weather will fallback immediately
+        # without call.
 
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -87,6 +92,7 @@ class TestListenerIntelBeeIntegration(unittest.TestCase):
 
             self.assertEqual(result["weather"]["condition"], "simulated")
             self.assertIn("[AI ESTIMATION]", result["weather"]["description"])
+
 
 if __name__ == '__main__':
     unittest.main()

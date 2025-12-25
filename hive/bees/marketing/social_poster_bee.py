@@ -11,7 +11,7 @@ Responsibilities:
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 try:
     import tweepy
@@ -91,12 +91,17 @@ class SocialPosterBee(EmployedBee):
     def _init_browser_client(self) -> Optional[BrowserUseClient]:
         """Initialize Browser Use client."""
         try:
-            browser_config = self.config.get("integrations", {}).get("browser_use", {})
+            browser_config = self.config.get(
+                "integrations", {}).get(
+                "browser_use", {})
             if not browser_config.get("enabled"):
                 return None
 
             # Get key from env or config
-            api_key = os.environ.get(browser_config.get("api_key_env", "BROWSER_USE_API_KEY"))
+            api_key = os.environ.get(
+                browser_config.get(
+                    "api_key_env",
+                    "BROWSER_USE_API_KEY"))
             if not api_key:
                 # Fallback to direct key if present (legacy/dev)
                 api_key = browser_config.get("api_key")
@@ -104,7 +109,9 @@ class SocialPosterBee(EmployedBee):
             if api_key:
                 return BrowserUseClient(api_key)
         except Exception as e:
-            self.log(f"Failed to initialize Browser Use client: {e}", level="error")
+            self.log(
+                f"Failed to initialize Browser Use client: {e}",
+                level="error")
         return None
 
     def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -259,17 +266,21 @@ class SocialPosterBee(EmployedBee):
             )
             return client
         except Exception as e:
-            self.log(f"Failed to authenticate with Twitter: {e}", level="error")
+            self.log(
+                f"Failed to authenticate with Twitter: {e}",
+                level="error")
             return None
 
-    def _post_to_twitter(self, content: str, media: Optional[Dict] = None) -> Dict[str, Any]:
+    def _post_to_twitter(self, content: str,
+                         media: Optional[Dict] = None) -> Dict[str, Any]:
         """Post to Twitter using API."""
         client = self._get_twitter_client()
 
         if not client:
             # Try Browser Automation fallback
             if self.browser_client:
-                self.log("Tweepy/Creds missing. Falling back to Browser Automation.")
+                self.log(
+                    "Tweepy/Creds missing. Falling back to Browser Automation.")
                 return self._post_via_browser_use("twitter", content)
 
             # Fallback to simulation
@@ -285,9 +296,12 @@ class SocialPosterBee(EmployedBee):
             }
 
         try:
-            # TODO: Handle media upload (requires API v1.1 usually or separate v2 endpoint)
+            # TODO: Handle media upload (requires API v1.1 usually or separate
+            # v2 endpoint)
             if media:
-                self.log("Media upload not yet implemented for Twitter API v2", level="warning")
+                self.log(
+                    "Media upload not yet implemented for Twitter API v2",
+                    level="warning")
 
             response = client.create_tweet(text=content)
             data = response.data
@@ -384,7 +398,7 @@ class SocialPosterBee(EmployedBee):
 
         tasks = self.read_tasks()
         pending = [t for t in tasks.get("pending", [])
-                  if t.get("bee_type") == "social_poster"]
+                   if t.get("bee_type") == "social_poster"]
 
         return {
             "action": "check_pending",
@@ -417,17 +431,19 @@ class SocialPosterBee(EmployedBee):
 
         user_prompt = f"Sender: {sender}\nMessage: {mention_content}\n\nDraft a short, engaging response (max 280 chars) adhering to your persona."
 
-        response = self.llm_client.generate_text(user_prompt, system_instruction=system_prompt)
+        response = self.llm_client.generate_text(
+            user_prompt, system_instruction=system_prompt)
 
         # Basic validation
         if response:
-             # Strip quotes if present
+            # Strip quotes if present
             response = response.strip().strip('"').strip("'")
             return response
 
         return None
 
-    def _post_via_browser_use(self, platform: str, content: str) -> Dict[str, Any]:
+    def _post_via_browser_use(
+            self, platform: str, content: str) -> Dict[str, Any]:
         """Post content using Browser Use automation."""
         if not self.browser_client:
             return {"error": "Browser Client not initialized"}
@@ -449,7 +465,8 @@ class SocialPosterBee(EmployedBee):
             # Wait for completion (blocking for now, or could just fire and forget)
             # For a bee, blocking is okay if not too long, but better to check later.
             # Here we'll wait up to 60s to see if it starts/finishes.
-            result = self.browser_client.wait_for_completion(task_id, timeout=60)
+            result = self.browser_client.wait_for_completion(
+                task_id, timeout=60)
 
             is_success = result.get("status") == "finished"
             output = result.get("output")
@@ -496,7 +513,8 @@ class SocialPosterBee(EmployedBee):
         """
         return prompt
 
-    def _post_payment_acknowledgment(self, amount: float, directives: Dict[str, Any]) -> Dict[str, Any]:
+    def _post_payment_acknowledgment(
+            self, amount: float, directives: Dict[str, Any]) -> Dict[str, Any]:
         """
         Tweet about listener-funded directive change
         """
@@ -564,7 +582,10 @@ class SocialPosterBee(EmployedBee):
                 "result": result
             }
 
-        return {"action": "scheduled_tweet_cycle", "status": "skipped", "reason": "not_schedule_time"}
+        return {
+            "action": "scheduled_tweet_cycle",
+            "status": "skipped",
+            "reason": "not_schedule_time"}
 
     def _compose_status_tweet(self, data: Dict[str, Any]) -> str:
         """

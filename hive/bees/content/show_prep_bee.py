@@ -55,7 +55,8 @@ class ShowPrepBee(EmployedBee):
         }
 
         # Generate time-appropriate talking points
-        prep_materials["talking_points"] = self._generate_talking_points(time_slot)
+        prep_materials["talking_points"] = self._generate_talking_points(
+            time_slot)
 
         # Pull listener intel for shoutouts
         known_nodes = intel.get("listeners", {}).get("known_nodes", {})
@@ -72,8 +73,12 @@ class ShowPrepBee(EmployedBee):
             "show_prep": prep_materials
         })
 
-        self.log(f"Prep complete: {len(prep_materials['talking_points'])} talking points, "
-                f"{len(prep_materials['listener_shoutouts'])} shoutouts ready")
+        self.log(
+            f"Prep complete: {
+                len(
+                    prep_materials['talking_points'])} talking points, " f"{
+                len(
+                    prep_materials['listener_shoutouts'])} shoutouts ready")
 
         return prep_materials
 

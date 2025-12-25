@@ -30,7 +30,8 @@ class BroadcastTimingConfig(BaseModel):
     required_next_track_announcement: bool = True
     weather_update_minutes: list[int] = Field(default_factory=lambda: [8, 38])
     traffic_update_minute: int = 0
-    status_tweet_hours: list[int] = Field(default_factory=lambda: [0, 6, 12, 18])
+    status_tweet_hours: list[int] = Field(
+        default_factory=lambda: [0, 6, 12, 18])
 
 
 class LLMConfig(BaseModel):
@@ -41,8 +42,11 @@ class LLMConfig(BaseModel):
     temperature: float = 0.3
     api_key_env: str = "GOOGLE_API_KEY"
     use_for_bees: list[str] = Field(
-        default_factory=lambda: ["show_prep", "social_poster", "engagement", "trend_scout"]
-    )
+        default_factory=lambda: [
+            "show_prep",
+            "social_poster",
+            "engagement",
+            "trend_scout"])
 
     @property
     def api_key(self) -> str | None:
@@ -129,9 +133,11 @@ class Config(BaseModel):
     """
 
     hive: HiveConfig = Field(default_factory=HiveConfig)
-    broadcast_timing: BroadcastTimingConfig = Field(default_factory=BroadcastTimingConfig)
+    broadcast_timing: BroadcastTimingConfig = Field(
+        default_factory=BroadcastTimingConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)
-    integrations: IntegrationsConfig = Field(default_factory=IntegrationsConfig)
+    integrations: IntegrationsConfig = Field(
+        default_factory=IntegrationsConfig)
     schedules: dict[str, ScheduleConfig] = Field(default_factory=dict)
     event_triggers: dict[str, EventTriggerConfig] = Field(default_factory=dict)
 

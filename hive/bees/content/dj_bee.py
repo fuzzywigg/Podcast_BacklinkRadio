@@ -52,16 +52,18 @@ class DjBee(EmployedBee):
         intel = self.read_intel()
         treasury = intel.get("treasury", {"balance": 20.00, "history": []})
         library = intel.get("music_library", {"owned": [], "rented": []})
-        broadcast = intel.get("broadcast_state", {"now_playing": None, "queue": []})
+        broadcast = intel.get(
+            "broadcast_state", {
+                "now_playing": None, "queue": []})
 
         # 2. Process Incoming Task
         action = task.get("payload", {}).get("action") if task else None
 
         # Handle Directive Injection
         if action == "apply_directive":
-             directives = task.get("payload", {}).get("directives", {})
-             self._apply_listener_directive(directives)
-             # Also continue to ensure queue is populated
+            directives = task.get("payload", {}).get("directives", {})
+            self._apply_listener_directive(directives)
+            # Also continue to ensure queue is populated
 
         request = task.get("request") if task else None
         decision = None
@@ -111,7 +113,7 @@ class DjBee(EmployedBee):
                 )
 
             elif decision["action"] == "play_owned":
-                 broadcast["queue"].append(decision["track"])
+                broadcast["queue"].append(decision["track"])
             else:
                 self.log(f"Declined request: {decision['reason']}")
 
@@ -142,7 +144,10 @@ class DjBee(EmployedBee):
             now_playing["started_at"] = datetime.now(timezone.utc).isoformat()
             broadcast["now_playing"] = now_playing
 
-            self.log(f"Now Playing: {now_playing['title']} (Source: {now_playing['source']})")
+            self.log(
+                f"Now Playing: {
+                    now_playing['title']} (Source: {
+                    now_playing['source']})")
 
             # Track Queue/Play
             analytics.track_song_queued(
@@ -152,7 +157,8 @@ class DjBee(EmployedBee):
 
         # 5. Write State
         # We need to update treasury, library, and broadcast state
-        # Note: intel.json update should be atomic in real impl, here we just merge
+        # Note: intel.json update should be atomic in real impl, here we just
+        # merge
         updates = {
             "treasury": treasury,
             "music_library": library,
@@ -167,7 +173,8 @@ class DjBee(EmployedBee):
         # To update intel.json directly (shared state):
         full_intel = self.read_intel()
         full_intel.update(updates)
-        # BaseBee._write_json prepends honeycomb_path, so we just pass the filename
+        # BaseBee._write_json prepends honeycomb_path, so we just pass the
+        # filename
         self._write_json("intel.json", full_intel)
 
         return {
@@ -177,7 +184,11 @@ class DjBee(EmployedBee):
             "treasury_balance": treasury["balance"]
         }
 
-    def _evaluate_request(self, request: Dict, treasury: Dict, library: Dict) -> Dict:
+    def _evaluate_request(
+            self,
+            request: Dict,
+            treasury: Dict,
+            library: Dict) -> Dict:
         """
         Decide whether to Buy, Rent, or Play Existing based on logic.
         """
@@ -196,16 +207,18 @@ class DjBee(EmployedBee):
 
         # Logic 1: Purchase (Tier 1)
         # If tip covers cost OR (obscure & cheap & decent balance)
-        is_obscure = request.get("obscure", False) # Simplified flag
+        is_obscure = request.get("obscure", False)  # Simplified flag
         cost = self.COST_BUY_OBSCURE if is_obscure else self.COST_BUY_POPULAR
 
         if tip >= cost:
-             return {
+            return {
                 "action": "buy",
                 "cost": cost,
-                "track": {"title": song_title, "source": "owned", "acquired_by": "tip"},
-                "reason": f"Tip ${tip} covers cost ${cost}"
-             }
+                "track": {
+                    "title": song_title,
+                    "source": "owned",
+                    "acquired_by": "tip"},
+                "reason": f"Tip ${tip} covers cost ${cost}"}
 
         # Logic 2: Rental (Tier 2)
         # If balance > reserve
@@ -213,9 +226,11 @@ class DjBee(EmployedBee):
             return {
                 "action": "rent",
                 "cost": self.COST_RENT,
-                "track": {"title": song_title, "source": "rented", "license": "single_play"},
-                "reason": "Treasury healthy, renting"
-            }
+                "track": {
+                    "title": song_title,
+                    "source": "rented",
+                    "license": "single_play"},
+                "reason": "Treasury healthy, renting"}
 
         # Logic 3: Decline (Tier 3 fallback)
         return {
@@ -223,7 +238,11 @@ class DjBee(EmployedBee):
             "reason": "Insufficient funds & song not owned"
         }
 
-    def _execute_transaction(self, decision: Dict, treasury: Dict, library: Dict):
+    def _execute_transaction(
+            self,
+            decision: Dict,
+            treasury: Dict,
+            library: Dict):
         """Deduct funds and update library."""
         cost = decision.get("cost", 0.0)
         action = decision.get("action")
@@ -247,7 +266,7 @@ class DjBee(EmployedBee):
         elif action == "rent":
             # Add to rented log (optional, or just queue it)
             track["id"] = f"rent_{len(library.get('rented', [])) + 1}"
-            library["rented"].append(track) # Log history if needed
+            library["rented"].append(track)  # Log history if needed
 
     def _apply_listener_directive(self, directives: Dict[str, Any]):
         """
@@ -270,14 +289,18 @@ class DjBee(EmployedBee):
         # Update no-repeat window
         if 'no_repeat_window' in directives:
             self.no_repeat_hours = directives['no_repeat_window']
-            self.log(f"No-repeat window updated to {self.no_repeat_hours} hours")
+            self.log(
+                f"No-repeat window updated to {self.no_repeat_hours} hours")
 
         # Queue tracks immediately (simulated logic for "queue_now")
         if directives.get('queue_now'):
-             # Logic to queue 5 tracks would go here
-             pass
+            # Logic to queue 5 tracks would go here
+            pass
 
-    async def fill_talk_window(self, song_end_time: datetime, next_minute: datetime) -> str:
+    async def fill_talk_window(
+            self,
+            song_end_time: datetime,
+            next_minute: datetime) -> str:
         """
         Fill the gap between song end and next minute
         NEVER exceed next whole minute
@@ -289,7 +312,9 @@ class DjBee(EmployedBee):
 
         if available_seconds < 5:
             # Too short - just announce next track
-            return f"Up next: {next_track.get('artist')} - {next_track.get('title')}"
+            return f"Up next: {
+                next_track.get('artist')} - {
+                next_track.get('title')}"
 
         # Build announcement segments (priority order)
         segments = []
@@ -329,7 +354,13 @@ class DjBee(EmployedBee):
         REQUIRED: Always announce what's coming
         Format: "Artist - Track Name"
         """
-        return f"Coming up: {track.get('artist', 'Unknown')}, {track.get('title', 'Unknown')}."
+        return f"Coming up: {
+            track.get(
+                'artist',
+                'Unknown')}, {
+            track.get(
+                'title',
+                'Unknown')}."
 
     def announce_new_nodes(self) -> str:
         """Announce new nodes."""
@@ -344,7 +375,8 @@ class DjBee(EmployedBee):
         """Get 'Update on the 8s' content."""
         # Ideally fetches from WeatherBee via Honeycomb
         intel = self.read_intel()
-        weather_snippet = intel.get("weather", {}).get("latest_snippet", "Weather data processing.")
+        weather_snippet = intel.get("weather", {}).get(
+            "latest_snippet", "Weather data processing.")
         return f"Update on the 8s: {weather_snippet}"
 
     def _get_next_track_meta(self) -> Dict:
@@ -371,7 +403,8 @@ class DjBee(EmployedBee):
                     file_path = self.hive_path.parent / "GROK.txt"
                     if file_path.exists():
                         with open(file_path, 'r') as f:
-                            # Just a mock parsing for now as GROK.txt structure is unknown
+                            # Just a mock parsing for now as GROK.txt structure
+                            # is unknown
                             self.log(f"Loaded tracks from {filename}")
                             # In real impl, parse and add to wishlist/library
                 except Exception as e:
@@ -395,6 +428,7 @@ class DjBee(EmployedBee):
         intel = self.read_intel()
         intel[key] = data
         self._write_json("intel.json", intel)
+
 
 if __name__ == "__main__":
     # Test Run

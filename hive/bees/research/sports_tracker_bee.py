@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 
 from hive.bees.base_bee import EmployedBee
 
+
 class SportsTrackerBee(EmployedBee):
     """
     Tracks sports scores relevant to listeners.
@@ -20,7 +21,8 @@ class SportsTrackerBee(EmployedBee):
     BEE_NAME = "Sports Tracker Bee"
     CATEGORY = "research"
 
-    async def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def work(
+            self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Execute sports tracking.
         """
@@ -63,7 +65,7 @@ class SportsTrackerBee(EmployedBee):
 
     def _check_games_simulated(self) -> Optional[Dict]:
         import random
-        if random.random() > 0.8: # Occasional game end
+        if random.random() > 0.8:  # Occasional game end
             return {
                 "team1": "Bears", "score1": 24,
                 "team2": "Packers", "score2": 21,

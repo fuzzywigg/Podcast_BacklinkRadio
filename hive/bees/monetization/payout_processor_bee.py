@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from hive.bees.base_bee import BaseBee
 from hive.utils.economy import calculate_dao_rewards
 
+
 class PayoutProcessorBee(BaseBee):
     """
     Manages the flow of value (Real Crypto & DAO Credits).
@@ -29,7 +30,7 @@ class PayoutProcessorBee(BaseBee):
 
     # Constants
     REFUND_WINDOW_SECONDS = 5
-    SLASH_PENALTY_PERCENT = 0.01 # 1%
+    SLASH_PENALTY_PERCENT = 0.01  # 1%
 
     def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -64,7 +65,8 @@ class PayoutProcessorBee(BaseBee):
         reason = payload.get("reason", "content_delivery_failure")
         tx_id = payload.get("original_tx_id")
 
-        self.log(f"Initiating REFUND: {amount} to {user_wallet}. Reason: {reason}")
+        self.log(
+            f"Initiating REFUND: {amount} to {user_wallet}. Reason: {reason}")
 
         # 1. Select Payment Path (Fastest)
         path = self._select_payment_path()
@@ -73,16 +75,18 @@ class PayoutProcessorBee(BaseBee):
         refund_tx = {
             "to": user_wallet,
             "value": amount,
-            "data": "0x", # Simple transfer
+            "data": "0x",  # Simple transfer
             "path": path,
             "nonce": self._get_nonce()
         }
 
         # 3. Broadcast (Simulated)
-        success = True # Assume success for simulation
+        success = True  # Assume success for simulation
 
         # 4. Log & Alert
-        self.post_alert(f"REFUND ISSUED: {amount} to {user_wallet} ({reason})", priority=True)
+        self.post_alert(
+            f"REFUND ISSUED: {amount} to {user_wallet} ({reason})",
+            priority=True)
 
         # 5. Discord Webhook (Simulated via log)
         self.log(f"DISCORD_WEBHOOK_SENT: Refund processed for {user_wallet}")
@@ -99,7 +103,7 @@ class PayoutProcessorBee(BaseBee):
         Slash a node's stake for failure.
         """
         node_id = payload.get("node_id")
-        stake_amount = payload.get("current_stake", 1000) # Default mock stake
+        stake_amount = payload.get("current_stake", 1000)  # Default mock stake
 
         penalty = stake_amount * self.SLASH_PENALTY_PERCENT
 
@@ -107,7 +111,7 @@ class PayoutProcessorBee(BaseBee):
 
         # Update Node Intel
         self.add_listener_intel(node_id, {
-            "stake_slashed": penalty, # Accumulate
+            "stake_slashed": penalty,  # Accumulate
             "last_slash_at": datetime.now(timezone.utc).isoformat(),
             "notes": [f"Slashed {penalty} due to crash/failure"]
         })
@@ -151,6 +155,7 @@ class PayoutProcessorBee(BaseBee):
 
     def _get_nonce(self) -> int:
         return int(datetime.now().timestamp())
+
 
 if __name__ == "__main__":
     bee = PayoutProcessorBee()

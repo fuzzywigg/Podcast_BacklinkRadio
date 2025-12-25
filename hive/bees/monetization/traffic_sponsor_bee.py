@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 
 from hive.bees.base_bee import EmployedBee
 
+
 class TrafficSponsorBee(EmployedBee):
     """
     Manages hourly traffic reports.
@@ -21,7 +22,8 @@ class TrafficSponsorBee(EmployedBee):
     BEE_NAME = "Traffic Sponsor Bee"
     CATEGORY = "monetization"
 
-    async def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def work(
+            self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Execute traffic tasks.
         """
@@ -37,7 +39,9 @@ class TrafficSponsorBee(EmployedBee):
 
         # Check Sponsor
         config = self._load_config()
-        sponsor_cfg = config.get("sponsored_content", {}).get("traffic_sponsor", {})
+        sponsor_cfg = config.get(
+            "sponsored_content", {}).get(
+            "traffic_sponsor", {})
 
         if not sponsor_cfg.get("active"):
             return {"status": "skipped", "reason": "no_active_sponsor"}
@@ -69,12 +73,15 @@ class TrafficSponsorBee(EmployedBee):
 
     def _compose_traffic_report(self, sponsor: Dict, data: list) -> str:
         """Format: Brought to you by [Sponsor]..."""
-        intro = f"Traffic on the hour, brought to you by {sponsor.get('name', 'Sponsor')}. "
+        intro = f"Traffic on the hour, brought to you by {
+            sponsor.get(
+                'name', 'Sponsor')}. "
 
         reports = []
         for item in data:
             if item['incidents'] > 0:
-                reports.append(f"{item['city']}: {item['incidents']} incidents reported.")
+                reports.append(
+                    f"{item['city']}: {item['incidents']} incidents reported.")
             else:
                 reports.append(f"{item['city']}: clear.")
 
@@ -101,5 +108,5 @@ class TrafficSponsorBee(EmployedBee):
             with open(self.hive_path / "config.json", "r") as f:
                 import json
                 return json.load(f)
-        except:
+        except BaseException:
             return {}

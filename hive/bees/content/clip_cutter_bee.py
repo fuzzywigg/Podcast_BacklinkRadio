@@ -104,10 +104,10 @@ class ClipCutterBee(EmployedBee):
                 "duration_seconds": 15,
                 "description": "Station ID moment",
                 "suggested_caption": "You're locked into the Backlink. No ads, just tracks. 🎵",
-                "platforms": ["twitter", "instagram_reel"],
-                "status": "pending_cut"
-            }
-        ]
+                "platforms": [
+                    "twitter",
+                    "instagram_reel"],
+                "status": "pending_cut"}]
 
     def _generate_caption(self, moment: Dict[str, Any]) -> str:
         """Generate a social media caption for the clip."""
