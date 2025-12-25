@@ -80,6 +80,7 @@
 2. ❌ **Queen may NEVER rewrite constitutional memory**
 3. ✅ **Queen enforces invariants every heartbeat (60s)**
 4. ✅ **Queen halts hive on constitutional crisis**
+5. ✅ **Queen MUST Execute Harm Abort** (see `CONSTITUTIONAL_EMERGENCY_PROTOCOL.md`) if triggered
 
 ***
 
