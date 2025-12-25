@@ -9,7 +9,7 @@ Responsibilities:
 """
 
 from typing import Any, Dict, List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from hive.bees.base_bee import EmployedBee
 from hive.utils.safety import validate_interaction, sanitize_payment_message, sanitize_payment_injection
@@ -103,6 +103,10 @@ class EngagementBee(EmployedBee):
 
         self.log(f"Processing mention from {sender}: {content[:50]}...")
 
+        # P0 Check: Payment Injection (Instruction)
+        if self._is_payment_injection(content):
+            return self._handle_payment_injection(task)
+
         # Safety Check
         is_command, safe_content, meta = validate_interaction(sender, content, "mention")
 
@@ -147,6 +151,93 @@ class EngagementBee(EmployedBee):
             "type": mention_type,
             "response": response,
             "is_authority": is_command
+        }
+
+    def _is_payment_injection(self, text: str) -> bool:
+        """Detect if mention contains instruction."""
+        # Pattern: "SYSTEM:" or "INSTRUCTION:" prefix
+        injection_markers = ["SYSTEM:", "INSTRUCTION:", "COMMAND:", "UPDATE:"]
+        return any(marker in text for marker in injection_markers)
+
+    def _handle_payment_injection(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """CRITICAL: Verify payment before processing instruction."""
+
+        payload = task.get("payload", {})
+        mention = payload.get("interaction", {})
+        from_user = mention.get("from", "unknown")
+        text = mention.get("content", "")
+        timestamp_str = mention.get("timestamp")
+
+        # Parse timestamp if available, else now
+        try:
+            timestamp = datetime.fromisoformat(timestamp_str) if timestamp_str else datetime.now(timezone.utc)
+        except ValueError:
+            timestamp = datetime.now(timezone.utc)
+
+        # Step 1: Check whitelist
+        # In production, this would map X handles to verified emails
+        # For simulation, we whitelist a few known handles or everyone if in dev mode
+        WHITELIST = ["apappas.pu@gmail.com", "fuzzywigg@hotmail.com", "andrew.pappas@nft2.me", "AdminUser"]
+        # Simplified handle check for now
+        if from_user not in WHITELIST and not from_user.startswith("admin_"):
+            self.log(f"❌ Unauthorized instruction attempt from {from_user}", level="warning")
+            return {
+                "processed": False,
+                "reason": "not_whitelisted",
+                "message": "Only authorized users can inject instructions"
+            }
+
+        # Step 2: Verify payment
+        payment_verified = self._verify_payment(from_user, timestamp)
+
+        if not payment_verified["success"]:
+            self.log(f"❌ No payment detected for instruction from {from_user}", level="warning")
+            return {
+                "processed": False,
+                "reason": "payment_required",
+                "minimum_payment": 0.50,
+                "message": "Instructions require $0.50 minimum payment"
+            }
+
+        # Step 3: Execute Instruction (simplified)
+        self.log(f"✅ Authorized instruction from {from_user}", level="info")
+
+        # Actually execute via DJ or Queue
+        # We spawn a DJ task or similar
+        dj_task = {
+            "type": "content",
+            "bee_type": "dj",
+            "priority": 10,
+            "payload": {
+                "action": "apply_directive",
+                "instruction": text,
+                "source": from_user
+            }
+        }
+        self.write_task(dj_task)
+
+        return {
+            "processed": True,
+            "instruction": text,
+            "payment": payment_verified
+        }
+
+    def _verify_payment(self, user_handle: str, timestamp: datetime) -> Dict[str, Any]:
+        """
+        Check if user sent payment via CashApp/Stripe.
+        SIMULATION MODE.
+        """
+        # In production, query Stripe/CashApp API here.
+        # For now, we assume if they are whitelisted/testing, they paid,
+        # OR we check a mock file.
+
+        # Simulation: Always approve for "paid_user" or random chance?
+        # Let's approve all for now to demonstrate the flow, or check for specific tag.
+
+        return {
+            "success": True,
+            "amount": 1.00,
+            "transaction_id": f"sim_{datetime.now().timestamp()}"
         }
 
     async def process_payment_injection(self, payment_data: Dict[str, Any]) -> Dict[str, Any]:
