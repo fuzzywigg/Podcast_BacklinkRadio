@@ -306,18 +306,34 @@ class BaseBee(ABC):
         print(f"[{timestamp}] [{level.upper()}] [{self.bee_id}] {message}")
 
     def _read_json(self, filename: str) -> Dict[str, Any]:
-        """Read a JSON file from honeycomb."""
-        filepath = self.honeycomb_path / filename
-        if filepath.exists():
-            with open(filepath, 'r') as f:
-                return json.load(f)
+        """Read a JSON file from honeycomb. Enforce path security."""
+        try:
+            filepath = (self.honeycomb_path / filename).resolve()
+            # Security check: Ensure the resolved path is inside the honeycomb path
+            if not filepath.is_relative_to(self.honeycomb_path.resolve()):
+                self.log(f"Security Alert: Path traversal attempt blocked for {filename}", level="error")
+                return {}
+
+            if filepath.exists():
+                with open(filepath, 'r') as f:
+                    return json.load(f)
+        except Exception as e:
+            self.log(f"Error reading {filename}: {e}", level="error")
         return {}
 
     def _write_json(self, filename: str, data: Dict[str, Any]) -> None:
-        """Write a JSON file to honeycomb."""
-        filepath = self.honeycomb_path / filename
-        with open(filepath, 'w') as f:
-            json.dump(data, f, indent=2)
+        """Write a JSON file to honeycomb. Enforce path security."""
+        try:
+            filepath = (self.honeycomb_path / filename).resolve()
+            # Security check: Ensure the resolved path is inside the honeycomb path
+            if not filepath.is_relative_to(self.honeycomb_path.resolve()):
+                self.log(f"Security Alert: Path traversal attempt blocked for {filename}", level="error")
+                return
+
+            with open(filepath, 'w') as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            self.log(f"Error writing {filename}: {e}", level="error")
 
     def _deep_merge(self, base: Dict, updates: Dict) -> Dict:
         """Deep merge two dictionaries."""
