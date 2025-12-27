@@ -44,7 +44,8 @@ def temp_hive_dir() -> Generator[Path, None, None]:
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         hive_path = Path(tmpdir) / "hive"
-        honeycomb_path = hive_path / "honeycomb"
+        # BaseBee expects honeycomb at hive_path/hive/honeycomb
+        honeycomb_path = hive_path / "hive" / "honeycomb"
         honeycomb_path.mkdir(parents=True)
 
         # Create minimal honeycomb files

@@ -160,19 +160,53 @@ class BaseBee(ABC):
         timestamp = datetime.now(timezone.utc).isoformat()
         print(f"[{timestamp}] [{level.upper()}] [{self.bee_id}] {message}")
 
+    def _validate_path(self, filename: str) -> Path:
+        """
+        Validate that the filename results in a path inside honeycomb.
+        Prevents path traversal attacks.
+        """
+        # Resolve the honeycomb path to absolute path
+        honeycomb = self.honeycomb_path.resolve()
+
+        # Join and resolve the target path
+        target = (self.honeycomb_path / filename).resolve()
+
+        # Check if target is relative to honeycomb
+        # is_relative_to is available in Python 3.9+
+        if not target.is_relative_to(honeycomb):
+            raise ValueError(f"Security Alert: Path traversal detected - {filename}")
+
+        return target
+
     def _read_json(self, filename: str) -> Dict[str, Any]:
         """Read a JSON file from honeycomb."""
-        filepath = self.honeycomb_path / filename
-        if filepath.exists():
-            with open(filepath, 'r') as f:
-                return json.load(f)
+        try:
+            filepath = self._validate_path(filename)
+            if filepath.exists():
+                with open(filepath, 'r') as f:
+                    return json.load(f)
+        except ValueError as e:
+            self.log(str(e), level="error")
+            return {}
+        except Exception as e:
+            self.log(f"Error reading {filename}: {str(e)}", level="error")
+            return {}
         return {}
 
     def _write_json(self, filename: str, data: Dict[str, Any]) -> None:
         """Write a JSON file to honeycomb."""
-        filepath = self.honeycomb_path / filename
-        with open(filepath, 'w') as f:
-            json.dump(data, f, indent=2)
+        try:
+            filepath = self._validate_path(filename)
+            # Ensure parent directory exists
+            filepath.parent.mkdir(parents=True, exist_ok=True)
+            with open(filepath, 'w') as f:
+                json.dump(data, f, indent=2)
+        except ValueError as e:
+            self.log(str(e), level="error")
+            raise # Re-raise security violation to alert caller if needed
+        except Exception as e:
+            self.log(f"Error writing {filename}: {str(e)}", level="error")
+            raise
 
     def _deep_merge(self, base: Dict, updates: Dict) -> Dict:
         """Deep merge two dictionaries."""
