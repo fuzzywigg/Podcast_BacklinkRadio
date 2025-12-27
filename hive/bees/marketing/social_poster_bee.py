@@ -11,7 +11,7 @@ Responsibilities:
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 try:
     import tweepy
@@ -262,6 +262,29 @@ class SocialPosterBee(EmployedBee):
             self.log(f"Failed to authenticate with Twitter: {e}", level="error")
             return None
 
+    def _get_twitter_api_v1(self) -> Optional[Any]:
+        """Authenticate and return Twitter API v1.1 interface."""
+        if not tweepy:
+            return None
+
+        api_key = os.environ.get("TWITTER_API_KEY")
+        api_secret = os.environ.get("TWITTER_API_SECRET")
+        access_token = os.environ.get("TWITTER_ACCESS_TOKEN")
+        access_token_secret = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
+
+        if not all([api_key, api_secret, access_token, access_token_secret]):
+            return None
+
+        try:
+            auth = tweepy.OAuth1UserHandler(
+                api_key, api_secret, access_token, access_token_secret
+            )
+            api = tweepy.API(auth)
+            return api
+        except Exception as e:
+            self.log(f"Failed to authenticate with Twitter v1.1: {e}", level="error")
+            return None
+
     def _post_to_twitter(self, content: str, media: Optional[Dict] = None) -> Dict[str, Any]:
         """Post to Twitter using API."""
         client = self._get_twitter_client()
@@ -285,11 +308,33 @@ class SocialPosterBee(EmployedBee):
             }
 
         try:
-            # TODO: Handle media upload (requires API v1.1 usually or separate v2 endpoint)
+            media_ids = []
             if media:
-                self.log("Media upload not yet implemented for Twitter API v2", level="warning")
+                api_v1 = self._get_twitter_api_v1()
+                if api_v1:
+                    # Determine file path
+                    file_path = media.get("path")
+                    if not file_path and media.get("clip_id"):
+                        # Try to resolve clip path - assuming standard directory
+                        # This is a placeholder convention as clip storage is not fully defined
+                        file_path = f"clips/{media['clip_id']}.mp4"
 
-            response = client.create_tweet(text=content)
+                    if file_path and os.path.exists(file_path):
+                        try:
+                            upload_result = api_v1.media_upload(filename=file_path)
+                            media_ids.append(upload_result.media_id)
+                        except Exception as e:
+                            self.log(f"Media upload failed: {e}", level="error")
+                    else:
+                        self.log(f"Media file not found: {file_path}", level="warning")
+                else:
+                    self.log("Twitter v1.1 API not available for media upload", level="warning")
+
+            if media_ids:
+                response = client.create_tweet(text=content, media_ids=media_ids)
+            else:
+                response = client.create_tweet(text=content)
+
             data = response.data
 
             # Access data as dictionary if it's not one (Tweepy models)
