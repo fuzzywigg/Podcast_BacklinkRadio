@@ -1,12 +1,16 @@
 """
-Base Bee - The Abstract Worker
-Updated to use StateManager for secure operations.
+Base Bee Agent - The template for all worker bees in the hive.
+
+All bees inherit from this class and implement their specific work() method.
+Bees communicate through the honeycomb (shared state files), not directly.
+Updated to support Constitutional Governance.
 """
 
 import json
 import logging
 import uuid
-import time
+import os
+import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
@@ -14,24 +18,40 @@ from datetime import datetime, timezone
 
 from hive.utils.state_manager import StateManager
 
+
 class BaseBee(ABC):
     """
-    Abstract base class for all bees.
+    Abstract base class for all bee agents.
+    Now equipped with a Constitutional Gateway for ethical checks.
+
+    Bees follow the stigmergy pattern:
+    - Read from honeycomb (shared state)
+    - Do their work
+    - Write results back to honeycomb
+    - No direct bee-to-bee communication
     """
 
     BEE_TYPE = "base"
     BEE_NAME = "Base Bee"
     CATEGORY = "general"
 
-    def __init__(self, hive_path: Optional[Union[str, Path]] = None, gateway: Any = None):
-        """Initialize the bee."""
-        if hive_path is None:
-            # Default to repo root/hive
-            self.hive_path = Path(__file__).parent.parent.parent / "hive"
-        else:
-            self.hive_path = Path(hive_path)
+    def __init__(self, hive_path: Optional[str] = None, gateway: Any = None):
+        """
+        Initialize the bee with path to hive.
+        Initialize the bee.
 
+        Args:
+            hive_path: Path to the root hive directory.
+            gateway: Instance of ConstitutionalGateway for governance checks.
+        """
+        if hive_path is None:
+            # Default to hive directory relative to this file
+            hive_path = Path(__file__).parent.parent.parent
+        self.hive_path = Path(hive_path)
         self.honeycomb_path = self.hive_path / "honeycomb"
+        # User code said self.honeycomb_path = self.hive_path / "hive" / "honeycomb"
+        # BUT based on my exploration, if hive_path is repo root, honeycomb is at hive/honeycomb.
+        self.honeycomb_path = self.hive_path / "hive" / "honeycomb"
         self.gateway = gateway
 
         # Generate Unique Bee ID
@@ -249,8 +269,87 @@ class BaseBee(ABC):
         current.update(data)
         current["last_seen"] = datetime.now(timezone.utc).isoformat()
 
-        intel["listeners"][listener_id] = current
+    def complete_task(self, task_id: str, result: Any = None) -> None:
+        """Mark a task as completed."""
+        tasks = self.read_tasks()
+        for i, task in enumerate(tasks["in_progress"]):
+            if task["id"] == task_id:
+                task = tasks["in_progress"].pop(i)
+                task["status"] = "completed"
+                task["completed_at"] = datetime.now(timezone.utc).isoformat()
+                task["result"] = result
+                tasks["completed"].append(task)
+                self._write_json("tasks.json", tasks)
+                return
+
+    def fail_task(self, task_id: str, error: str) -> None:
+        """Mark a task as failed (may retry if attempts < max)."""
+        tasks = self.read_tasks()
+        for i, task in enumerate(tasks["in_progress"]):
+            if task["id"] == task_id:
+                task = tasks["in_progress"].pop(i)
+                task["last_error"] = error
+                task["failed_at"] = datetime.now(timezone.utc).isoformat()
+
+                if task["attempts"] < task["max_attempts"]:
+                    # Retry - put back in pending
+                    task["status"] = "pending"
+                    tasks["pending"].append(task)
+                else:
+                    # Max attempts reached
+                    task["status"] = "failed"
+                    tasks["failed"].append(task)
+
+                self._write_json("tasks.json", tasks)
+                return
+
+    def read_intel(self) -> Dict[str, Any]:
+        """Read the accumulated intelligence."""
+        return self._read_json("intel.json")
+
+    def write_intel(self, category: str, key: str,
+                    data: Dict[str, Any]) -> None:
+        """Add or update intel in a category."""
+        intel = self.read_intel()
+        if category not in intel:
+            intel[category] = {}
+
+        if key in intel[category]:
+            # Merge with existing
+            intel[category][key] = self._deep_merge(intel[category][key], data)
+        else:
+            intel[category][key] = data
+
+        intel["_meta"]["last_updated"] = datetime.now(timezone.utc).isoformat()
         self._write_json("intel.json", intel)
+
+    def add_listener_intel(
+            self, node_id: str, intel_data: Dict[str, Any]) -> None:
+    def add_listener_intel(self, node_id: str, intel_data: Dict[str, Any]) -> None:
+        """Convenience method to add listener intel."""
+        existing = self.read_intel().get(
+            "listeners",
+            {}).get(
+            "known_nodes",
+            {}).get(
+            node_id,
+            {})
+
+        # Ensure notes are appended, not replaced
+        if "notes" in intel_data and "notes" in existing:
+            intel_data["notes"] = existing["notes"] + intel_data["notes"]
+
+        # Ensure numeric fields like 'dao_credits' are accumulated, not
+        # overwritten
+        for field in ["dao_credits", "donation_total", "interaction_count"]:
+            if field in intel_data and field in existing:
+                intel_data[field] = existing[field] + intel_data[field]
+
+        intel_data["last_seen"] = datetime.now(timezone.utc).isoformat()
+        if "first_seen" not in existing:
+            intel_data["first_seen"] = intel_data["last_seen"]
+
+        self.write_intel("listeners", f"known_nodes.{node_id}", intel_data)
 
     def post_alert(self, message: str, priority: bool = False) -> None:
         """Post an alert to state.json."""
@@ -264,9 +363,113 @@ class BaseBee(ABC):
             "at": datetime.now(timezone.utc).isoformat()
         }
 
-        key = "priority" if priority else "normal" # Changed from "general" to "normal" to match test expectations
-        if key not in state["alerts"]:
-            state["alerts"][key] = []
+    # ─────────────────────────────────────────────────────────────
+    # CORE BEE LIFECYCLE
+    # ─────────────────────────────────────────────────────────────
+
+    def run(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Execute the bee's work cycle.
+
+        Args:
+            task: Optional specific task to work on. If None, bee may
+                  look for tasks or do general work.
+
+        Returns:
+            Dict with 'success', 'result', and optional 'error' keys.
+        """
+        self.started_at = datetime.now(timezone.utc)
+        self.log(f"Starting work cycle")
+
+        try:
+            result = self.work(task)
+            self.completed_at = datetime.now(timezone.utc)
+            duration = (self.completed_at - self.started_at).total_seconds()
+            self.log(f"Completed in {duration:.2f}s")
+
+            return {
+                "success": True,
+                "result": result,
+                "bee_id": self.bee_id,
+                "duration_seconds": duration
+            }
+
+        except Exception as e:
+            self.completed_at = datetime.now(timezone.utc)
+            self.log(f"Failed with error: {str(e)}", level="error")
+
+            return {
+                "success": False,
+                "error": str(e),
+                "bee_id": self.bee_id
+            }
+
+    @abstractmethod
+    def work(self, task: Optional[Dict[str, Any]] = None) -> Any:
+        """
+        The bee's main work method. Override in subclasses.
+
+        Args:
+            task: Optional task payload to work on.
+
+        Returns:
+            Result of the work (format depends on bee type).
+        """
+        pass
+
+    # ─────────────────────────────────────────────────────────────
+    # UTILITY METHODS
+    # ─────────────────────────────────────────────────────────────
+
+    def log(self, message: str, level: str = "info") -> None:
+        """Log a message (for debugging/monitoring)."""
+        timestamp = datetime.now(timezone.utc).isoformat()
+        print(f"[{timestamp}] [{level.upper()}] [{self.bee_id}] {message}")
+
+    def _read_json(self, filename: str) -> Dict[str, Any]:
+        """Read a JSON file from honeycomb. Enforce path security."""
+        try:
+            filepath = (self.honeycomb_path / filename).resolve()
+            # Security check: Ensure the resolved path is inside the honeycomb path
+            if not filepath.is_relative_to(self.honeycomb_path.resolve()):
+                self.log(f"Security Alert: Path traversal attempt blocked for {filename}", level="error")
+                return {}
+
+            if filepath.exists():
+                with open(filepath, 'r') as f:
+                    return json.load(f)
+        except Exception as e:
+            self.log(f"Error reading {filename}: {e}", level="error")
+        return {}
+
+    def _write_json(self, filename: str, data: Dict[str, Any]) -> None:
+        """Write a JSON file to honeycomb. Enforce path security."""
+        try:
+            filepath = (self.honeycomb_path / filename).resolve()
+            # Security check: Ensure the resolved path is inside the honeycomb path
+            if not filepath.is_relative_to(self.honeycomb_path.resolve()):
+                self.log(f"Security Alert: Path traversal attempt blocked for {filename}", level="error")
+                return
+
+            with open(filepath, 'w') as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            self.log(f"Error writing {filename}: {e}", level="error")
+
+    def _deep_merge(self, base: Dict, updates: Dict) -> Dict:
+        """Deep merge two dictionaries."""
+        result = base.copy()
+        for key, value in updates.items():
+            if key in result and isinstance(
+                    result[key],
+                    dict) and isinstance(
+                    value,
+                    dict):
+                result[key] = self._deep_merge(result[key], value)
+            else:
+                result[key] = value
+        return result
+
 
         state["alerts"][key].append(alert)
         self._write_json("state.json", state)

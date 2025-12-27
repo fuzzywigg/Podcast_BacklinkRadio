@@ -13,6 +13,18 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 import queue
 from hive.utils.cache_manager import BacklinkCacheManager
+import sys
+
+# Ensure we can find the sibling constitutional-llm package
+ROOT_DIR = Path(__file__).parent.parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
+
+try:
+    from constitutional_llm.src.constitutional_gateway import ConstitutionalGateway
+except ImportError:
+    print("WARNING: Constitutional Gateway not found. Governance disabled.")
+    ConstitutionalGateway = None
 
 # Ensure we can find the sibling constitutional-llm package
 # Assuming orchestrator.py is in hive/queen/ and constitutional-llm is in root
@@ -51,8 +63,10 @@ class QueenOrchestrator:
         self.event_queue: queue.Queue = queue.Queue()
         self.running = False
         self.last_heartbeat = None
-        self._state_cache = {}
-        self.bee_failures = {}
+        self._state_cache = {}  # {filepath: {'mtime': float, 'content': dict}}
+
+        # Health Tracking
+        self.bee_failures = {}  # {bee_type: failure_count}
         self.MAX_BEE_FAILURES = 3
 
         # Load configuration
@@ -116,15 +130,18 @@ class QueenOrchestrator:
                 "stream_monitor": {"interval_minutes": 1, "enabled": True},
                 "social_poster": {"interval_minutes": 15, "enabled": True},
                 "show_prep": {"interval_minutes": 30, "enabled": True},
-                "sponsor_hunter": {"interval_minutes": 1440, "enabled": True},  # Daily
-                "radio_physics": {"interval_minutes": 5, "enabled": True} # Radio Physics
+                # Daily
+                "sponsor_hunter": {"interval_minutes": 1440, "enabled": True},
+                # Radio Physics
+                "radio_physics": {"interval_minutes": 5, "enabled": True}
             },
             "event_triggers": {
                 "donation": ["engagement", "social_poster", "payout_processor"],
                 "mention": ["engagement", "listener_intel"],
                 "trend_alert": ["show_prep", "social_poster"],
                 "vip_detected": ["engagement"],
-                "stream_issue": ["payout_processor", "radio_physics"] # Refund on fail
+                # Refund on fail
+                "stream_issue": ["payout_processor", "radio_physics"]
             }
         }
 
@@ -153,15 +170,79 @@ class QueenOrchestrator:
         for bee_type, (module_path, class_name) in bee_mappings.items():
             try:
                 # Dynamic import
-                # For now, just store the mapping - actual import happens when spawning
+                full_path = f"hive.{module_path}"
+                # For now, just store the mapping - actual import happens when
+                # spawning
                 self.bee_registry[bee_type] = (module_path, class_name)
             except Exception as e:
-                self.log(f"Failed to register {bee_type}: {e}", level="warning")
+                self.log(
+                    f"Failed to register {bee_type}: {e}",
+                    level="warning")
 
     def register_bee(self, bee_type: str, bee_class: Type) -> None:
         """Register a bee type."""
         self.bee_registry[bee_type] = bee_class
         self.log(f"Registered bee type: {bee_type}")
+
+    def spawn_bee(self, bee_type: str,
+                  task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Spawn a bee to do work."""
+
+        if bee_type not in self.bee_registry:
+            return {"error": f"Unknown bee type: {bee_type}"}
+
+        # Check Exorcism Protocol Status
+        if self.bee_failures.get(bee_type, 0) >= self.MAX_BEE_FAILURES:
+            self.log(
+                f"Spawn blocked: {bee_type} is currently exiled due to failure rate.",
+                level="error")
+            return {"error": "bee_exiled"}
+
+        self.log(f"Spawning {bee_type} bee...")
+
+        try:
+            # Get bee class info
+            bee_info = self.bee_registry[bee_type]
+
+            if isinstance(bee_info, tuple):
+                # Dynamic import
+                module_path, class_name = bee_info
+                # Construct import path relative to hive
+                import sys
+                bees_path = str(self.hive_path / "bees")
+                if bees_path not in sys.path:
+                    sys.path.insert(0, bees_path)
+
+                # Import the specific module
+                # Simplified loader
+                module_parts = module_path.split('.')
+                # e.g., bees.content.show_prep_bee -> show_prep_bee
+                # This assumes standard structure
+
+                # Import via importlib
+                module = importlib.import_module(module_path)
+                BeeClass = getattr(module, class_name)
+
+            else:
+                BeeClass = bee_info
+
+            # Instantiate and run
+            # INJECT GATEWAY HERE
+            bee = BeeClass(hive_path=self.hive_path, gateway=self.gateway)
+            result = bee.run(task)
+
+            # Record success (reset failures)
+            if result.get("success"):
+                self.bee_failures[bee_type] = 0
+            else:
+                self._record_failure(bee_type)
+
+            return result
+
+        except Exception as e:
+            self.log(f"Error spawning {bee_type}: {e}", level="error")
+            self._record_failure(bee_type)
+            return {"error": str(e)}
 
     def _record_failure(self, bee_type: str):
         """Record a failure for a bee type."""
@@ -176,8 +257,12 @@ class QueenOrchestrator:
         The Robot Exorcism Protocol.
         Invoked when a bee fails repeatedly.
         """
-        self.log(f"⚠ EXORCISM PROTOCOL INITIATED for {bee_type} ⚠", level="critical")
-        self.log(f"Bee {bee_type} has failed {self.MAX_BEE_FAILURES} times consecutively.")
+        self.log(
+            f"⚠ EXORCISM PROTOCOL INITIATED for {bee_type} ⚠",
+            level="critical")
+        self.log(
+            f"Bee {bee_type} has failed {
+                self.MAX_BEE_FAILURES} times consecutively.")
 
         # 1. Post Critical Alert
         self._update_state({
@@ -193,13 +278,15 @@ class QueenOrchestrator:
 
         # 2. Logic to "Review and Revise" (Stub for self-healing)
         # In a full system, this would trigger an Agentic Code Reviewer to inspect the bee's code.
-        # For now, we just log it and potentially reset the counter after a cooldown.
+        # For now, we just log it and potentially reset the counter after a
+        # cooldown.
 
         # 3. Temporary Exile (Cooldown)
         # We don't actually delete the file, but we stop spawning it.
         # The counter remains high until manual intervention or auto-reset.
 
-    def trigger_event(self, event_type: str, data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def trigger_event(self, event_type: str,
+                      data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Trigger an event that may wake multiple bees."""
 
         self.log(f"Event triggered: {event_type}")
@@ -246,7 +333,8 @@ class QueenOrchestrator:
                 should_run = True
             else:
                 try:
-                    last_run_dt = datetime.fromisoformat(last_run.replace('Z', '+00:00'))
+                    last_run_dt = datetime.fromisoformat(
+                        last_run.replace('Z', '+00:00'))
                     minutes_since = (now - last_run_dt).total_seconds() / 60
                     should_run = minutes_since >= interval_minutes
                 except ValueError:
@@ -330,12 +418,18 @@ class QueenOrchestrator:
         tasks = self._read_tasks()
 
         return {
-            "broadcast_status": state.get("broadcast", {}).get("status", "unknown"),
-            "pending_tasks": len(tasks.get("pending", [])),
-            "in_progress_tasks": len(tasks.get("in_progress", [])),
-            "failed_tasks": len(tasks.get("failed", [])),
-            "alerts_pending": len(state.get("alerts", {}).get("priority", []))
-        }
+            "broadcast_status": state.get(
+                "broadcast", {}).get(
+                "status", "unknown"), "pending_tasks": len(
+                tasks.get(
+                    "pending", [])), "in_progress_tasks": len(
+                        tasks.get(
+                            "in_progress", [])), "failed_tasks": len(
+                                tasks.get(
+                                    "failed", [])), "alerts_pending": len(
+                                        state.get(
+                                            "alerts", {}).get(
+                                                "priority", []))}
 
     def run(self, once: bool = False) -> None:
         """
@@ -377,7 +471,9 @@ class QueenOrchestrator:
                 # Process task queue
                 queue_result = self.process_task_queue()
                 if queue_result.get("processed", 0) > 0:
-                    self.log(f"Processed {queue_result['processed']} queued tasks")
+                    self.log(
+                        f"Processed {
+                            queue_result['processed']} queued tasks")
 
                 if once:
                     break
@@ -422,7 +518,8 @@ class QueenOrchestrator:
 
             cache_entry = self._state_cache.get(path_str)
             if cache_entry and cache_entry['mtime'] == mtime:
-                return copy.deepcopy(cache_entry['content'])  # Deep copy to prevent mutation of cache
+                # Deep copy to prevent mutation of cache
+                return copy.deepcopy(cache_entry['content'])
 
             with open(filepath, 'r') as f:
                 content = json.load(f)
@@ -459,7 +556,11 @@ class QueenOrchestrator:
         """Deep merge two dictionaries."""
         result = base.copy()
         for key, value in updates.items():
-            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            if key in result and isinstance(
+                    result[key],
+                    dict) and isinstance(
+                    value,
+                    dict):
                 result[key] = self._deep_merge(result[key], value)
             else:
                 result[key] = value
@@ -474,9 +575,17 @@ def main():
     """CLI entry point for the Queen."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Backlink Broadcast - Queen Orchestrator")
-    parser.add_argument("command", choices=["run", "once", "spawn", "status", "trigger"],
-                       help="Command to execute")
+    parser = argparse.ArgumentParser(
+        description="Backlink Broadcast - Queen Orchestrator")
+    parser.add_argument(
+        "command",
+        choices=[
+            "run",
+            "once",
+            "spawn",
+            "status",
+            "trigger"],
+        help="Command to execute")
     parser.add_argument("--bee", "-b", help="Bee type to spawn")
     parser.add_argument("--event", "-e", help="Event type to trigger")
     parser.add_argument("--data", "-d", help="JSON data for task/event")

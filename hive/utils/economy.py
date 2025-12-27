@@ -34,6 +34,7 @@ TRUSTED_EMAILS = [
 # ECONOMY LOGIC
 # ─────────────────────────────────────────────────────────────
 
+
 def calculate_dao_rewards(
     user_handle: str,
     contribution_type: str,
@@ -69,13 +70,14 @@ def calculate_dao_rewards(
 
     credit_multiplier = 0
     if contribution_type == "dollar":
-        credit_multiplier = 100 # 100 credits per dollar
+        credit_multiplier = 100  # 100 credits per dollar
     elif contribution_type == "code":
         credit_multiplier = 50  # 50 credits per PR/Commit (arbitrary base)
     elif contribution_type == "interaction":
         credit_multiplier = 1   # 1 credit per interaction
 
-    credits_earned = value_amount * credit_multiplier if value_amount > 0 else credit_multiplier
+    credits_earned = value_amount * \
+        credit_multiplier if value_amount > 0 else credit_multiplier
 
     return {
         "type": "dao_credit",
@@ -84,6 +86,7 @@ def calculate_dao_rewards(
         "value_real": 0,
         "note": "Community Participation Credit (No Voting Rights)"
     }
+
 
 def validate_wallet_request(
     requesting_handle: str,
@@ -111,9 +114,10 @@ def validate_wallet_request(
     # The requirement says "hard coded... or provided by Andrew Pappas via prompts"
     # We assume 'requesting_handle' is authenticated by safety.py first.
     if handle in PRINCIPAL_ARCHITECTS:
-         return True, "Principal Architect Override"
+        return True, "Principal Architect Override"
 
     return False, "FRAUD: Unauthorized wallet address detected. Blocked."
+
 
 def select_user_payment_path() -> Dict[str, str]:
     """
@@ -128,6 +132,7 @@ def select_user_payment_path() -> Dict[str, str]:
         "fallback": "wallet_connect",
         "last_resort": "stripe"
     }
+
 
 def is_trusted_os_admin(email: str) -> bool:
     """Check if an email is trusted for OS/System changes."""

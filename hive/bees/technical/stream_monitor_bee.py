@@ -53,7 +53,8 @@ class StreamMonitorBee(OnlookerBee):
 
         # Read previous state for transition detection
         previous_state = self.read_state()
-        was_online = previous_state.get("broadcast", {}).get("status") == "online"
+        was_online = previous_state.get(
+            "broadcast", {}).get("status") == "online"
 
         health_status = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -92,7 +93,8 @@ class StreamMonitorBee(OnlookerBee):
 
         if not bitrate_check.get("ok"):
             if bitrate_check.get("bitrate_kbps", 0) > 0:
-                health_status["issues"].append(f"Low bitrate: {bitrate_check['bitrate_kbps']}kbps")
+                health_status["issues"].append(
+                    f"Low bitrate: {bitrate_check['bitrate_kbps']}kbps")
 
         # Update broadcast state
         self.write_state({
@@ -111,7 +113,9 @@ class StreamMonitorBee(OnlookerBee):
             analytics.track_broadcast_status("ended")
 
         # Always track listener count for RLVR engagement metrics
-        analytics.track_event("Listener Count", props={"count": listener_count})
+        analytics.track_event(
+            "Listener Count", props={
+                "count": listener_count})
 
         # Alert on critical issues
         if health_status["issues"]:
@@ -119,8 +123,11 @@ class StreamMonitorBee(OnlookerBee):
                 if issue:
                     self.post_alert(f"Stream issue: {issue}", priority=True)
 
-        self.log(f"Health check complete. Online: {health_status['stream_online']}, "
-                f"Listeners: {listener_count}, Issues: {len(health_status['issues'])}")
+        self.log(
+            f"Health check complete. Online: {
+                health_status['stream_online']}, " f"Listeners: {listener_count}, Issues: {
+                len(
+                    health_status['issues'])}")
 
         return health_status
 
@@ -136,11 +143,15 @@ class StreamMonitorBee(OnlookerBee):
             if config_path.exists():
                 with open(config_path, 'r') as f:
                     config = json.load(f)
-                    endpoint = config.get("integrations", {}).get("streaming", {}).get("endpoint")
+                    endpoint = config.get(
+                        "integrations", {}).get(
+                        "streaming", {}).get("endpoint")
                     if endpoint:
                         stream_url = endpoint
         except Exception as e:
-            self.log(f"Error reading config for stream URL: {e}", level="warning")
+            self.log(
+                f"Error reading config for stream URL: {e}",
+                level="warning")
 
         result = {
             "stream_online": False,
@@ -154,13 +165,15 @@ class StreamMonitorBee(OnlookerBee):
 
         try:
             start_time = datetime.now()
-            # 20s timeout as requested, stream=True to avoid downloading content
+            # 20s timeout as requested, stream=True to avoid downloading
+            # content
             response = requests.get(stream_url, stream=True, timeout=20)
 
             # Extract headers before closing
             if "X-Loudness" in response.headers:
                 try:
-                    result["loudness_db"] = float(response.headers["X-Loudness"])
+                    result["loudness_db"] = float(
+                        response.headers["X-Loudness"])
                 except (ValueError, TypeError):
                     pass
 
@@ -180,7 +193,8 @@ class StreamMonitorBee(OnlookerBee):
 
         return result
 
-    def _check_audio(self, loudness_db: Optional[float] = None) -> Dict[str, Any]:
+    def _check_audio(
+            self, loudness_db: Optional[float] = None) -> Dict[str, Any]:
         """
         Check audio levels for dead air.
 
@@ -197,7 +211,7 @@ class StreamMonitorBee(OnlookerBee):
 
         return {
             "ok": is_ok,
-            "peak_db": -6.0, # Still placeholder as X-Loudness is likely avg/integrated
+            "peak_db": -6.0,  # Still placeholder as X-Loudness is likely avg/integrated
             "avg_db": avg_db,
             "issue": f"Dead air detected ({avg_db} dB)" if not is_ok else None
         }
@@ -219,9 +233,10 @@ class StreamMonitorBee(OnlookerBee):
             ok = False
 
         return {
-            "ok": ok and (latency_ms > 0) and (latency_ms < self.THRESHOLDS["latency_max_ms"]),
-            "latency_ms": round(latency_ms, 2) if latency_ms > 0 else 0
-        }
+            "ok": ok and (
+                latency_ms > 0) and (
+                latency_ms < self.THRESHOLDS["latency_max_ms"]), "latency_ms": round(
+                latency_ms, 2) if latency_ms > 0 else 0}
 
     def _get_listener_count(self) -> int:
         """Get current listener count."""
@@ -240,7 +255,9 @@ class StreamMonitorBee(OnlookerBee):
             try:
                 with open(config_path, 'r') as f:
                     config = json.load(f)
-                    endpoint = config.get("integrations", {}).get("streaming", {}).get("endpoint")
+                    endpoint = config.get(
+                        "integrations", {}).get(
+                        "streaming", {}).get("endpoint")
                     if endpoint:
                         return endpoint
             except Exception as e:

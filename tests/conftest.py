@@ -49,10 +49,14 @@ def temp_hive_dir() -> Generator[Path, None, None]:
 
         # Create minimal honeycomb files
         state = {
-            "_meta": {"version": "1.0.0", "last_updated": "2024-01-01T00:00:00Z"},
+            "_meta": {
+                "version": "1.0.0",
+                "last_updated": "2024-01-01T00:00:00Z"},
             "current_track": None,
             "persona": "evening",
-            "alerts": {"priority": [], "normal": []},
+            "alerts": {
+                "priority": [],
+                "normal": []},
             "shoutouts": [],
         }
         tasks = {
@@ -62,8 +66,11 @@ def temp_hive_dir() -> Generator[Path, None, None]:
             "failed": [],
         }
         intel = {
-            "_meta": {"version": "1.0.0", "last_updated": "2024-01-01T00:00:00Z"},
-            "listeners": {"known_nodes": {}},
+            "_meta": {
+                "version": "1.0.0",
+                "last_updated": "2024-01-01T00:00:00Z"},
+            "listeners": {
+                "known_nodes": {}},
             "trends": {},
             "sponsors": {},
         }
@@ -197,8 +204,8 @@ def base_bee_config(temp_hive_dir: Path) -> dict[str, Any]:
 def pytest_configure(config: pytest.Config) -> None:
     """Configure custom pytest markers."""
     config.addinivalue_line(
-        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
-    )
+        "markers",
+        "slow: marks tests as slow (deselect with '-m \"not slow\"')")
     config.addinivalue_line(
         "markers", "integration: marks tests requiring external services"
     )
