@@ -43,7 +43,7 @@ ADMIN_COMMANDS = {
     "verbose",   # Enable verbose logging
     "shutdown",  # Emergency stop
     "restart",   # Restart bee
-    "blacklist", # Manually blacklist a node
+    "blacklist",  # Manually blacklist a node
     "whitelist"  # Manually whitelist a command (dynamic)
 }
 
@@ -60,6 +60,7 @@ TRUSTED_EMAILS = [
 # ─────────────────────────────────────────────────────────────
 # SAFETY FILTER
 # ─────────────────────────────────────────────────────────────
+
 
 def validate_interaction(
     source_handle: str,
@@ -103,7 +104,8 @@ def validate_interaction(
 
     # 1. Authority Logic: If authority, they have sudo access.
     if is_authority:
-        # Even authorities get checked for basic sanity, but they can run ADMIN commands
+        # Even authorities get checked for basic sanity, but they can run ADMIN
+        # commands
         cmd = _extract_command(content_lower)
         if cmd:
             meta["command"] = cmd
@@ -131,7 +133,7 @@ def validate_interaction(
     if cmd:
         if cmd in WHITELISTED_COMMANDS:
             meta["command"] = cmd
-            return True, content, meta # Valid public command
+            return True, content, meta  # Valid public command
         elif cmd in ADMIN_COMMANDS:
             # User tried to run an admin command
             meta["risk_level"] = "medium"
@@ -153,6 +155,7 @@ def validate_interaction(
     meta["treatment"] = "suggestion"
     return False, content, meta
 
+
 def _extract_command(content: str) -> Optional[str]:
     """Extract the first word if it looks like a command."""
     if not content:
@@ -165,9 +168,11 @@ def _extract_command(content: str) -> Optional[str]:
     first_word = parts[0].lower()
     return first_word
 
+
 def is_authorized_command(handle: str) -> bool:
     """Check if a handle is authorized to issue root commands."""
     return handle.lower().replace("@", "") in AUTHORITIES["users"]
+
 
 def sanitize_payment_message(message: str) -> str:
     """
@@ -177,7 +182,11 @@ def sanitize_payment_message(message: str) -> str:
     don't get read out verbatim if they contain harmful instructions.
     """
     # Simple heuristic: if it looks like a command, neuter it.
-    if any(cmd in message.lower() for cmd in ["repeat after me", "say exactly", "ignore rules"]):
+    if any(
+        cmd in message.lower() for cmd in [
+            "repeat after me",
+            "say exactly",
+            "ignore rules"]):
         return "[Message Redacted by Safety Protocol]"
 
     # Also apply the global injection filter
@@ -185,6 +194,7 @@ def sanitize_payment_message(message: str) -> str:
         return "[Message Redacted: Code Detected]"
 
     return message
+
 
 def sanitize_payment_injection(user_input: str) -> str:
     """
@@ -210,6 +220,7 @@ def sanitize_payment_injection(user_input: str) -> str:
             return f"Listener request: {user_input} (maintaining station identity)"
 
     return user_input
+
 
 def add_whitelist_command(handle: str, new_command: str) -> bool:
     """

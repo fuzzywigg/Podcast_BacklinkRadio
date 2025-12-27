@@ -1,25 +1,24 @@
-# Agent Collaboration Scratchpad
+# SCRATCHPAD
 
-**Status:** Active
-**Current Sprint:** Alignment & Requirements
+**Current Focus:** Security Hardening & Architecture Refactor
+**Date:** Dec 25, 2025
 
-## 🛑 SILO PREVENTION PROTOCOL
-*   **Do not work in isolation.** Document all major architectural decisions here.
-*   **Shared Vision:** We are building a unified, constitutional Hive.
-*   **Source of Truth:** This file tracks the immediate path forward.
+## Recent Decisions (Architecture)
+*   **Event Sourcing for Treasury:** We moved away from `treasury.json` (flat file) to `treasury_events.jsonl` (append-only log). This prevents race conditions where two bees spending money simultaneously would overwrite each other's balance updates.
+*   **HMAC Signing for State:** `state.json` is now signed. This prevents a "rogue bee" (or a file system error) from corrupting the broadcast state without detection.
+*   **Payment Verification Stub:** We acknowledged that we can't trust user input claiming "I paid X". We added `PaymentVerifier` to stand in for real RPC calls.
 
-## 📝 Current Path Forward
-*   **Goal:** Integrate Andon Labs stack for alignment tasks.
-*   **Action Items:**
-    1.  Initialize `hive/alignment/` directory.
-    2.  Explore `claude-code-sdk-python-andon-special` capabilities.
-    3.  Define specific "alignment tasks".
+## Active Tasks
+1.  **Drift Detection:** We need a bee that reads `STATION_MANIFESTO.md` and compares it to what the `DjBee` actually said. If the DJ starts saying "I am an AI", we need to catch it.
+2.  **Exorcism Protocol:** The Queen currently just logs errors. She needs to be able to restart a bee or swap it for a backup implementation.
 
-## 🧠 Joint Memory & Context
-*   **Andon Labs SDK:** A Python SDK for Claude Code, allowing in-process MCP servers and hooks.
-*   **Usage:** Useful for design work and alignment tasks.
-*   **Repository:** `https://github.com/AndonLabs/claude-code-sdk-python-andon-special`
+## Notes for Collaborators
+*   **New Environment Vars:**
+    *   `HIVE_SECRET_KEY`: Required for signing state. Defaults to dev key if missing.
+*   **Testing:**
+    *   Run `pytest tests/` to check regressions.
+    *   Verify `treasury_events.jsonl` is creating "GENESIS" event on startup.
 
-## 🚧 Active Drafts & Notes
-*   **Alignment Strategy:** We will use the SDK to create custom tools (MCP servers) that help enforce the Constitutional Principles.
-*   **Integration Point:** The `ConstitutionalGateway` might benefit from "hooks" provided by the SDK to validate actions before execution.
+## Backlog / Ideas
+*   **Gemini 3:** We should look into using "Grounding" for the `TrendScoutBee` to get real music charts without scraping HTML.
+*   **Discord Integration:** The `PayoutProcessorBee` logs webhooks, but we should make them real.

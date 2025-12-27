@@ -26,7 +26,8 @@ class LLMClient:
         self.config = config
         self.llm_config = config.get("llm", {})
         self.key_manager = KeyManager()
-        self.api_key = self.key_manager.get_key(self.llm_config.get("api_key_env", "GOOGLE_API_KEY"))
+        self.api_key = self.key_manager.get_key(
+            self.llm_config.get("api_key_env", "GOOGLE_API_KEY"))
         self.model_name = self.llm_config.get("model", "gemini-1.5-flash")
 
         self.enabled = False
@@ -41,7 +42,8 @@ class LLMClient:
         else:
             print("Warning: No API key found for LLM. functionality disabled.")
 
-    def create_cache(self, content: str, ttl_minutes: int = 5, model: Optional[str] = None) -> Optional[Any]:
+    def create_cache(self, content: str, ttl_minutes: int = 5,
+                     model: Optional[str] = None) -> Optional[Any]:
         """
         Create a cached content object for efficient reuse.
 
@@ -58,15 +60,17 @@ class LLMClient:
 
         try:
             target_model = model if model else self.model_name
-            # Ensure model name is in the format expected by caching (usually 'models/...')
+            # Ensure model name is in the format expected by caching (usually
+            # 'models/...')
             if not target_model.startswith("models/"):
-                 target_model = f"models/{target_model}"
+                target_model = f"models/{target_model}"
 
             cache = caching.CachedContent.create(
                 model=target_model,
-                display_name=f"hive_cache_{datetime.datetime.now().timestamp()}",
+                display_name=f"hive_cache_{
+                    datetime.datetime.now().timestamp()}",
                 system_instruction=content,
-                contents=[], # Contents can be empty if system_instruction holds the main context
+                contents=[],  # Contents can be empty if system_instruction holds the main context
                 ttl=datetime.timedelta(minutes=ttl_minutes),
             )
             return cache
@@ -74,7 +78,11 @@ class LLMClient:
             print(f"Error creating cache: {e}")
             return None
 
-    def generate_text(self, prompt: Union[str, List[Any]], system_instruction: Optional[str] = None, cached_content: Optional[Any] = None) -> Optional[str]:
+    def generate_text(self,
+                      prompt: Union[str,
+                                    List[Any]],
+                      system_instruction: Optional[str] = None,
+                      cached_content: Optional[Any] = None) -> Optional[str]:
         """
         Generate text response from LLM, supporting multimodal inputs and caching.
 
@@ -94,9 +102,11 @@ class LLMClient:
             # Instantiate model
             if cached_content:
                 # When using cached content, the model is tied to the cache
-                model = genai.GenerativeModel.from_cached_content(cached_content=cached_content)
+                model = genai.GenerativeModel.from_cached_content(
+                    cached_content=cached_content)
             elif system_instruction:
-                model = genai.GenerativeModel(self.model_name, system_instruction=system_instruction)
+                model = genai.GenerativeModel(
+                    self.model_name, system_instruction=system_instruction)
             else:
                 model = self.default_model
 
@@ -106,7 +116,11 @@ class LLMClient:
             print(f"Error generating text: {e}")
             return None
 
-    async def generate_text_async(self, prompt: Union[str, List[Any]], system_instruction: Optional[str] = None, cached_content: Optional[Any] = None) -> Optional[str]:
+    async def generate_text_async(self,
+                                  prompt: Union[str,
+                                                List[Any]],
+                                  system_instruction: Optional[str] = None,
+                                  cached_content: Optional[Any] = None) -> Optional[str]:
         """
         Async generation to prevent blocking the Hive.
         """
@@ -115,9 +129,11 @@ class LLMClient:
 
         try:
             if cached_content:
-                model = genai.GenerativeModel.from_cached_content(cached_content=cached_content)
+                model = genai.GenerativeModel.from_cached_content(
+                    cached_content=cached_content)
             elif system_instruction:
-                model = genai.GenerativeModel(self.model_name, system_instruction=system_instruction)
+                model = genai.GenerativeModel(
+                    self.model_name, system_instruction=system_instruction)
             else:
                 model = self.default_model
 

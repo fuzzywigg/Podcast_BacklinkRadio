@@ -4,6 +4,7 @@ from pathlib import Path
 
 from hive.utils.browser_use_client import BrowserUseClient
 
+
 def test_browser_client():
     # Load key from config
     config_path = Path("hive/config.json")
@@ -51,6 +52,7 @@ def test_browser_client():
         print("\nSUCCESS!")
     else:
         print("\nTask did not finish successfully.")
+
 
 if __name__ == "__main__":
     test_browser_client()

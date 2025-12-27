@@ -34,28 +34,18 @@ class TriviaFetcher:
         self.key_manager = KeyManager()
 
         # Fallback static trivia
-        self.static_backup = [
-            {
-                "type": "music",
-                "text": "The first song played on MTV was 'Video Killed the Radio Star.' Ironic.",
-                "use_after_genre": "rock"
-            },
-            {
-                "type": "tech",
-                "text": "The first radio broadcast was in 1906. We've been connecting nodes ever since.",
-                "use_after_genre": None
-            },
-            {
-                "type": "station",
-                "text": "Commercial-free since day one. That's the Backlink promise.",
-                "use_after_genre": None
-            },
-            {
-                "type": "science",
-                "text": "Honey bees communicate through a 'waggle dance' to share locations of food sources.",
-                "use_after_genre": None
-            }
-        ]
+        self.static_backup = [{"type": "music",
+                               "text": "The first song played on MTV was 'Video Killed the Radio Star.' Ironic.",
+                               "use_after_genre": "rock"},
+                              {"type": "tech",
+                               "text": "The first radio broadcast was in 1906. We've been connecting nodes ever since.",
+                               "use_after_genre": None},
+                              {"type": "station",
+                               "text": "Commercial-free since day one. That's the Backlink promise.",
+                               "use_after_genre": None},
+                              {"type": "science",
+                               "text": "Honey bees communicate through a 'waggle dance' to share locations of food sources.",
+                               "use_after_genre": None}]
 
     def fetch(self, count: int = 3) -> List[Dict[str, Any]]:
         """
@@ -90,7 +80,8 @@ class TriviaFetcher:
                 break
 
             try:
-                new_items = self._fetch_from_provider(provider, count - len(results))
+                new_items = self._fetch_from_provider(
+                    provider, count - len(results))
                 results.extend(new_items)
             except Exception as e:
                 print(f"Error fetching from {provider['name']}: {e}")
@@ -100,11 +91,16 @@ class TriviaFetcher:
         if len(results) < count:
             needed = count - len(results)
             # Pick random backup items
-            results.extend(random.sample(self.static_backup, min(needed, len(self.static_backup))))
+            results.extend(
+                random.sample(
+                    self.static_backup, min(
+                        needed, len(
+                            self.static_backup))))
 
         return results[:count]
 
-    def _fetch_from_provider(self, provider: Dict[str, Any], count: int) -> List[Dict[str, Any]]:
+    def _fetch_from_provider(
+            self, provider: Dict[str, Any], count: int) -> List[Dict[str, Any]]:
         """Dispatch to specific provider method."""
         name = provider.get("name")
 
@@ -138,7 +134,8 @@ class TriviaFetcher:
         if data.get("response_code") == 0:
             for result in data.get("results", []):
                 question = html.unescape(result.get("question", ""))
-                correct_answer = html.unescape(result.get("correct_answer", ""))
+                correct_answer = html.unescape(
+                    result.get("correct_answer", ""))
 
                 # Format as a fact or Q&A
                 text = f"Trivia: {question} The answer is {correct_answer}."
@@ -182,7 +179,8 @@ class TriviaFetcher:
 
         return items
 
-    def _fetch_api_ninjas(self, provider_config: Dict[str, Any], count: int) -> List[Dict[str, Any]]:
+    def _fetch_api_ninjas(
+            self, provider_config: Dict[str, Any], count: int) -> List[Dict[str, Any]]:
         """Fetch from API Ninjas Facts API."""
         # Requires Key
         env_var = provider_config.get("api_key_env")
@@ -220,13 +218,19 @@ class TriviaFetcher:
         category = category.lower()
 
         if "music" in category:
-            if "rock" in category: return "rock"
-            if "pop" in category: return "pop"
-            return "any" # Generic music trivia is good for any music slot
+            if "rock" in category:
+                return "rock"
+            if "pop" in category:
+                return "pop"
+            return "any"  # Generic music trivia is good for any music slot
 
-        if "entertainment" in category: return None
-        if "science" in category: return "electronic" # Sci-tech vibes
-        if "computer" in category: return "electronic"
-        if "history" in category: return None
+        if "entertainment" in category:
+            return None
+        if "science" in category:
+            return "electronic"  # Sci-tech vibes
+        if "computer" in category:
+            return "electronic"
+        if "history" in category:
+            return None
 
         return None
