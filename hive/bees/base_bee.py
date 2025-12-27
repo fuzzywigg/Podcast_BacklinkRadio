@@ -263,33 +263,33 @@ class BaseBee(ABC):
 
     def _read_json(self, filename: str) -> Dict[str, Any]:
         """Read a JSON file from honeycomb."""
-        try:
-            filepath = self._validate_path(filename)
-            if filepath.exists():
-                with open(filepath, 'r') as f:
-                    return json.load(f)
-        except ValueError as e:
-            self.log(str(e), level="error")
-            return {}
-        except Exception as e:
-            self.log(f"Error reading {filename}: {str(e)}", level="error")
-            return {}
+        # Resolve to absolute paths for security check
+        base_path = self.honeycomb_path.resolve()
+        filepath = (self.honeycomb_path / filename).resolve()
+
+        # Ensure the resolved path is within the honeycomb directory
+        if not filepath.is_relative_to(base_path):
+             self.log(f"SECURITY ALERT: Path traversal attempt detected: {filename}", level="error")
+             raise ValueError(f"Path traversal detected: {filename}")
+
+        if filepath.exists():
+            with open(filepath, 'r') as f:
+                return json.load(f)
         return {}
 
     def _write_json(self, filename: str, data: Dict[str, Any]) -> None:
         """Write a JSON file to honeycomb."""
-        try:
-            filepath = self._validate_path(filename)
-            # Ensure parent directory exists
-            filepath.parent.mkdir(parents=True, exist_ok=True)
-            with open(filepath, 'w') as f:
-                json.dump(data, f, indent=2)
-        except ValueError as e:
-            self.log(str(e), level="error")
-            raise # Re-raise security violation to alert caller if needed
-        except Exception as e:
-            self.log(f"Error writing {filename}: {str(e)}", level="error")
-            raise
+        # Resolve to absolute paths for security check
+        base_path = self.honeycomb_path.resolve()
+        filepath = (self.honeycomb_path / filename).resolve()
+
+        # Ensure the resolved path is within the honeycomb directory
+        if not filepath.is_relative_to(base_path):
+             self.log(f"SECURITY ALERT: Path traversal attempt detected: {filename}", level="error")
+             raise ValueError(f"Path traversal detected: {filename}")
+
+        with open(filepath, 'w') as f:
+            json.dump(data, f, indent=2)
 
     def read_intel(self) -> Dict[str, Any]:
         """Read intel.json."""
