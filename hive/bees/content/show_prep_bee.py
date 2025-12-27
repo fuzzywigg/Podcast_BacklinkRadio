@@ -8,6 +8,7 @@ Responsibilities:
 - Queue up trivia and fun facts
 """
 
+import json
 from typing import Any, Dict, Optional
 
 from hive.bees.base_bee import EmployedBee
@@ -127,17 +128,14 @@ class ShowPrepBee(EmployedBee):
     def _generate_trivia(self) -> list:
         """Generate trivia for commercial break replacements."""
 
-        # Load config to pass to fetcher
-        config = self._read_json("../config.json")
-        if not config:
-            # Fallback if config read fails, though base bee usually handles hive path
-            # Try to read from hive root
-            try:
-                import json
-                with open(self.hive_path / "config.json", 'r') as f:
-                    config = json.load(f)
-            except Exception:
-                config = {}
+        # Securely read config from hive root, avoiding path traversal
+        config = {}
+        try:
+            with open(self.hive_path / "config.json", 'r') as f:
+                config = json.load(f)
+        except Exception:
+            self.log("Warning: Could not load config.json for trivia", level="warning")
+            config = {}
 
         fetcher = TriviaFetcher(config)
         return fetcher.fetch(count=3)

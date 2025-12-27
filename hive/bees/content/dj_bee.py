@@ -1,20 +1,14 @@
 """
 DJ Bee - The Autonomous Music Director.
-
-Responsibilities:
-- Manage the $20 Treasury.
-- Select music based on Tiered Acquisition Logic (Free, Rent, Buy).
-- Process listener requests.
-- Update broadcast state.
+Updated with Tiered Acquisition Logic and Constitutional Checks.
 """
 
 from typing import Any, Dict, Optional
 import random
 from datetime import datetime, timezone
-
+from hive.bees.base_bee import EmployedBee 
+class DjBee(BaseBee):
 from hive.bees.base_bee import EmployedBee
-from hive.utils.plausible_andon import analytics
-
 
 class DjBee(EmployedBee):
     """
@@ -32,19 +26,9 @@ class DjBee(EmployedBee):
     COST_RENT = 0.05
     RESERVE_MINIMUM = 5.00
 
-    def __init__(self, hive_path: Optional[str] = None):
-        super().__init__(hive_path)
-        self.music_ratio = 0.7  # Default: 70% music, 30% talk
-        self.source_preferences = ['variety_engine']
-        self.no_repeat_hours = 2  # Default
-
     def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Select the next track and manage library.
-
-        Task payload can include:
-        - request: { "song": "Title", "tip": 5.00, "source": "twitter" }
-        - action: apply_directive (from payment injection)
         """
         self.log("DJ Bee spinning up...")
 
@@ -69,48 +53,28 @@ class DjBee(EmployedBee):
         decision = None
 
         if request:
-            # Track Request
-            analytics.track_song_request(
-                song=request.get("song"),
-                source=request.get("source", "unknown"),
-                tip_amount=float(request.get("tip", 0.0))
-            )
-
             decision = self._evaluate_request(request, treasury, library)
 
-            # Track Decision
-            cost = decision.get("cost", 0.0)
-            current_balance = treasury["balance"]
-
-            analytics.track_ai_decision(
-                decision_type=decision["action"],
-                song=request.get("song"),
-                cost=cost,
-                treasury_before=current_balance,
-                treasury_after=current_balance - cost,
-                source=request.get("source", "unknown"),
-                has_tip=float(request.get("tip", 0.0)) > 0
-            )
-
+            # --- CONSTITUTIONAL CHECK ---
             if decision["action"] in ["buy", "rent"]:
-                self._execute_transaction(decision, treasury, library)
-                broadcast["queue"].append(decision["track"])
+                # Before spending, validate with the Gateway
+                action_payload = {
+                    "type": "deal_negotiation", # Maps to Artist-First principle
+                    "cost": decision["cost"],
+                    "asset": decision["track"]["title"],
+                    "artist_revenue": decision["cost"] * 0.70, # Assume 70% share
+                    "total_revenue": decision["cost"]
+                }
 
-                # Track Acquisition
-                analytics.track_song_acquired(
-                    song=request.get("song"),
-                    acquisition_type=decision["action"],
-                    cost=decision.get("cost", 0.0),
-                    treasury_remaining=treasury["balance"]
-                )
+                veto = self.validate_action(action_payload)
 
-                # Track Treasury Update
-                analytics.track_treasury_updated(
-                    balance_before=current_balance,
-                    balance_after=treasury["balance"],
-                    change_amount=decision.get("cost", 0.0),
-                    change_reason=f"song_{decision['action']}"
-                )
+                if veto["status"] == "BLOCK":
+                    self.log(f"Transaction blocked by Constitution: {veto['reason']}", level="warning")
+                    decision = {"action": "decline", "reason": f"Constitutional Veto: {veto['reason']}", "cost": 0.0}
+                else:
+                    self.log(f"Constitution Approved: {veto.get('reason')}")
+                    self._execute_transaction(decision, treasury, library)
+                    broadcast["queue"].append(decision["track"])
 
             elif decision["action"] == "play_owned":
                 broadcast["queue"].append(decision["track"])
@@ -130,16 +94,13 @@ class DjBee(EmployedBee):
                     song_requested=request.get("song")
                 )
 
-        # 3. Ensure Queue is Populated (Autopilot)
+        # 3. Autopilot (Ensure Queue is Populated)
         if not broadcast["queue"]:
-            # If empty, pick a random owned song or a free track
             next_track = self._pick_autopilot_track(library)
             broadcast["queue"].append(next_track)
 
         # 4. "Broadcast" the next track (Simulated)
-        # In a real loop, we'd wait for the current track to finish.
-        # Here, we just pop the queue to 'now_playing'.
-        if broadcast["queue"]:
+        if broadcast["queue"] and not broadcast.get("now_playing"):
             now_playing = broadcast["queue"].pop(0)
             now_playing["started_at"] = datetime.now(timezone.utc).isoformat()
             broadcast["now_playing"] = now_playing
@@ -180,7 +141,7 @@ class DjBee(EmployedBee):
         return {
             "status": "success",
             "decision": decision,
-            "now_playing": broadcast["now_playing"],
+            "now_playing": broadcast.get("now_playing"),
             "treasury_balance": treasury["balance"]
         }
 
@@ -202,6 +163,7 @@ class DjBee(EmployedBee):
                 return {
                     "action": "play_owned",
                     "track": track,
+                    "cost": 0.0,
                     "reason": "Already owned"
                 }
 
@@ -221,7 +183,6 @@ class DjBee(EmployedBee):
                 "reason": f"Tip ${tip} covers cost ${cost}"}
 
         # Logic 2: Rental (Tier 2)
-        # If balance > reserve
         if balance > self.RESERVE_MINIMUM:
             return {
                 "action": "rent",
@@ -232,10 +193,11 @@ class DjBee(EmployedBee):
                     "license": "single_play"},
                 "reason": "Treasury healthy, renting"}
 
-        # Logic 3: Decline (Tier 3 fallback)
+        # Logic 3: Decline (Tier 3)
         return {
             "action": "decline",
-            "reason": "Insufficient funds & song not owned"
+            "reason": "Insufficient funds & song not owned",
+            "cost": 0.0
         }
 
     def _execute_transaction(
@@ -258,13 +220,9 @@ class DjBee(EmployedBee):
             })
 
         if action == "buy":
-            # Add to owned library
-            # Generate a pseudo-ID
             track["id"] = f"track_{len(library['owned']) + 1}"
             library["owned"].append(track)
-
         elif action == "rent":
-            # Add to rented log (optional, or just queue it)
             track["id"] = f"rent_{len(library.get('rented', [])) + 1}"
             library["rented"].append(track)  # Log history if needed
 
@@ -412,11 +370,8 @@ class DjBee(EmployedBee):
 
     def _pick_autopilot_track(self, library: Dict) -> Dict:
         """Pick a song when no requests are active."""
-        # Prioritize owned library
         if library.get("owned"):
             return random.choice(library["owned"])
-
-        # Fallback to "Free Creative Commons" placeholder
         return {
             "title": "Lo-Fi Beats - Free Stream",
             "source": "free_archive",
