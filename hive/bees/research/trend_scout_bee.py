@@ -93,14 +93,11 @@ class TrendScoutBee(ScoutBee):
             except RuntimeError:
                 asyncio.run(self.monitor_breaking_news())
         if task and task.get("payload", {}).get("action") == "monitor_breaking_news":
-             # We can't await here in a synchronous method.
-             # We'll run it synchronously or change design.
-             # For now, let's assume it's synchronous or run via a wrapper if needed.
-             # Since monitor_breaking_news is async, we have to run it properly.
-             # But run() is synchronous.
-             # FIX: Call it synchronously via asyncio.run or loop, or make monitor_breaking_news sync.
-             # Given this is a simple bee, let's make monitor_breaking_news synchronous.
-             self.monitor_breaking_news()
+             # Fix: asyncio.run for async method in synchronous work()
+             try:
+                 asyncio.run(self.monitor_breaking_news())
+             except Exception as e:
+                 self.log(f"Error running async breaking news monitor: {e}", level="error")
 
         # Alert DJ if high-priority trend found
         hot_trends = [
