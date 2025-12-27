@@ -17,6 +17,7 @@ from typing import Any, Dict, Optional, Union
 from datetime import datetime, timezone
 
 from hive.utils.state_manager import StateManager
+from hive.utils.storage_adapter import StorageAdapter
 
 
 class BaseBee(ABC):
@@ -59,6 +60,9 @@ class BaseBee(ABC):
 
         # Initialize State Manager
         self.state_manager = StateManager(self.hive_path)
+        
+        # Initialize Storage Adapter
+        self.storage = StorageAdapter(self.honeycomb_path)
 
         # Logging setup
         self.logger = logging.getLogger(self.BEE_NAME)
@@ -469,34 +473,19 @@ class BaseBee(ABC):
         print(f"[{timestamp}] [{level.upper()}] [{self.bee_id}] {message}")
 
     def _read_json(self, filename: str) -> Dict[str, Any]:
-        """Read a JSON file from honeycomb. Enforce path security."""
-        try:
-            filepath = (self.honeycomb_path / filename).resolve()
-            # Security check: Ensure the resolved path is inside the honeycomb path
-            if not filepath.is_relative_to(self.honeycomb_path.resolve()):
-                self.log(f"Security Alert: Path traversal attempt blocked for {filename}", level="error")
-                return {}
-
-            if filepath.exists():
-                with open(filepath, 'r') as f:
-                    return json.load(f)
-        except Exception as e:
-            self.log(f"Error reading {filename}: {e}", level="error")
-        return {}
+        """Read a JSON file using StorageAdapter."""
+        if filename == "state.json":
+            return self.state_manager.read_state()
+            
+        return self.storage.read(filename)
 
     def _write_json(self, filename: str, data: Dict[str, Any]) -> None:
-        """Write a JSON file to honeycomb. Enforce path security."""
-        try:
-            filepath = (self.honeycomb_path / filename).resolve()
-            # Security check: Ensure the resolved path is inside the honeycomb path
-            if not filepath.is_relative_to(self.honeycomb_path.resolve()):
-                self.log(f"Security Alert: Path traversal attempt blocked for {filename}", level="error")
-                return
+        """Write a JSON file using StorageAdapter."""
+        if filename == "state.json":
+            self.state_manager.write_state(data, self.BEE_TYPE)
+            return
 
-            with open(filepath, 'w') as f:
-                json.dump(data, f, indent=2)
-        except Exception as e:
-            self.log(f"Error writing {filename}: {e}", level="error")
+        self.storage.write(filename, data)
 
     def _deep_merge(self, base: Dict, updates: Dict) -> Dict:
         """Deep merge two dictionaries."""

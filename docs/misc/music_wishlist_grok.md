@@ -1,0 +1,86 @@
+# STATION WISHLIST: THE BARGAIN BIN
+**Philosophy:** High Vibe, Low Cost.
+**Objective:** Recreate the "Backlink Radio" sonic identity using Public Domain, Creative Commons, Royalty-Free, and "Dollar Bin" obscurities.
+
+---
+
+## 🟢 SECTION 1: THE "DOLLAR BIN" GEMS (Obscure Sound-Alikes)
+*Real vintage tracks that sound expensive but are largely forgotten. Great for "Deep Cut" credibility.*
+
+### 🎸 If you want "Classic Rock" (Queen, Hendrix, Zeppelin)...
+**Spin These Instead:**
+* **Montrose** - "Bad Motor Scooter" (1973)
+    * *Vibe:* Hard driving motorcycle rock. Sounds like early Van Halen or Zeppelin.
+* **Rodriguez** - "Crucify Your Mind" (1970)
+    * *Vibe:* Bob Dylan meets Hendrix. A forgotten psychedelic folk masterpiece.
+* **Budgie** - "Breadfan" (1973)
+    * *Vibe:* The heavy riffage of Metallica/Sabbath but from an obscure Welsh band.
+* **Captain Beyond** - "Dancing Madly Backwards" (1972)
+    * *Vibe:* Prog-rock complexity meets Deep Purple heaviness.
+* **Iggy Pop** - "Success" (1977)
+    * *Vibe:* Fun, chaotic, rolling rock energy. Less expensive than "Lust for Life."
+
+### 📼 If you want "90s Alt/Grunge" (Nirvana, Soundgarden)...
+**Spin These Instead:**
+* **Local H** - "Bound for the Floor"
+    * *Vibe:* The ultimate "Nirvana Worship" band that actually rocks.
+* **The Wipers** - "Return of the Rat"
+    * *Vibe:* The punk band Kurt Cobain explicitly ripped off. This is the *source* code.
+* **Failure** - "Stuck on You"
+    * *Vibe:* Spacey, heavy alternative. Sounds like a more distorted Soundgarden.
+* **Gloritone** - "Halfway"
+    * *Vibe:* Forgotten female-fronted 90s grit.
+* **Hum** - "Stars"
+    * *Vibe:* Shoegaze meets heavy metal. Massive wall-of-sound guitars.
+
+---
+
+## 🟡 SECTION 2: THE "ROYALTY FREE" CRATE (Modern Sound-Alikes)
+*Music licensed via one-time purchase or Creative Commons. No ongoing royalties.*
+
+### 🎤 If you want "Mac Miller / Chill Rap"...
+**Search terms for "Type Beats" (Royalty Free):**
+* *Keywords:* "Lo-Fi Hip Hop," "Jazz Rap Instrumental," "Boom Bap Chill."
+* **Specific Recommendations:**
+    * **"Malaise"** (Nirvana Type Beat) - Grunge/Trap fusion.
+    * **r-loops "Goodies Bag"** - Royalty-free sample packs that mimic the *Swimming* era production.
+    * **Slooply "Rare Finds"** - Look for the "J Dilla / Madlib" tags for that choppy, soulful sound.
+
+### 🎹 If you want "Imagine Dragons / AJR"...
+**Search The "Commercial Pop" Libraries (e.g., Bensound, Epidemic):**
+* *Keywords:* "Stomp Clap," "Indie Anthem," "Motivational Rock."
+* **Specific Tracks (Library Music):**
+    * **"Uplifting Roadtrip"** by Van Stee (Bensound) - Classic "Whoa-oh-oh" stadium indie.
+    * **"Fist Up In The Air"** by Ge Filter Fish - High energy, distorted bass pop-rock.
+
+---
+
+## 🔵 SECTION 3: THE "PUBLIC DOMAIN" VAULT (Free & Clear)
+*Pre-1929 recordings are Public Domain in the US. This is your "Roots/Country" budget saver.*
+
+### 🤠 If you want "Johnny Cash / Outlaw Country"...
+**The Source Code (Pre-1929 Blues/Folk):**
+* **Ma Rainey** - "See See Rider Blues" (1924)
+    * *Why:* The mother of the blues. Gritty, lo-fi, authentic vinyl crackle.
+* **Blind Lemon Jefferson** - "Match Box Blues" (1927)
+    * *Why:* The root of rock and roll guitar.
+* **Fiddlin' John Carson** - "The Little Old Log Cabin in the Lane" (1923)
+    * *Why:* Legit old-timey country that sounds like a radio broadcast from a ghost.
+* **Bessie Smith** - "Down Hearted Blues" (1923)
+    * *Why:* Powerful female vocals that match the "Soul" side of the station's profile.
+
+### 🎻 If you want "Acoustic / Folk"...
+* **Elizabeth Cotten** - "Freight Train" (Check specific recording dates, heavily covered)
+* **Mississippi John Hurt** - "Frankie" (1928 recording)
+    * *Vibe:* Gentle, finger-picked guitar. Perfect for the "Sunday Morning" slot.
+
+---
+
+## 🛠 STRATEGY: "THE SAMPLE FLIP"
+**How to make cheap music sound fresh:**
+
+1.  **The "Lo-Fi" Filter:** Take a Public Domain blues track (like Ma Rainey) and apply a gentle low-pass filter or rain noise. It instantly becomes a "Vibe" interlude between modern tracks.
+2.  **The "Type Beat" Vocal:** Hire a freelancer (Fiverr/Upwork) to record a simple station ID or voiceover ("You're listening to Backlink Radio") over a purchased "Mac Miller Type Beat." It feels like a song but costs $50 total.
+3.  **The "Local" Hero:** Find local bands on Bandcamp who sound like **Chris Stapleton** (Look for tags: *Southern Rock*, *Soul Country*, *Kentucky*). They will often let you play their music for free just for the exposure.
+    * *Target:* **49 Winchester** (Rising star, might be too big now, but check their early EP).
+    * *Target:* **The Steel Woods** (Heavy Southern Rock).

@@ -87,7 +87,7 @@ class ConstitutionalAuditorBee(BaseBee):
 
     def _load_manifesto(self) -> str:
         """Load the station manifesto."""
-        manifesto_path = self.hive_path / "STATION_MANIFESTO.md"
+        manifesto_path = self.hive_path / "config" / "lore" / "STATION_MANIFESTO.md"
         if manifesto_path.exists():
             with open(manifesto_path, 'r') as f:
                 return f.read()
@@ -183,7 +183,7 @@ class ConstitutionalAuditorBee(BaseBee):
             violations.append("Audit logs directory missing")
 
         # 2. Check if Constitutional Memory files exist and are readable
-        for file in ["STATION_MANIFESTO.md", "PERSONA_DYNAMIC.md"]:
+        for file in ["config/lore/STATION_MANIFESTO.md", "config/lore/PERSONA_DYNAMIC.md"]:
             if not (self.hive_path / file).exists():
                 violations.append(f"Constitutional memory file missing: {file}")
 

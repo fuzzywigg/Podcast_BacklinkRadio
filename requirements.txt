@@ -17,3 +17,10 @@ python-dotenv>=1.0.0
 
 # Optional: Browser automation
 # browser-use>=0.1.0
+
+# Cloud Run / Web Server
+fastapi>=0.100.0
+uvicorn>=0.20.0
+
+# Persistence
+google-cloud-firestore>=2.11.0

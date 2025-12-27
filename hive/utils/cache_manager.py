@@ -20,10 +20,10 @@ class BacklinkCacheManager:
     def load_station_identity(self):
         """Load core station files that define DJ identity"""
         core_files = [
-            'STATION_MANIFESTO.md',
-            'PERSONA_DYNAMIC.md',
-            'MUSIC_LOGIC.md',
-            'INTERACTION_PROTOCOLS.md'
+            'config/lore/STATION_MANIFESTO.md',
+            'config/lore/PERSONA_DYNAMIC.md',
+            'config/lore/MUSIC_LOGIC.md',
+            'docs/protocols/INTERACTION_PROTOCOLS.md'
         ]
 
         content = []

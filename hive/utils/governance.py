@@ -240,9 +240,9 @@ class OperationalMemoryGovernor:
         """Detect attempts to modify constitutional memory via operational path."""
 
         constitutional_files = [
-            "STATION_MANIFESTO.md",
-            "PERSONA_DYNAMIC.md",
-            "MUSIC_LOGIC.md"
+            "config/lore/STATION_MANIFESTO.md",
+            "config/lore/PERSONA_DYNAMIC.md",
+            "config/lore/MUSIC_LOGIC.md"
         ]
 
         target_file = scope.get("file")

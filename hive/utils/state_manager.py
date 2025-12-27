@@ -12,13 +12,14 @@ Features:
 """
 
 import json
-import fcntl
 import hmac
 import hashlib
 import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 from datetime import datetime, timezone
+
+from hive.utils.storage_adapter import StorageAdapter
 
 class StateManager:
     """
@@ -41,9 +42,8 @@ class StateManager:
             self.hive_path = hive_path
 
         self.honeycomb_path = self.hive_path / "honeycomb"
-        self.state_path = self.honeycomb_path / "state.json"
-
         self.secret_key = os.environ.get("HIVE_SECRET_KEY", self.DEFAULT_SECRET).encode()
+        self.storage = StorageAdapter(self.honeycomb_path)
 
     def _sign_data(self, data: Dict[str, Any]) -> str:
         """Generate HMAC signature for data."""
@@ -71,34 +71,18 @@ class StateManager:
             "ver": "1.0" # Version of signing protocol
         }
 
-        # 3. Write Atomically
-        temp_path = self.state_path.with_suffix(".tmp")
-        try:
-            with open(temp_path, 'w') as f:
-                json.dump(envelope, f, indent=2)
-                f.flush()
-                os.fsync(f.fileno()) # Force write to disk
-
-            os.replace(temp_path, self.state_path) # Atomic move
-
-        except Exception as e:
-            if temp_path.exists():
-                os.remove(temp_path)
-            raise e
+        # 3. Write via Storage Adapter
+        # Note: StorageAdapter handles atomicity for File, and atomic sets for Firestore
+        self.storage.write("state.json", envelope)
 
     def read_state(self) -> Dict[str, Any]:
         """
         Read and verify state.
         Returns the inner data if valid, raises SecurityError if tampered.
         """
-        if not self.state_path.exists():
+        content = self.storage.read("state.json")
+        if not content:
             return {}
-
-        with open(self.state_path, 'r') as f:
-            try:
-                content = json.load(f)
-            except json.JSONDecodeError:
-                return {} # Corrupt or empty
 
         # Check if it's an envelope (signed) or legacy (raw)
         if "signature" in content and "data" in content:

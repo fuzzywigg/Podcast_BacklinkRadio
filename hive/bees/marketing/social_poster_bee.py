@@ -532,9 +532,9 @@ class SocialPosterBee(EmployedBee):
         persona_md = ""
 
         try:
-            with open(root_path / "AGENTS.md", "r") as f:
+            with open(root_path / "config/lore/AGENTS.md", "r") as f:
                 agents_md = f.read()
-            with open(root_path / "PERSONA_DYNAMIC.md", "r") as f:
+            with open(root_path / "config/lore/PERSONA_DYNAMIC.md", "r") as f:
                 persona_md = f.read()
         except Exception as e:
             self.log(f"Warning: Could not load persona files: {e}")
