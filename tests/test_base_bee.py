@@ -47,7 +47,7 @@ class TestBaseBee:
                 return {}
 
         bee = ConcreteBee(hive_path=str(temp_hive_dir))
-        assert bee.honeycomb_path == temp_hive_dir / "honeycomb"
+        assert bee.honeycomb_path == temp_hive_dir / "hive" / "honeycomb"
 
 
 class TestHoneycombAccess:
