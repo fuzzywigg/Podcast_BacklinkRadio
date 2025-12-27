@@ -1,20 +1,31 @@
 """
 Base Bee Agent - The template for all worker bees in the hive.
+
+All bees inherit from this class and implement their specific work() method.
+Bees communicate through the honeycomb (shared state files), not directly.
 Updated to support Constitutional Governance.
 """
 
 import json
 import uuid
 import os
+import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+
 class BaseBee(ABC):
     """
     Abstract base class for all bee agents.
     Now equipped with a Constitutional Gateway for ethical checks.
+
+    Bees follow the stigmergy pattern:
+    - Read from honeycomb (shared state)
+    - Do their work
+    - Write results back to honeycomb
+    - No direct bee-to-bee communication
     """
 
     BEE_TYPE = "base"
@@ -23,6 +34,7 @@ class BaseBee(ABC):
 
     def __init__(self, hive_path: Optional[str] = None, gateway: Any = None):
         """
+        Initialize the bee with path to hive.
         Initialize the bee.
 
         Args:
@@ -33,6 +45,7 @@ class BaseBee(ABC):
             # Default to hive directory relative to this file
             hive_path = Path(__file__).parent.parent.parent
         self.hive_path = Path(hive_path)
+        self.honeycomb_path = self.hive_path / "honeycomb"
         # User code said self.honeycomb_path = self.hive_path / "hive" / "honeycomb"
         # BUT based on my exploration, if hive_path is repo root, honeycomb is at hive/honeycomb.
         self.honeycomb_path = self.hive_path / "hive" / "honeycomb"

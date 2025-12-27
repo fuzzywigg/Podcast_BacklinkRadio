@@ -6,6 +6,8 @@ Updated with Tiered Acquisition Logic and Constitutional Checks.
 from typing import Any, Dict, Optional
 import random
 from datetime import datetime, timezone
+from hive.bees.base_bee import EmployedBee 
+class DjBee(BaseBee):
 from hive.bees.base_bee import EmployedBee
 
 class DjBee(EmployedBee):

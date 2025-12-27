@@ -13,6 +13,18 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 import queue
 from hive.utils.cache_manager import BacklinkCacheManager
+import sys
+
+# Ensure we can find the sibling constitutional-llm package
+ROOT_DIR = Path(__file__).parent.parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
+
+try:
+    from constitutional_llm.src.constitutional_gateway import ConstitutionalGateway
+except ImportError:
+    print("WARNING: Constitutional Gateway not found. Governance disabled.")
+    ConstitutionalGateway = None
 
 # Ensure we can find the sibling constitutional-llm package
 # Assuming orchestrator.py is in hive/queen/ and constitutional-llm is in root
@@ -162,6 +174,63 @@ class QueenOrchestrator:
         """Register a bee type."""
         self.bee_registry[bee_type] = bee_class
         self.log(f"Registered bee type: {bee_type}")
+
+    def spawn_bee(self, bee_type: str, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Spawn a bee to do work."""
+
+        if bee_type not in self.bee_registry:
+            return {"error": f"Unknown bee type: {bee_type}"}
+
+        # Check Exorcism Protocol Status
+        if self.bee_failures.get(bee_type, 0) >= self.MAX_BEE_FAILURES:
+             self.log(f"Spawn blocked: {bee_type} is currently exiled due to failure rate.", level="error")
+             return {"error": "bee_exiled"}
+
+        self.log(f"Spawning {bee_type} bee...")
+
+        try:
+            # Get bee class info
+            bee_info = self.bee_registry[bee_type]
+
+            if isinstance(bee_info, tuple):
+                # Dynamic import
+                module_path, class_name = bee_info
+                # Construct import path relative to hive
+                import sys
+                bees_path = str(self.hive_path / "bees")
+                if bees_path not in sys.path:
+                    sys.path.insert(0, bees_path)
+
+                # Import the specific module
+                # Simplified loader
+                module_parts = module_path.split('.')
+                # e.g., bees.content.show_prep_bee -> show_prep_bee
+                # This assumes standard structure
+
+                # Import via importlib
+                module = importlib.import_module(module_path)
+                BeeClass = getattr(module, class_name)
+
+            else:
+                BeeClass = bee_info
+
+            # Instantiate and run
+            # INJECT GATEWAY HERE
+            bee = BeeClass(hive_path=self.hive_path, gateway=self.gateway)
+            result = bee.run(task)
+
+            # Record success (reset failures)
+            if result.get("success"):
+                self.bee_failures[bee_type] = 0
+            else:
+                self._record_failure(bee_type)
+
+            return result
+
+        except Exception as e:
+            self.log(f"Error spawning {bee_type}: {e}", level="error")
+            self._record_failure(bee_type)
+            return {"error": str(e)}
 
     def _record_failure(self, bee_type: str):
         """Record a failure for a bee type."""
