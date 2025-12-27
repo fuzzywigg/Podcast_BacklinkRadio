@@ -1,0 +1,36 @@
+{
+  "content_tracked": [],
+  "viral_patterns": [],
+  "timing_insights": {
+    "best_days": [
+      "Tuesday",
+      "Wednesday",
+      "Thursday"
+    ],
+    "best_hours": [
+      9,
+      12,
+      17,
+      20
+    ],
+    "avoid_hours": [
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "format_scores": {
+    "short_video": 0.85,
+    "meme": 0.8,
+    "thread": 0.7,
+    "image": 0.65,
+    "audio_clip": 0.6,
+    "long_form": 0.4
+  },
+  "stats": {
+    "content_analyzed": 0,
+    "viral_hits": 0,
+    "avg_viral_score": 0
+  }
+}

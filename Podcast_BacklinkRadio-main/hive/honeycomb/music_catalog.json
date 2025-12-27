@@ -1,0 +1,656 @@
+{
+  "discovered_tracks": [
+    {
+      "id": "spotify_new_releases_20251227200705_0",
+      "source": "spotify_new_releases",
+      "title": "[Track from spotify_new_releases]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:07:05.832390+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "spotify_new_releases_20251227200705_1",
+      "source": "spotify_new_releases",
+      "title": "[Track from spotify_new_releases]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:07:05.832395+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "spotify_new_releases_20251227200705_2",
+      "source": "spotify_new_releases",
+      "title": "[Track from spotify_new_releases]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:07:05.832398+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "bandcamp_trending_20251227200705_0",
+      "source": "bandcamp_trending",
+      "title": "[Track from bandcamp_trending]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:07:05.832400+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "bandcamp_trending_20251227200705_1",
+      "source": "bandcamp_trending",
+      "title": "[Track from bandcamp_trending]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:07:05.832402+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "bandcamp_trending_20251227200705_2",
+      "source": "bandcamp_trending",
+      "title": "[Track from bandcamp_trending]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:07:05.832404+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "soundcloud_discover_20251227200705_0",
+      "source": "soundcloud_discover",
+      "title": "[Track from soundcloud_discover]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:07:05.832405+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "soundcloud_discover_20251227200705_1",
+      "source": "soundcloud_discover",
+      "title": "[Track from soundcloud_discover]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:07:05.832406+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "soundcloud_discover_20251227200705_2",
+      "source": "soundcloud_discover",
+      "title": "[Track from soundcloud_discover]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:07:05.832407+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "spotify_new_releases_20251227200856_0",
+      "source": "spotify_new_releases",
+      "title": "[Track from spotify_new_releases]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:08:56.094623+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "spotify_new_releases_20251227200856_1",
+      "source": "spotify_new_releases",
+      "title": "[Track from spotify_new_releases]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:08:56.094653+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "spotify_new_releases_20251227200856_2",
+      "source": "spotify_new_releases",
+      "title": "[Track from spotify_new_releases]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:08:56.094662+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "bandcamp_trending_20251227200856_0",
+      "source": "bandcamp_trending",
+      "title": "[Track from bandcamp_trending]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:08:56.094666+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "bandcamp_trending_20251227200856_1",
+      "source": "bandcamp_trending",
+      "title": "[Track from bandcamp_trending]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:08:56.094669+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "bandcamp_trending_20251227200856_2",
+      "source": "bandcamp_trending",
+      "title": "[Track from bandcamp_trending]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:08:56.094672+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "soundcloud_discover_20251227200856_0",
+      "source": "soundcloud_discover",
+      "title": "[Track from soundcloud_discover]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:08:56.094675+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "soundcloud_discover_20251227200856_1",
+      "source": "soundcloud_discover",
+      "title": "[Track from soundcloud_discover]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:08:56.094678+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "soundcloud_discover_20251227200856_2",
+      "source": "soundcloud_discover",
+      "title": "[Track from soundcloud_discover]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:08:56.094681+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "spotify_new_releases_20251227201620_0",
+      "source": "spotify_new_releases",
+      "title": "[Track from spotify_new_releases]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:16:20.604415+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "spotify_new_releases_20251227201620_1",
+      "source": "spotify_new_releases",
+      "title": "[Track from spotify_new_releases]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:16:20.604433+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "spotify_new_releases_20251227201620_2",
+      "source": "spotify_new_releases",
+      "title": "[Track from spotify_new_releases]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:16:20.604436+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "bandcamp_trending_20251227201620_0",
+      "source": "bandcamp_trending",
+      "title": "[Track from bandcamp_trending]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:16:20.604438+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "bandcamp_trending_20251227201620_1",
+      "source": "bandcamp_trending",
+      "title": "[Track from bandcamp_trending]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:16:20.604439+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "bandcamp_trending_20251227201620_2",
+      "source": "bandcamp_trending",
+      "title": "[Track from bandcamp_trending]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:16:20.604440+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "soundcloud_discover_20251227201620_0",
+      "source": "soundcloud_discover",
+      "title": "[Track from soundcloud_discover]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:16:20.604441+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "soundcloud_discover_20251227201620_1",
+      "source": "soundcloud_discover",
+      "title": "[Track from soundcloud_discover]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:16:20.604443+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "soundcloud_discover_20251227201620_2",
+      "source": "soundcloud_discover",
+      "title": "[Track from soundcloud_discover]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:16:20.604444+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "spotify_new_releases_20251227202312_0",
+      "source": "spotify_new_releases",
+      "title": "[Track from spotify_new_releases]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:23:12.059837+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "spotify_new_releases_20251227202312_1",
+      "source": "spotify_new_releases",
+      "title": "[Track from spotify_new_releases]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:23:12.059855+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "spotify_new_releases_20251227202312_2",
+      "source": "spotify_new_releases",
+      "title": "[Track from spotify_new_releases]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:23:12.059859+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "bandcamp_trending_20251227202312_0",
+      "source": "bandcamp_trending",
+      "title": "[Track from bandcamp_trending]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:23:12.059860+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "bandcamp_trending_20251227202312_1",
+      "source": "bandcamp_trending",
+      "title": "[Track from bandcamp_trending]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:23:12.059862+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "bandcamp_trending_20251227202312_2",
+      "source": "bandcamp_trending",
+      "title": "[Track from bandcamp_trending]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:23:12.059863+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "soundcloud_discover_20251227202312_0",
+      "source": "soundcloud_discover",
+      "title": "[Track from soundcloud_discover]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:23:12.059864+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "soundcloud_discover_20251227202312_1",
+      "source": "soundcloud_discover",
+      "title": "[Track from soundcloud_discover]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:23:12.059865+00:00",
+      "status": "pending_review"
+    },
+    {
+      "id": "soundcloud_discover_20251227202312_2",
+      "source": "soundcloud_discover",
+      "title": "[Track from soundcloud_discover]",
+      "artist": "[Artist Name]",
+      "album": "[Album Name]",
+      "genre": "unknown",
+      "release_date": null,
+      "duration_seconds": 0,
+      "preview_url": null,
+      "metadata": {
+        "bpm": null,
+        "key": null,
+        "energy": null
+      },
+      "discovered_at": "2025-12-27T20:23:12.059867+00:00",
+      "status": "pending_review"
+    }
+  ],
+  "artist_profiles": {},
+  "genre_trends": {},
+  "playlists": {},
+  "last_scan": "2025-12-27T20:23:12.059868+00:00"
+}

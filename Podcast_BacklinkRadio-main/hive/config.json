@@ -1,0 +1,214 @@
+{
+  "_meta": {
+    "version": "1.1.0",
+    "description": "Hive configuration for Backlink Broadcast swarm",
+    "last_updated": "2025-12-27"
+  },
+  "hive": {
+    "name": "Backlink Broadcast Hive",
+    "heartbeat_interval_seconds": 60,
+    "max_concurrent_bees": 10,
+    "log_level": "info"
+  },
+  "schedules": {
+    "stream_monitor": {
+      "interval_minutes": 1,
+      "enabled": true,
+      "description": "Monitor stream health every minute",
+      "priority": "critical"
+    },
+    "listener_intel": {
+      "interval_minutes": 5,
+      "enabled": true,
+      "description": "Gather listener intelligence",
+      "priority": "high"
+    },
+    "engagement": {
+      "interval_minutes": 10,
+      "enabled": true,
+      "description": "Check for community interactions",
+      "priority": "high"
+    },
+    "social_poster": {
+      "interval_minutes": 15,
+      "enabled": true,
+      "description": "Check for content to post",
+      "priority": "normal"
+    },
+    "show_prep": {
+      "interval_minutes": 30,
+      "enabled": true,
+      "description": "Prepare show content",
+      "priority": "normal"
+    },
+    "trend_scout": {
+      "interval_minutes": 60,
+      "enabled": true,
+      "description": "Scout for trends hourly",
+      "priority": "normal"
+    },
+    "clip_cutter": {
+      "interval_minutes": 60,
+      "enabled": true,
+      "description": "Look for clippable moments",
+      "priority": "low"
+    },
+    "vip_manager": {
+      "interval_minutes": 1440,
+      "enabled": true,
+      "description": "Daily VIP status scan and updates",
+      "priority": "normal"
+    },
+    "revenue_analyst": {
+      "interval_minutes": 1440,
+      "enabled": true,
+      "description": "Daily revenue analysis and reporting",
+      "priority": "normal"
+    },
+    "analytics": {
+      "interval_minutes": 60,
+      "enabled": true,
+      "description": "Hourly metrics aggregation",
+      "priority": "low"
+    },
+    "moderator": {
+      "interval_minutes": 5,
+      "enabled": true,
+      "description": "Process moderation queue",
+      "priority": "high"
+    },
+    "archivist": {
+      "interval_minutes": 1440,
+      "enabled": true,
+      "description": "Daily backup routine",
+      "priority": "background"
+    },
+    "sponsor_hunter": {
+      "interval_minutes": 1440,
+      "enabled": true,
+      "description": "Daily sponsor pipeline review",
+      "priority": "low"
+    },
+    "coherence_guardian": {
+      "interval_minutes": 5,
+      "enabled": true,
+      "description": "Monitor hive coherence and consistency",
+      "priority": "high"
+    },
+    "evolution_governor": {
+      "interval_minutes": 60,
+      "enabled": true,
+      "description": "Process bee evolution proposals hourly",
+      "priority": "normal"
+    },
+    "experience_distiller": {
+      "interval_minutes": 30,
+      "enabled": true,
+      "description": "Distill patterns from completed tasks",
+      "priority": "normal"
+    }
+  },
+  "event_triggers": {
+    "donation": {
+      "bees": ["donation_processor", "engagement", "social_poster"],
+      "priority": "critical",
+      "description": "When a donation is received"
+    },
+    "mention": {
+      "bees": ["engagement", "listener_intel", "moderator"],
+      "priority": "normal",
+      "description": "When the station is mentioned"
+    },
+    "new_listener": {
+      "bees": ["listener_intel", "vip_manager"],
+      "priority": "normal",
+      "description": "When a new listener is detected"
+    },
+    "trend_alert": {
+      "bees": ["show_prep", "social_poster"],
+      "priority": "high",
+      "description": "When a hot trend is detected"
+    },
+    "vip_detected": {
+      "bees": ["engagement", "show_prep", "vip_manager"],
+      "priority": "high",
+      "description": "When a VIP listener is identified"
+    },
+    "stream_issue": {
+      "bees": ["stream_monitor"],
+      "priority": "critical",
+      "description": "When a stream problem is detected"
+    },
+    "sponsor_response": {
+      "bees": ["sponsor_hunter"],
+      "priority": "high",
+      "description": "When a sponsor responds"
+    },
+    "content_violation": {
+      "bees": ["moderator"],
+      "priority": "critical",
+      "description": "When potential content violation detected"
+    },
+    "fraud_attempt": {
+      "bees": ["donation_processor", "moderator"],
+      "priority": "critical",
+      "description": "When fraud attempt is detected"
+    },
+    "evolution_proposal": {
+      "bees": ["evolution_governor"],
+      "priority": "normal",
+      "description": "When a bee proposes a lineage update"
+    },
+    "coherence_alert": {
+      "bees": ["coherence_guardian"],
+      "priority": "high",
+      "description": "When coherence drops below threshold"
+    },
+    "batch_completion": {
+      "bees": ["experience_distiller"],
+      "priority": "low",
+      "description": "When a batch of tasks complete"
+    }
+  },
+  "integrations": {
+    "twitter": {
+      "enabled": false,
+      "api_key_env": "TWITTER_API_KEY",
+      "handle": "@BacklinkRadio"
+    },
+    "spotify": {
+      "enabled": false,
+      "api_key_env": "SPOTIFY_API_KEY"
+    },
+    "streaming": {
+      "enabled": false,
+      "platform": "icecast",
+      "endpoint": null
+    },
+    "payments": {
+      "enabled": false,
+      "providers": ["stripe", "paypal", "bitcoin"]
+    }
+  },
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-3-sonnet",
+    "api_key_env": "ANTHROPIC_API_KEY",
+    "use_for_bees": [
+      "show_prep",
+      "social_poster",
+      "engagement",
+      "trend_scout"
+    ]
+  },
+  "bee_registry": {
+    "content": ["show_prep", "clip_cutter"],
+    "research": ["trend_scout", "listener_intel"],
+    "marketing": ["social_poster"],
+    "monetization": ["sponsor_hunter", "donation_processor", "revenue_analyst"],
+    "community": ["engagement", "vip_manager", "moderator"],
+    "technical": ["stream_monitor", "archivist"],
+    "admin": ["analytics"],
+    "cognitive": ["coherence_guardian", "evolution_governor", "experience_distiller"]
+  }
+}

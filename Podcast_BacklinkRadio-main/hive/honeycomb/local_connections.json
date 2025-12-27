@@ -1,0 +1,12 @@
+{
+  "businesses": [],
+  "events": [],
+  "partnerships": [],
+  "venues": [],
+  "regions": [],
+  "stats": {
+    "businesses_contacted": 0,
+    "active_partnerships": 0,
+    "events_tracked": 0
+  }
+}

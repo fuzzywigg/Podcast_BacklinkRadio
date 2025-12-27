@@ -1,0 +1,61 @@
+{
+  "assets": [],
+  "templates": {
+    "station_id": {
+      "duration_target": 10,
+      "elements": [
+        "station_name",
+        "tagline",
+        "frequency"
+      ]
+    },
+    "bumper": {
+      "duration_target": 5,
+      "elements": [
+        "transition_sound",
+        "station_name"
+      ]
+    },
+    "drop": {
+      "duration_target": 3,
+      "elements": [
+        "effect",
+        "phrase"
+      ]
+    },
+    "sweeper": {
+      "duration_target": 8,
+      "elements": [
+        "music_bed",
+        "voiceover",
+        "effect"
+      ]
+    },
+    "show_intro": {
+      "duration_target": 30,
+      "elements": [
+        "theme_music",
+        "host_intro",
+        "show_name"
+      ]
+    },
+    "show_outro": {
+      "duration_target": 20,
+      "elements": [
+        "theme_music",
+        "credits",
+        "cta"
+      ]
+    }
+  },
+  "brand_elements": {
+    "station_name": "Backlink Broadcast",
+    "tagline": "Your AI-Powered Radio",
+    "frequency": "Internet Radio",
+    "voice_style": "energetic, friendly, modern"
+  },
+  "stats": {
+    "total_created": 0,
+    "by_type": {}
+  }
+}

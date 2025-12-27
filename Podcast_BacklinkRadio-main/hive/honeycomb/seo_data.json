@@ -1,0 +1,124 @@
+{
+  "keywords": {},
+  "content_analysis": [
+    {
+      "content_id": null,
+      "content_type": "episode",
+      "score": 25,
+      "grade": "F",
+      "issues": [
+        {
+          "field": "title",
+          "issue": "Missing title",
+          "severity": "critical"
+        },
+        {
+          "field": "description",
+          "issue": "Missing description",
+          "severity": "critical"
+        },
+        {
+          "field": "keywords",
+          "issue": "No keywords specified",
+          "severity": "warning"
+        },
+        {
+          "field": "tags",
+          "issue": "Too few tags (<3)",
+          "severity": "info"
+        }
+      ],
+      "audited_at": "2025-12-27T20:07:05.846106+00:00"
+    },
+    {
+      "content_id": null,
+      "content_type": "episode",
+      "score": 25,
+      "grade": "F",
+      "issues": [
+        {
+          "field": "title",
+          "issue": "Missing title",
+          "severity": "critical"
+        },
+        {
+          "field": "description",
+          "issue": "Missing description",
+          "severity": "critical"
+        },
+        {
+          "field": "keywords",
+          "issue": "No keywords specified",
+          "severity": "warning"
+        },
+        {
+          "field": "tags",
+          "issue": "Too few tags (<3)",
+          "severity": "info"
+        }
+      ],
+      "audited_at": "2025-12-27T20:08:56.128071+00:00"
+    },
+    {
+      "content_id": null,
+      "content_type": "episode",
+      "score": 25,
+      "grade": "F",
+      "issues": [
+        {
+          "field": "title",
+          "issue": "Missing title",
+          "severity": "critical"
+        },
+        {
+          "field": "description",
+          "issue": "Missing description",
+          "severity": "critical"
+        },
+        {
+          "field": "keywords",
+          "issue": "No keywords specified",
+          "severity": "warning"
+        },
+        {
+          "field": "tags",
+          "issue": "Too few tags (<3)",
+          "severity": "info"
+        }
+      ],
+      "audited_at": "2025-12-27T20:16:20.644008+00:00"
+    },
+    {
+      "content_id": null,
+      "content_type": "episode",
+      "score": 25,
+      "grade": "F",
+      "issues": [
+        {
+          "field": "title",
+          "issue": "Missing title",
+          "severity": "critical"
+        },
+        {
+          "field": "description",
+          "issue": "Missing description",
+          "severity": "critical"
+        },
+        {
+          "field": "keywords",
+          "issue": "No keywords specified",
+          "severity": "warning"
+        },
+        {
+          "field": "tags",
+          "issue": "Too few tags (<3)",
+          "severity": "info"
+        }
+      ],
+      "audited_at": "2025-12-27T20:23:12.097755+00:00"
+    }
+  ],
+  "recommendations": [],
+  "performance_tracking": {},
+  "last_audit": "2025-12-27T20:23:12.097755+00:00"
+}

@@ -1,0 +1,91 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "last_updated": "2025-12-27T20:07:05.866621+00:00",
+    "last_updated_by": "stream_monitor_ff6a1462",
+    "description": "Live station state - the current moment"
+  },
+  "broadcast": {
+    "status": "online",
+    "current_track": null,
+    "queue": [],
+    "vibe": null,
+    "time_slot": null,
+    "listener_count": 0
+  },
+  "persona": {
+    "active_mode": "evening",
+    "energy_level": "medium",
+    "last_spoke": null,
+    "next_update_at": null
+  },
+  "nodes": {
+    "active_listeners": [],
+    "recent_interactions": [],
+    "vip_nodes": []
+  },
+  "economy": {
+    "budget_remaining": 0,
+    "total_donations_today": 0,
+    "pending_shoutouts": []
+  },
+  "alerts": {
+    "priority": [
+      {
+        "id": "cd147473-46d6-4ebb-bb4c-22262b31d5e6",
+        "message": "\u26a0\ufe0f Auto-banned unknown for prompt_injection",
+        "from": "moderator_3353b9b6",
+        "at": "2025-12-27T19:15:24.844761+00:00"
+      }
+    ],
+    "normal": []
+  },
+  "show_prep": {
+    "time_slot": "evening",
+    "talking_points": [
+      {
+        "type": "unwind",
+        "text": "Day's done. Time to decompress."
+      },
+      {
+        "type": "vibe",
+        "text": "Evening frequencies settling in."
+      },
+      {
+        "type": "chill",
+        "text": "No rush now. Just the music."
+      }
+    ],
+    "listener_shoutouts": [],
+    "trivia": [
+      {
+        "type": "music",
+        "text": "The first song played on MTV was 'Video Killed the Radio Star.' Ironic.",
+        "use_after_genre": "rock"
+      },
+      {
+        "type": "tech",
+        "text": "The first radio broadcast was in 1906. We've been connecting nodes ever since.",
+        "use_after_genre": null
+      },
+      {
+        "type": "station",
+        "text": "Commercial-free since day one. That's the Backlink promise.",
+        "use_after_genre": null
+      }
+    ],
+    "local_context": {}
+  },
+  "health": {
+    "timestamp": "2025-12-27T20:07:05.866482+00:00",
+    "stream_online": true,
+    "audio_ok": true,
+    "latency_ok": true,
+    "bitrate_ok": false,
+    "listener_count": 0,
+    "issues": [],
+    "stream_url": "https://stream.backlink.radio/live",
+    "checked_at": "2025-12-27T20:07:05.866484+00:00",
+    "latency_ms": 2500
+  }
+}

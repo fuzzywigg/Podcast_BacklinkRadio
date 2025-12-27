@@ -1,0 +1,74 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Bee lineage tracking - evolutionary history",
+    "last_updated": "2025-12-27T20:23:12.007726+00:00"
+  },
+  "bee_types": {
+    "TestBee": {
+      "current_version": "1.1.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "bee_type": "TestBee",
+          "template_hash": "0331b763f50749a1",
+          "created_at": "2025-12-27T12:18:42.932778+00:00",
+          "created_by": "origin",
+          "changes": [
+            "Initial version"
+          ],
+          "performance_metrics": {},
+          "parent_version": null
+        },
+        {
+          "version": "1.1.0",
+          "bee_type": "TestBee",
+          "template_hash": "",
+          "created_at": "2025-12-27T19:15:24.749433+00:00",
+          "created_by": "test_hive",
+          "changes": [
+            "Improved response time",
+            "Added caching"
+          ],
+          "performance_metrics": {
+            "response_time": 0.5,
+            "success_rate": 0.95
+          },
+          "parent_version": "1.0.0"
+        }
+      ]
+    }
+  },
+  "proposals": [
+    {
+      "id": "43aad799f769",
+      "bee_type": "TestBee",
+      "proposed_version": "1.1.0",
+      "current_version": "1.0.0",
+      "proposed_by": "test_hive",
+      "proposed_at": "2025-12-27T12:18:42.933722+00:00",
+      "changes": [
+        "Improved response time",
+        "Added caching"
+      ],
+      "evidence": {
+        "metrics": {
+          "response_time": 0.5,
+          "success_rate": 0.95
+        },
+        "sample_size": 10,
+        "improvement_pct": 0.2
+      },
+      "status": "approved",
+      "reviewed_at": "2025-12-27T19:15:24.749429+00:00",
+      "reviewed_by": "evolution_governor_4a5505e4",
+      "rejection_reason": null
+    }
+  ],
+  "stats": {
+    "total_versions": 1,
+    "total_proposals": 1,
+    "approved_proposals": 1,
+    "rejected_proposals": 0
+  }
+}

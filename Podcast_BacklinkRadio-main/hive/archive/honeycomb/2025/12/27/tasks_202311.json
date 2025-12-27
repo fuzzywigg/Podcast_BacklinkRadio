@@ -1,0 +1,159 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Task queue - work that needs doing"
+  },
+  "pending": [
+    {
+      "type": "marketing",
+      "bee_type": "social_poster",
+      "priority": 5,
+      "payload": {
+        "action": "post_clip",
+        "clip": {
+          "id": "clip_sample",
+          "type": "station_id",
+          "duration_seconds": 15,
+          "description": "Station ID moment",
+          "suggested_caption": "You're locked into the Backlink. No ads, just tracks. \ud83c\udfb5",
+          "platforms": [
+            "twitter",
+            "instagram_reel"
+          ],
+          "status": "pending_cut"
+        }
+      },
+      "id": "c7ab9a00-8cfd-4096-a9be-a1a92ef91338",
+      "created_at": "2025-12-27T19:15:24.488510+00:00",
+      "created_by": "clip_cutter_edb2c6c7",
+      "status": "pending",
+      "attempts": 0,
+      "max_attempts": 3
+    },
+    {
+      "type": "marketing",
+      "bee_type": "social_poster",
+      "priority": 5,
+      "payload": {
+        "action": "post_clip",
+        "clip": {
+          "id": "clip_sample",
+          "type": "station_id",
+          "duration_seconds": 15,
+          "description": "Station ID moment",
+          "suggested_caption": "You're locked into the Backlink. No ads, just tracks. \ud83c\udfb5",
+          "platforms": [
+            "twitter",
+            "instagram_reel"
+          ],
+          "status": "pending_cut"
+        }
+      },
+      "id": "7d70ef2d-2932-4e0d-a08a-d164acadf89f",
+      "created_at": "2025-12-27T20:07:05.755902+00:00",
+      "created_by": "clip_cutter_96d0a418",
+      "status": "pending",
+      "attempts": 0,
+      "max_attempts": 3
+    },
+    {
+      "type": "marketing",
+      "bee_type": "social_poster",
+      "priority": 5,
+      "payload": {
+        "action": "post_clip",
+        "clip": {
+          "id": "clip_sample",
+          "type": "station_id",
+          "duration_seconds": 15,
+          "description": "Station ID moment",
+          "suggested_caption": "You're locked into the Backlink. No ads, just tracks. \ud83c\udfb5",
+          "platforms": [
+            "twitter",
+            "instagram_reel"
+          ],
+          "status": "pending_cut"
+        }
+      },
+      "id": "06bd71da-24c0-48cf-9b77-3853198d0fab",
+      "created_at": "2025-12-27T20:08:55.975329+00:00",
+      "created_by": "clip_cutter_73db4476",
+      "status": "pending",
+      "attempts": 0,
+      "max_attempts": 3
+    },
+    {
+      "type": "marketing",
+      "bee_type": "social_poster",
+      "priority": 5,
+      "payload": {
+        "action": "post_clip",
+        "clip": {
+          "id": "clip_sample",
+          "type": "station_id",
+          "duration_seconds": 15,
+          "description": "Station ID moment",
+          "suggested_caption": "You're locked into the Backlink. No ads, just tracks. \ud83c\udfb5",
+          "platforms": [
+            "twitter",
+            "instagram_reel"
+          ],
+          "status": "pending_cut"
+        }
+      },
+      "id": "e09f3ea5-5b9d-4bf8-b720-e7fade85d9e8",
+      "created_at": "2025-12-27T20:16:20.467266+00:00",
+      "created_by": "clip_cutter_4039f5c6",
+      "status": "pending",
+      "attempts": 0,
+      "max_attempts": 3
+    }
+  ],
+  "in_progress": [],
+  "completed": [],
+  "failed": [],
+  "recurring": [
+    {
+      "id": "social_post_check",
+      "bee_type": "social",
+      "schedule": "*/15 * * * *",
+      "description": "Check if content ready for posting",
+      "enabled": true
+    },
+    {
+      "id": "listener_scan",
+      "bee_type": "research",
+      "schedule": "*/5 * * * *",
+      "description": "Scan for new listener intel",
+      "enabled": true
+    },
+    {
+      "id": "trend_monitor",
+      "bee_type": "scout",
+      "schedule": "0 * * * *",
+      "description": "Hourly trend check",
+      "enabled": true
+    },
+    {
+      "id": "sponsor_pipeline",
+      "bee_type": "monetization",
+      "schedule": "0 9 * * *",
+      "description": "Daily sponsor outreach review",
+      "enabled": true
+    }
+  ],
+  "task_schema": {
+    "id": "string (uuid)",
+    "type": "string (content|technical|marketing|monetization|community|research)",
+    "bee_type": "string (specific bee to handle)",
+    "priority": "number (1-10, 10=urgent)",
+    "created_at": "ISO timestamp",
+    "created_by": "string (bee or system)",
+    "deadline": "ISO timestamp or null",
+    "payload": "object (task-specific data)",
+    "status": "pending|in_progress|completed|failed",
+    "result": "object or null",
+    "attempts": "number",
+    "max_attempts": "number (default 3)"
+  }
+}
