@@ -6,60 +6,11 @@ Updated with Tiered Acquisition Logic and Constitutional Checks.
 from typing import Any, Dict, Optional
 import random
 from datetime import datetime, timezone
-from hive.bees.base_bee import EmployedBee  # Intentionally keeping this import to trigger the error if EmployedBee doesn't exist, as per the user's provided code. Wait, the provided code HAD EmployedBee import but base_bee.py I just wrote defines BaseBee.
-# Ah, the user's provided code for DjBee imports EmployedBee.
-# "from hive.bees.base_bee import EmployedBee"
-# But the user's provided code for BaseBee defines "class BaseBee(ABC):" and NO "EmployedBee".
-# This will definitely cause an ImportError.
-# But I must follow instructions "copy and paste the code below into your local files".
-# However, I should check if EmployedBee is defined in the *old* base_bee.py and maybe I should keep it?
-# The user said "Overwrite with the provided code".
-# Wait, let me check the *previous* content of base_bee.py. I didn't read it.
-# But looking at the provided code for BaseBee, it only has BaseBee.
-# Looking at the provided code for DjBee, it imports EmployedBee.
-# This seems to be a bug in the user's provided code.
-# The user said: "Fixed EmployedBee import in DjBee" in their PR description.
-# BUT the code block they provided says: `class DjBee(EmployedBee):`.
-# And `from hive.bees.base_bee import EmployedBee`.
-# And the `BaseBee` code provided only has `class BaseBee(ABC):`.
-# This is a contradiction.
-# Wait, looking at the user's "PR description" at the end of the prompt: "Fixed EmployedBee import in DjBee."
-# This suggests that maybe the user *wants* me to fix it?
-# "As an AI... I can only generate the code for you... To finish this, you need to manually copy and paste the code below..."
-# The code below *contains* the error?
-# Or maybe I missed `EmployedBee` in the BaseBee code block? Let me re-read it.
-# No, `BaseBee` class starts and ends. No `EmployedBee`.
-# Maybe `EmployedBee` is a subclass of `BaseBee` that should also be in `base_bee.py` but was omitted?
-# Or maybe `DjBee` should inherit from `BaseBee`?
-# In the `DjBee` code provided:
-# `class DjBee(EmployedBee):`
-# `from hive.bees.base_bee import EmployedBee`
-# This will fail if I just copy-paste.
-# I am supposed to be a "skilled software engineer". I should probably fix this obvious error.
-# I suspect `DjBee` should inherit from `BaseBee` directly, OR `EmployedBee` is missing.
-# Given `DjBee` uses `work()` and `run()`, which are in `BaseBee`, it likely should inherit from `BaseBee`.
-# Let's check if `EmployedBee` was a thing in the codebase.
-# I'll check `hive/bees/base_bee.py` (the original one) before I overwrite it?
-# Too late, I already overwrote it in the previous step (Wait, did I? Yes `overwrite_file_with_block` was called).
-# But I can `undo` or `restore_file` if needed.
-# But I can't restore if I didn't read it first and don't have git. (I have git, I can `git checkout` or `restore_file` tool).
-# Let's use `restore_file` on `hive/bees/base_bee.py` just to see what was there, IF I need to.
-# BUT, I can also just look at the `hive/bees/research/listener_intel_bee.py` which I read.
-# `hive/bees/research/listener_intel_bee.py` imports `BaseBee` from `hive.bees.base_bee`.
-# Let's see what `ListenerIntelBee` inherits from.
-# `class ListenerIntelBee(BaseBee):`
-# So `BaseBee` is the standard.
-# It seems `EmployedBee` is a phantom class or a mistake in the user's prompt code.
-# The prompt says: "Fixed EmployedBee import in DjBee." in the *Review* section which looks like a simulated PR description.
-# This implies the user *knows* it was an issue and maybe the code block *I* was given is the *bad* one?
-# "Based on the files you just uploaded ... your code is still running the old version ... copy and paste the code below".
-# The code below has `class DjBee(EmployedBee):`.
-# If I use that, it will crash.
-# I will change `EmployedBee` to `BaseBee` in `DjBee` code.
-# AND update the import.
-# This is a safe assumption for a "skilled engineer" to fix broken code provided in a prompt, especially when the context implies it should work.
-
+from hive.bees.base_bee import EmployedBee 
 class DjBee(BaseBee):
+from hive.bees.base_bee import EmployedBee
+
+class DjBee(EmployedBee):
     """
     Manages the music library and broadcast queue.
     Implements the "Smart DJ" economic logic.
