@@ -153,7 +153,7 @@ class SponsorHunterBee(ScoutBee):
                         "company": company_name,
                         "reason": f"Discovered via search for '{cat}' | Title: {brand.get('title')}",
                         "estimated_value": brand.get("estimated_value", "medium"),
-                        "contact_method": "email", # Default
+                        "contact_method": "email",  # Default
                         "discovered_at": datetime.now(timezone.utc).isoformat(),
                         "url": url,
                         "snippet": brand.get("snippet")
@@ -162,7 +162,8 @@ class SponsorHunterBee(ScoutBee):
                     self._add_to_pipeline(prospect)
                     new_count += 1
 
-                    # Add to local exclusion list so we don't add it again in this run
+                    # Add to local exclusion list so we don't add it again in
+                    # this run
                     existing_companies.add(company_name.lower())
                     existing_urls.add(url)
 
@@ -226,7 +227,10 @@ class SponsorHunterBee(ScoutBee):
         # Update status
         sponsor["status"] = "researched"
         sponsor["research"] = research
-        sponsor["notes"].append(f"Researched {datetime.now(timezone.utc).isoformat()}")
+        sponsor["notes"].append(
+            f"Researched {
+                datetime.now(
+                    timezone.utc).isoformat()}")
 
         self.write_intel("sponsors", "pipeline", {sponsor_id: sponsor})
 
@@ -271,7 +275,8 @@ class SponsorHunterBee(ScoutBee):
             "pitch": pitch
         }
 
-    def _create_pitch_template(self, sponsor: Dict[str, Any]) -> Dict[str, Any]:
+    def _create_pitch_template(
+            self, sponsor: Dict[str, Any]) -> Dict[str, Any]:
         """Create a pitch template for a sponsor."""
 
         company = sponsor.get("company", "Brand")
@@ -300,9 +305,7 @@ Backlink Broadcast
                 "Ad-free environment = higher attention",
                 "Loyal, engaged listener base",
                 "Authentic integration, not interruption",
-                "Flexible partnership structures"
-            ]
-        }
+                "Flexible partnership structures"]}
 
     def _update_pipeline(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Update a sponsor's pipeline status."""

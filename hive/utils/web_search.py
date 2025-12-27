@@ -14,6 +14,7 @@ from urllib.parse import urlparse
 import re
 import sys
 
+
 class WebSearch:
     """
     Search engine scraper focused on finding commercial entities.
@@ -24,11 +25,11 @@ class WebSearch:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.5",
-        "Referer": "https://duckduckgo.com/"
-    }
+        "Referer": "https://duckduckgo.com/"}
 
     @staticmethod
-    def search(query: str, num_results: int = 10, include_social: bool = False) -> List[Dict[str, Any]]:
+    def search(query: str, num_results: int = 10,
+               include_social: bool = False) -> List[Dict[str, Any]]:
         """
         Perform a web search and return parsed results.
         """
@@ -37,11 +38,18 @@ class WebSearch:
             time.sleep(random.uniform(1.0, 3.0))
 
             payload = {'q': query}
-            response = requests.post(WebSearch.BASE_URL, data=payload, headers=WebSearch.HEADERS, timeout=15)
+            response = requests.post(
+                WebSearch.BASE_URL,
+                data=payload,
+                headers=WebSearch.HEADERS,
+                timeout=15)
 
-            # Check for bot detection (202 usually means challenge page on DDG HTML)
+            # Check for bot detection (202 usually means challenge page on DDG
+            # HTML)
             if response.status_code == 202 or "anomaly-modal" in response.text:
-                print(f"[WebSearch] Bot detection triggered for '{query}'. Using simulation.", file=sys.stderr)
+                print(
+                    f"[WebSearch] Bot detection triggered for '{query}'. Using simulation.",
+                    file=sys.stderr)
                 return WebSearch._simulate_results(query, num_results)
 
             response.raise_for_status()
@@ -49,20 +57,27 @@ class WebSearch:
             results = WebSearch._parse_ddg_html(response.text, num_results)
 
             if not results:
-                 print(f"[WebSearch] No results found for '{query}'. Using simulation.", file=sys.stderr)
-                 return WebSearch._simulate_results(query, num_results)
+                print(
+                    f"[WebSearch] No results found for '{query}'. Using simulation.",
+                    file=sys.stderr)
+                return WebSearch._simulate_results(query, num_results)
 
             return results
 
         except requests.RequestException as e:
-            print(f"[WebSearch] Network error searching for '{query}': {e}", file=sys.stderr)
+            print(
+                f"[WebSearch] Network error searching for '{query}': {e}",
+                file=sys.stderr)
             return WebSearch._simulate_results(query, num_results)
         except Exception as e:
-            print(f"[WebSearch] Unexpected error searching for '{query}': {e}", file=sys.stderr)
+            print(
+                f"[WebSearch] Unexpected error searching for '{query}': {e}",
+                file=sys.stderr)
             return WebSearch._simulate_results(query, num_results)
 
     @staticmethod
-    def _parse_ddg_html(html: str, limit: int, include_social: bool = False) -> List[Dict[str, Any]]:
+    def _parse_ddg_html(html: str, limit: int,
+                        include_social: bool = False) -> List[Dict[str, Any]]:
         """Parse DuckDuckGo HTML results."""
         if not html:
             return []
@@ -91,7 +106,8 @@ class WebSearch:
 
                 # Snippet
                 snippet_tag = div.find('a', class_='result__snippet')
-                snippet = snippet_tag.get_text(strip=True) if snippet_tag else ""
+                snippet = snippet_tag.get_text(
+                    strip=True) if snippet_tag else ""
 
                 # Filter out generic or non-useful links
                 if not include_social and WebSearch._is_ignored_domain(link):
@@ -137,7 +153,16 @@ class WebSearch:
 
         results = []
         for _ in range(limit):
-            company = f"{random.choice(prefixes)}{random.choice(['Lab', 'Hub', 'Works', 'Box', 'ify', 'ly'])}"
+            company = f"{
+                random.choice(prefixes)}{
+                random.choice(
+                    [
+                        'Lab',
+                        'Hub',
+                        'Works',
+                        'Box',
+                        'ify',
+                        'ly'])}"
             domain = f"www.{company.lower()}.com"
 
             results.append({
@@ -179,7 +204,7 @@ class WebSearch:
             if any(x in domain for x in ignored):
                 return True
         except Exception:
-            return True # Ignore invalid URLs
+            return True  # Ignore invalid URLs
 
         return False
 
@@ -203,7 +228,7 @@ class WebSearch:
 
         # Specific overrides for better context
         if "music" in category or "audio" in category:
-             queries.append(f'best "{search_cat}" brands for musicians')
+            queries.append(f'best "{search_cat}" brands for musicians')
 
         if "local" in category:
             # Fix for "local_business" -> "local business"
@@ -226,7 +251,8 @@ class WebSearch:
                 seen_domains.add(domain)
 
                 # Clean title to get company name estimate
-                company_name = WebSearch._extract_company_name(res['title'], domain)
+                company_name = WebSearch._extract_company_name(
+                    res['title'], domain)
 
                 res['category'] = category
                 res['company'] = company_name
@@ -264,14 +290,34 @@ class WebSearch:
     def _infer_value(snippet: str) -> str:
         """Guess the value of the prospect based on keywords."""
         snippet = snippet.lower()
-        high_value_keywords = ["enterprise", "solution", "global", "leader", "funded", "series a", "series b", "platform", "ai", "automated", "official site"]
-        low_value_keywords = ["blog", "review", "free", "cheap", "diy", "hobby", "forum", "wiki"]
+        high_value_keywords = [
+            "enterprise",
+            "solution",
+            "global",
+            "leader",
+            "funded",
+            "series a",
+            "series b",
+            "platform",
+            "ai",
+            "automated",
+            "official site"]
+        low_value_keywords = [
+            "blog",
+            "review",
+            "free",
+            "cheap",
+            "diy",
+            "hobby",
+            "forum",
+            "wiki"]
 
         if any(k in snippet for k in high_value_keywords):
             return "high"
         if any(k in snippet for k in low_value_keywords):
             return "low"
         return "medium"
+
 
 if __name__ == "__main__":
     # Quick test

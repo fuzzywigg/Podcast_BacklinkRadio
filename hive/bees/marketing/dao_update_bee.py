@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 
 from hive.bees.base_bee import EmployedBee
 
+
 class DAOUpdateBee(EmployedBee):
     """
     Manages DAO updates.
@@ -20,7 +21,8 @@ class DAOUpdateBee(EmployedBee):
     BEE_NAME = "DAO Update Bee"
     CATEGORY = "marketing"
 
-    async def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def work(
+            self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Execute DAO tasks.
         """

@@ -36,7 +36,7 @@ class RadioPhysicsBee(BaseBee):
     SHARDS_TOTAL = 5
     SHARDS_NEEDED = 3
     RETRY_INTERVAL_MINUTES = 18
-    INTERFERENCE_THRESHOLD_DB = -80 # Trigger voting if noise > -80dBm
+    INTERFERENCE_THRESHOLD_DB = -80  # Trigger voting if noise > -80dBm
 
     def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -58,7 +58,8 @@ class RadioPhysicsBee(BaseBee):
             target = task.get("payload", {}).get("target_node")
 
             if action == "verify_coverage":
-                return self._verify_coverage(target, known_nodes.get(target, {}))
+                return self._verify_coverage(
+                    target, known_nodes.get(target, {}))
             elif action == "power_vote":
                 return self._initiate_power_vote(task.get("payload", {}))
 
@@ -84,7 +85,8 @@ class RadioPhysicsBee(BaseBee):
             # B. Check Interference (Simulated reading)
             interference_level = self._measure_interference(node_id)
             if interference_level > self.INTERFERENCE_THRESHOLD_DB:
-                self.log(f"High interference at {node_id}: {interference_level}dBm")
+                self.log(
+                    f"High interference at {node_id}: {interference_level}dBm")
                 # Trigger power vote
                 self._trigger_power_vote(node_id, interference_level)
                 results["votes_triggered"] += 1
@@ -94,7 +96,8 @@ class RadioPhysicsBee(BaseBee):
             "results": results
         }
 
-    def _verify_coverage(self, node_id: str, node_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _verify_coverage(self, node_id: str,
+                         node_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Verify coverage using Erasure Codes / Fountain Codes logic.
 
@@ -126,7 +129,8 @@ class RadioPhysicsBee(BaseBee):
         }
 
         if not success:
-            self.log(f"Node {node_id} FAILED coverage proof ({received_shards}/{self.SHARDS_TOTAL} shards).")
+            self.log(
+                f"Node {node_id} FAILED coverage proof ({received_shards}/{self.SHARDS_TOTAL} shards).")
             # If failed, potentially blacklist or mark for penalty?
             # For now, just mark offline.
         else:
@@ -147,7 +151,7 @@ class RadioPhysicsBee(BaseBee):
         """
         # Random fluctuation around -95dBm (noise floor)
         base_noise = -95.0
-        fluctuation = random.uniform(-5, 20) # Occasional spikes
+        fluctuation = random.uniform(-5, 20)  # Occasional spikes
         return base_noise + fluctuation
 
     def _trigger_power_vote(self, node_id: str, noise_level: float) -> None:
@@ -164,7 +168,10 @@ class RadioPhysicsBee(BaseBee):
             }
         }
         self.write_task(vote_task)
-        self.post_alert(f"Interference detected at {node_id} ({noise_level:.1f}dBm). Initiating Power Vote.", priority=True)
+        self.post_alert(
+            f"Interference detected at {node_id} ({
+                noise_level:.1f}dBm). Initiating Power Vote.",
+            priority=True)
 
     def _initiate_power_vote(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -206,7 +213,9 @@ class RadioPhysicsBee(BaseBee):
             "blacklisted_at": datetime.now(timezone.utc).isoformat()
         })
 
-        self.post_alert(f"Node {node_id} has been BLACKLISTED. Reason: {reason}", priority=True)
+        self.post_alert(
+            f"Node {node_id} has been BLACKLISTED. Reason: {reason}",
+            priority=True)
 
 
 if __name__ == "__main__":
