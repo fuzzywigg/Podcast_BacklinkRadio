@@ -308,6 +308,109 @@ class BaseBee(ABC):
         treasury = self.read_treasury()
         return treasury.get("credits", {})
 
+    # ─────────────────────────────────────────────────────────────
+    # CORE BEE LIFECYCLE
+    # ─────────────────────────────────────────────────────────────
+
+    def run(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Execute the bee's work cycle.
+
+        Args:
+            task: Optional specific task to work on. If None, bee may
+                  look for tasks or do general work.
+
+        Returns:
+            Dict with 'success', 'result', and optional 'error' keys.
+        """
+        self.started_at = datetime.now(timezone.utc)
+        self.log(f"Starting work cycle")
+
+        try:
+            result = self.work(task)
+            self.completed_at = datetime.now(timezone.utc)
+            duration = (self.completed_at - self.started_at).total_seconds()
+            self.log(f"Completed in {duration:.2f}s")
+
+            return {
+                "success": True,
+                "result": result,
+                "bee_id": self.bee_id,
+                "duration_seconds": duration
+            }
+
+        except Exception as e:
+            self.completed_at = datetime.now(timezone.utc)
+            self.log(f"Failed with error: {str(e)}", level="error")
+
+            return {
+                "success": False,
+                "error": str(e),
+                "bee_id": self.bee_id
+            }
+
+    @abstractmethod
+    def work(self, task: Optional[Dict[str, Any]] = None) -> Any:
+        """
+        The bee's main work method. Override in subclasses.
+
+        Args:
+            task: Optional task payload to work on.
+
+        Returns:
+            Result of the work (format depends on bee type).
+        """
+        pass
+
+    # ─────────────────────────────────────────────────────────────
+    # UTILITY METHODS
+    # ─────────────────────────────────────────────────────────────
+
+    def log(self, message: str, level: str = "info") -> None:
+        """Log a message (for debugging/monitoring)."""
+        timestamp = datetime.now(timezone.utc).isoformat()
+        print(f"[{timestamp}] [{level.upper()}] [{self.bee_id}] {message}")
+
+    def _read_json(self, filename: str) -> Dict[str, Any]:
+        """Read a JSON file from honeycomb. Enforce path security."""
+        try:
+            filepath = (self.honeycomb_path / filename).resolve()
+            # Security check: Ensure the resolved path is inside the honeycomb path
+            if not filepath.is_relative_to(self.honeycomb_path.resolve()):
+                self.log(f"Security Alert: Path traversal attempt blocked for {filename}", level="error")
+                return {}
+
+            if filepath.exists():
+                with open(filepath, 'r') as f:
+                    return json.load(f)
+        except Exception as e:
+            self.log(f"Error reading {filename}: {e}", level="error")
+        return {}
+
+    def _write_json(self, filename: str, data: Dict[str, Any]) -> None:
+        """Write a JSON file to honeycomb. Enforce path security."""
+        try:
+            filepath = (self.honeycomb_path / filename).resolve()
+            # Security check: Ensure the resolved path is inside the honeycomb path
+            if not filepath.is_relative_to(self.honeycomb_path.resolve()):
+                self.log(f"Security Alert: Path traversal attempt blocked for {filename}", level="error")
+                return
+
+            with open(filepath, 'w') as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            self.log(f"Error writing {filename}: {e}", level="error")
+
+    def _deep_merge(self, base: Dict, updates: Dict) -> Dict:
+        """Deep merge two dictionaries."""
+        result = base.copy()
+        for key, value in updates.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = self._deep_merge(result[key], value)
+            else:
+                result[key] = value
+        return result
+
 
 class ScoutBee(BaseBee):
     """
