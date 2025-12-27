@@ -44,7 +44,13 @@ def temp_hive_dir() -> Generator[Path, None, None]:
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         hive_path = Path(tmpdir) / "hive"
-        honeycomb_path = hive_path / "honeycomb"
+        # BaseBee expects honeycomb at hive_path/hive/honeycomb if hive_path is passed
+        # OR if hive_path is assumed to be repo root.
+        # However, BaseBee code says:
+        # self.honeycomb_path = self.hive_path / "hive" / "honeycomb"
+        # So we need to match this structure in the test environment.
+
+        honeycomb_path = hive_path / "hive" / "honeycomb"
         honeycomb_path.mkdir(parents=True)
 
         # Create minimal honeycomb files

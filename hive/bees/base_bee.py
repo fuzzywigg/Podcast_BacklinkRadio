@@ -162,7 +162,15 @@ class BaseBee(ABC):
 
     def _read_json(self, filename: str) -> Dict[str, Any]:
         """Read a JSON file from honeycomb."""
-        filepath = self.honeycomb_path / filename
+        # Resolve to absolute paths for security check
+        base_path = self.honeycomb_path.resolve()
+        filepath = (self.honeycomb_path / filename).resolve()
+
+        # Ensure the resolved path is within the honeycomb directory
+        if not filepath.is_relative_to(base_path):
+             self.log(f"SECURITY ALERT: Path traversal attempt detected: {filename}", level="error")
+             raise ValueError(f"Path traversal detected: {filename}")
+
         if filepath.exists():
             with open(filepath, 'r') as f:
                 return json.load(f)
@@ -170,7 +178,15 @@ class BaseBee(ABC):
 
     def _write_json(self, filename: str, data: Dict[str, Any]) -> None:
         """Write a JSON file to honeycomb."""
-        filepath = self.honeycomb_path / filename
+        # Resolve to absolute paths for security check
+        base_path = self.honeycomb_path.resolve()
+        filepath = (self.honeycomb_path / filename).resolve()
+
+        # Ensure the resolved path is within the honeycomb directory
+        if not filepath.is_relative_to(base_path):
+             self.log(f"SECURITY ALERT: Path traversal attempt detected: {filename}", level="error")
+             raise ValueError(f"Path traversal detected: {filename}")
+
         with open(filepath, 'w') as f:
             json.dump(data, f, indent=2)
 
