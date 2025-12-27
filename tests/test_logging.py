@@ -116,7 +116,8 @@ class TestColoredFormatter:
     def colored_formatter(self) -> ColoredFormatter:
         return ColoredFormatter()
 
-    def test_includes_color_codes(self, colored_formatter: ColoredFormatter) -> None:
+    def test_includes_color_codes(
+            self, colored_formatter: ColoredFormatter) -> None:
         """Should include ANSI color codes."""
         record = logging.LogRecord(
             name="test",
@@ -134,7 +135,9 @@ class TestColoredFormatter:
         assert "\033[31m" in output
         assert "Error message" in output
 
-    def test_includes_bee_id(self, colored_formatter: ColoredFormatter) -> None:
+    def test_includes_bee_id(
+            self,
+            colored_formatter: ColoredFormatter) -> None:
         """Should include bee_id in output if present."""
         record = logging.LogRecord(
             name="test",

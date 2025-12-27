@@ -8,6 +8,7 @@ from google.genai import types
 import os
 from pathlib import Path
 
+
 class BacklinkCacheManager:
     """Manage Gemini context cache for Backlink station identity"""
 

@@ -9,6 +9,7 @@ import requests
 import json
 from typing import Dict, Any, Optional
 
+
 class BrowserUseClient:
     """Client for interacting with Browser Use Cloud API."""
 
@@ -21,7 +22,8 @@ class BrowserUseClient:
             "Content-Type": "application/json"
         }
 
-    def create_task(self, task: str, llm: str = "gemini-2.5-flash") -> Dict[str, Any]:
+    def create_task(self, task: str,
+                    llm: str = "gemini-2.5-flash") -> Dict[str, Any]:
         """
         Create a new browser task.
 
@@ -36,7 +38,8 @@ class BrowserUseClient:
         }
 
         try:
-            response = requests.post(url, json=payload, headers=self.headers, timeout=10)
+            response = requests.post(
+                url, json=payload, headers=self.headers, timeout=10)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -53,7 +56,11 @@ class BrowserUseClient:
         except requests.exceptions.RequestException as e:
             return {"error": str(e)}
 
-    def wait_for_completion(self, task_id: str, interval: int = 5, timeout: int = 600) -> Dict[str, Any]:
+    def wait_for_completion(self,
+                            task_id: str,
+                            interval: int = 5,
+                            timeout: int = 600) -> Dict[str,
+                                                        Any]:
         """Poll task until completion."""
         start_time = time.time()
 
@@ -69,6 +76,7 @@ class BrowserUseClient:
             time.sleep(interval)
 
         return {"error": "Timeout waiting for task completion"}
+
 
 if __name__ == "__main__":
     # Test execution

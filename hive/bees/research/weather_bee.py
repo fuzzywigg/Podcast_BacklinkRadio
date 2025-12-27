@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from hive.bees.base_bee import EmployedBee
 from hive.utils.plausible_andon import analytics
 
+
 class WeatherBee(EmployedBee):
     """
     Manages weather intel and updates.
@@ -22,7 +23,8 @@ class WeatherBee(EmployedBee):
     BEE_NAME = "Weather Bee"
     CATEGORY = "research"
 
-    async def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def work(
+            self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Execute weather tasks.
         """
@@ -42,7 +44,10 @@ class WeatherBee(EmployedBee):
             weather_reports.append(report)
 
         # 2. Update Honeycomb (for DJ to read)
-        latest_snippet = f"{weather_reports[0]['city']}: {weather_reports[0]['temp']}F, {weather_reports[0]['conditions']}"
+        latest_snippet = f"{
+            weather_reports[0]['city']}: {
+            weather_reports[0]['temp']}F, {
+            weather_reports[0]['conditions']}"
         self._update_weather_intel(weather_reports, latest_snippet)
 
         # 3. Tweet if time match

@@ -21,6 +21,7 @@ except ImportError:
     sys.path.append(str(Path(__file__).parent))
     from plausible_andon import analytics
 
+
 class PaymentGate:
     """
     Manages the 'Customer Service' logic:
@@ -44,7 +45,12 @@ class PaymentGate:
         # State for verbose mode
         self.state_path = self.honeycomb_path / "state.json"
 
-    def process_refund(self, user_handle: str, amount: float, reason: str, node_id: Optional[str] = None) -> Dict[str, Any]:
+    def process_refund(self,
+                       user_handle: str,
+                       amount: float,
+                       reason: str,
+                       node_id: Optional[str] = None) -> Dict[str,
+                                                              Any]:
         """
         Process a full refund to the user.
 
@@ -91,7 +97,8 @@ class PaymentGate:
             "message": "Refund processed successfully"
         }
 
-    def slash_node(self, node_id: str, percentage: float = 0.01) -> Dict[str, Any]:
+    def slash_node(self, node_id: str,
+                   percentage: float = 0.01) -> Dict[str, Any]:
         """
         Slash a node's stake for failure.
 
@@ -120,7 +127,8 @@ class PaymentGate:
 
             # Apply slash
             nodes[node_id]["stake"] = new_stake
-            nodes[node_id]["last_slashed"] = datetime.now(timezone.utc).isoformat()
+            nodes[node_id]["last_slashed"] = datetime.now(
+                timezone.utc).isoformat()
 
             # Save
             with open(self.nodes_path, 'w') as f:
@@ -162,7 +170,8 @@ class PaymentGate:
         try:
             # We need to read/modify/write intel.json carefully
             # Ideally, we'd use the Queen or a Bee's method, but we are a util.
-            # We'll do a direct file op for now, assuming single-threaded access or low contention.
+            # We'll do a direct file op for now, assuming single-threaded
+            # access or low contention.
 
             if not self.intel_path.exists():
                 return
@@ -184,17 +193,22 @@ class PaymentGate:
                         break
 
             if not target_node_id:
-                # Create a temporary entry if not exists (unlikely if they just paid)
+                # Create a temporary entry if not exists (unlikely if they just
+                # paid)
                 target_node_id = user_handle
                 listeners[target_node_id] = {"handle": user_handle}
 
             # Update balance
-            current_balance = listeners[target_node_id].get("wallet_balance", 0.0)
+            current_balance = listeners[target_node_id].get(
+                "wallet_balance", 0.0)
             listeners[target_node_id]["wallet_balance"] = current_balance + amount
 
             # Add note
             notes = listeners[target_node_id].get("notes", [])
-            notes.append(f"Refunded ${amount} at {datetime.now(timezone.utc).isoformat()}")
+            notes.append(
+                f"Refunded ${amount} at {
+                    datetime.now(
+                        timezone.utc).isoformat()}")
             listeners[target_node_id]["notes"] = notes
 
             # Save
@@ -235,14 +249,19 @@ class PaymentGate:
         # Construct message
         message = ""
         if data.get("type") == "refund":
-            message = f"💸 **Refund Issued**\nUser: `{data.get('user')}`\nAmount: `${data.get('amount')}`\nReason: {data.get('reason')}"
+            message = f"💸 **Refund Issued**\nUser: `{
+                data.get('user')}`\nAmount: `${
+                data.get('amount')}`\nReason: {
+                data.get('reason')}"
         elif data.get("type") == "slashing":
-            message = f"⚔️ **Node Slashed**\nNode: `{data.get('node_id')}`\nAmount: `{data.get('slash_amount')}` tokens"
+            message = f"⚔️ **Node Slashed**\nNode: `{
+                data.get('node_id')}`\nAmount: `{
+                data.get('slash_amount')}` tokens"
 
         try:
             requests.post(webhook_url, json={"content": message}, timeout=2)
         except Exception:
-            pass # Fail silently for logging
+            pass  # Fail silently for logging
 
     def _is_verbose_logging(self) -> bool:
         """Check if verbose logging is enabled."""

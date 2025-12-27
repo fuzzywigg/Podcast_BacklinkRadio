@@ -9,6 +9,7 @@ Responsibilities:
 
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
+import asyncio
 
 from hive.bees.base_bee import ScoutBee
 
@@ -69,7 +70,8 @@ class TrendScoutBee(ScoutBee):
         # Archive old trends
         current_trends = intel["trends"].get("current", [])
         if current_trends:
-            intel["trends"]["archive"].extend(current_trends[:5]) # Archive top 5 old ones
+            intel["trends"]["archive"].extend(
+                current_trends[:5])  # Archive top 5 old ones
 
         # Set new current trends
         intel["trends"]["current"] = ranked_trends[:10]  # Top 10
@@ -82,6 +84,14 @@ class TrendScoutBee(ScoutBee):
         self._write_json("intel.json", intel)
 
         # Check for Breaking News (Task extension)
+        if task and task.get("payload", {}).get(
+                "action") == "monitor_breaking_news":
+            # Running async method in sync context
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(self.monitor_breaking_news())
+            except RuntimeError:
+                asyncio.run(self.monitor_breaking_news())
         if task and task.get("payload", {}).get("action") == "monitor_breaking_news":
              # We can't await here in a synchronous method.
              # We'll run it synchronously or change design.
@@ -93,14 +103,18 @@ class TrendScoutBee(ScoutBee):
              self.monitor_breaking_news()
 
         # Alert DJ if high-priority trend found
-        hot_trends = [t for t in ranked_trends if t.get("priority") == "urgent"]
+        hot_trends = [
+            t for t in ranked_trends if t.get("priority") == "urgent"]
         if hot_trends:
             self.post_alert(
                 f"Hot trend detected: {hot_trends[0]['title']}",
                 priority=True
             )
 
-        self.log(f"Discovered {len(discovered_trends)} trends, {len(hot_trends)} hot")
+        self.log(
+            f"Discovered {
+                len(discovered_trends)} trends, {
+                len(hot_trends)} hot")
 
         return {
             "trends_found": len(discovered_trends),
@@ -116,7 +130,7 @@ class TrendScoutBee(ScoutBee):
         news_items = self._fetch_breaking_news_simulated()
 
         # Filter for relevance (simulated)
-        relevant = news_items # Assume all relevant for demo
+        relevant = news_items  # Assume all relevant for demo
 
         for item in relevant:
             # Tweet immediately via SocialPoster
@@ -138,10 +152,12 @@ class TrendScoutBee(ScoutBee):
                 script = self._compose_news_brief(item)
                 # Update intel for DJ
                 intel = self.read_intel()
-                if "breaking_news" not in intel: intel["breaking_news"] = []
+                if "breaking_news" not in intel:
+                    intel["breaking_news"] = []
                 intel["breaking_news"].append({
                     "script": script,
-                    "expires_at": datetime.now(timezone.utc).isoformat() # + 1 hour usually
+                    # + 1 hour usually
+                    "expires_at": datetime.now(timezone.utc).isoformat()
                 })
                 self._write_json("intel.json", intel)
 
@@ -150,10 +166,11 @@ class TrendScoutBee(ScoutBee):
         On-air breaking news (15 seconds max)
         """
         return (
-            f"Quick signal update: {news_item['headline']}. "
-            f"Developing story—following it for our {news_item.get('affected_nodes', 'many')} "
-            f"Nodes in the affected area. Stay tuned."
-        )
+            f"Quick signal update: {
+                news_item['headline']}. " f"Developing story—following it for our {
+                news_item.get(
+                    'affected_nodes',
+                    'many')} " f"Nodes in the affected area. Stay tuned.")
 
     def _compose_news_tweet(self, news_item: Dict) -> str:
         return (
@@ -165,7 +182,7 @@ class TrendScoutBee(ScoutBee):
 
     def _fetch_breaking_news_simulated(self) -> list:
         import random
-        if random.random() > 0.95: # Rare event
+        if random.random() > 0.95:  # Rare event
             return [{
                 "headline": "Major Solar Flare Detected",
                 "source": "NASA",
@@ -246,13 +263,19 @@ class TrendScoutBee(ScoutBee):
             }
         ]
 
-    def _rank_trends(self, trends: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _rank_trends(
+            self, trends: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Rank trends by relevance and priority."""
 
         def score(trend):
             relevance = trend.get("relevance", 0.5)
-            priority_weights = {"urgent": 1.0, "high": 0.8, "normal": 0.5, "low": 0.2}
-            priority_score = priority_weights.get(trend.get("priority", "normal"), 0.5)
+            priority_weights = {
+                "urgent": 1.0,
+                "high": 0.8,
+                "normal": 0.5,
+                "low": 0.2}
+            priority_score = priority_weights.get(
+                trend.get("priority", "normal"), 0.5)
             return relevance * 0.6 + priority_score * 0.4
 
         return sorted(trends, key=score, reverse=True)

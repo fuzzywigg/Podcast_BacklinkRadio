@@ -215,7 +215,10 @@ def configure_root_logger() -> None:
 # ─────────────────────────────────────────────────────────────────────────────────
 
 
-def log_task_start(logger: logging.Logger, task_name: str, **kwargs: Any) -> None:
+def log_task_start(
+        logger: logging.Logger,
+        task_name: str,
+        **kwargs: Any) -> None:
     """Log the start of a task with context."""
     logger.info(f"Starting: {task_name}", extra={"task": task_name, **kwargs})
 

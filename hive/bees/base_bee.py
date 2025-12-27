@@ -254,15 +254,44 @@ class BaseBee(ABC):
                 self._write_json("tasks.json", tasks)
                 return
 
+    def read_intel(self) -> Dict[str, Any]:
+        """Read the accumulated intelligence."""
+        return self._read_json("intel.json")
+
+    def write_intel(self, category: str, key: str,
+                    data: Dict[str, Any]) -> None:
+        """Add or update intel in a category."""
+        intel = self.read_intel()
+        if category not in intel:
+            intel[category] = {}
+
+        if key in intel[category]:
+            # Merge with existing
+            intel[category][key] = self._deep_merge(intel[category][key], data)
+        else:
+            intel[category][key] = data
+
+        intel["_meta"]["last_updated"] = datetime.now(timezone.utc).isoformat()
+        self._write_json("intel.json", intel)
+
+    def add_listener_intel(
+            self, node_id: str, intel_data: Dict[str, Any]) -> None:
     def add_listener_intel(self, node_id: str, intel_data: Dict[str, Any]) -> None:
         """Convenience method to add listener intel."""
-        existing = self.read_intel().get("listeners", {}).get("known_nodes", {}).get(node_id, {})
+        existing = self.read_intel().get(
+            "listeners",
+            {}).get(
+            "known_nodes",
+            {}).get(
+            node_id,
+            {})
 
         # Ensure notes are appended, not replaced
         if "notes" in intel_data and "notes" in existing:
             intel_data["notes"] = existing["notes"] + intel_data["notes"]
 
-        # Ensure numeric fields like 'dao_credits' are accumulated, not overwritten
+        # Ensure numeric fields like 'dao_credits' are accumulated, not
+        # overwritten
         for field in ["dao_credits", "donation_total", "interaction_count"]:
             if field in intel_data and field in existing:
                 intel_data[field] = existing[field] + intel_data[field]
@@ -418,7 +447,11 @@ class BaseBee(ABC):
         """Deep merge two dictionaries."""
         result = base.copy()
         for key, value in updates.items():
-            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            if key in result and isinstance(
+                    result[key],
+                    dict) and isinstance(
+                    value,
+                    dict):
                 result[key] = self._deep_merge(result[key], value)
             else:
                 result[key] = value
