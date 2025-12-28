@@ -1,0 +1,20 @@
+{
+  "integrity_hash": "genesis",
+  "last_updated": "2025-12-28T08:34:45.318093+00:00",
+  "global_constraints": [
+    {
+      "timestamp": "2025-12-28T08:34:45.318054+00:00",
+      "type": "constraint",
+      "content": "TEST_CONSTRAINT: Always finish sentences with 'Over.'",
+      "source": "TestScript",
+      "context": "Manual Verification"
+    }
+  ],
+  "episodes": [],
+  "theology": {
+    "core_tenets": [
+      "The Hive exists to Broadcast.",
+      "The 4th Wall is Sacred."
+    ]
+  }
+}

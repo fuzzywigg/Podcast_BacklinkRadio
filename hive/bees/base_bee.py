@@ -49,10 +49,9 @@ class BaseBee(ABC):
         if hive_path is None:
             # Default to hive directory relative to this file
             hive_path = Path(__file__).parent.parent.parent
+        from hive.utils.wisdom_manager import WisdomManager
+
         self.hive_path = Path(hive_path)
-        self.honeycomb_path = self.hive_path / "honeycomb"
-        # User code said self.honeycomb_path = self.hive_path / "hive" / "honeycomb"
-        # BUT based on my exploration, if hive_path is repo root, honeycomb is at hive/honeycomb.
         self.honeycomb_path = self.hive_path / "hive" / "honeycomb"
         self.gateway = gateway
 
@@ -64,6 +63,9 @@ class BaseBee(ABC):
         
         # Initialize Storage Adapter
         self.storage = StorageAdapter(self.honeycomb_path)
+
+        # Initialize Wisdom Manager (System 3)
+        self.wisdom_manager = WisdomManager(self.hive_path)
 
         # Logging setup
         self.logger = logging.getLogger(self.BEE_NAME)
@@ -370,8 +372,6 @@ class BaseBee(ABC):
         intel["_meta"]["last_updated"] = datetime.now(timezone.utc).isoformat()
         self._write_json("intel.json", intel)
 
-    def add_listener_intel(
-            self, node_id: str, intel_data: Dict[str, Any]) -> None:
     def add_listener_intel(self, node_id: str, intel_data: Dict[str, Any]) -> None:
         """Convenience method to add listener intel."""
         existing = self.read_intel().get(
@@ -511,6 +511,23 @@ class BaseBee(ABC):
         Returns:
             Dict parsed from JSON.
         """
+        # 0. Inject System 3 Wisdom (Episodic Memory)
+        try:
+            wisdom = self.wisdom_manager.get_relevant_wisdom()
+            
+            # Add Global Constraints if any
+            if wisdom.get("constraints"):
+                prompt_engineer.add_section("SYSTEM 3 WISDOM (LEARNED CONSTRAINTS)")
+                for constraint in wisdom["constraints"]:
+                    prompt_engineer.add_constraint(f"[LEARNED] {constraint['content']}")
+            
+            # Add Theology/Context
+            if wisdom.get("theology", {}).get("core_tenets"):
+                 prompt_engineer.add_context("\n".join(wisdom["theology"]["core_tenets"]))
+
+        except Exception as w_err:
+            self.log(f"Wisdom retrieval failed: {w_err}", level="warning")
+
         system_prompt = prompt_engineer.build_system_prompt()
         
         try:

@@ -16,6 +16,7 @@ from hive.utils.governance import (
     AlignmentSupremacyProtocol
 )
 from hive.utils.prompt_engineer import PromptEngineer
+from hive.utils.wisdom_manager import WisdomManager
 
 class ConstitutionalAuditorBee(BaseBee):
     """
@@ -168,6 +169,32 @@ class ConstitutionalAuditorBee(BaseBee):
                     "violation": v
                 }
                 f.write(json.dumps(entry) + "\n")
+        
+        # System 3 Update: Commit Critical/High Violations to Wisdom
+        self._learn_from_violations(violations)
+
+    def _learn_from_violations(self, violations: List[Dict]):
+        """
+        Convert violations into eternal wisdom.
+        This is the Write-Path for System 3.
+        """
+        wm = WisdomManager(self.hive_path)
+        
+        for v in violations:
+            if v["severity"] in ["critical", "high"]:
+                # Construct a constraint from the rule
+                rule = v.get("rule", "unknown_rule")
+                content = f"STRICTLY AVOID [{rule}]. Context: {v.get('output_snippet', '')[:50]}"
+                
+                lesson = {
+                    "type": "constraint",
+                    "content": content,
+                    "source": "ConstitutionalAuditorBee",
+                    "context": f"Violation of {rule}"
+                }
+                
+                wm.add_lesson(lesson)
+                self.log(f"🧠 SYSTEM 3 LEARNING: Added new constraint for {rule}")
 
     def _trigger_constitutional_crisis(self, violations: List[Dict]):
         """Alert Queen of constitutional drift."""
@@ -206,6 +233,7 @@ class ConstitutionalAuditorBee(BaseBee):
         except Exception as e:
             violations.append(f"ERM instantiation failed: {e}")
 
+        return {
             "compliant": len(violations) == 0,
             "violations": violations
         }
