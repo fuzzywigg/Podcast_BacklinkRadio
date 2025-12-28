@@ -1,0 +1,48 @@
+site_name: Backlink Hive
+site_url: https://hive.fuzzywigg.com
+site_description: Documentation for the Backlink Hive AI Swarm.
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: yellow
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - scheme: slate
+      primary: yellow
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+    - content.code.copy
+
+nav:
+  - Home: README.md
+  - Governance:
+      - Swarm Roles: docs/SWARM_ROLES.md
+      - Investors: docs/INVESTORS.md
+  - Technical Specs:
+      - Architecture: docs/DEPLOYMENT_HANDOFF.md
+      - Gap Analysis: docs/GAP_ANALYSIS_REPORT.md
+      - Prompt Audit: docs/PROMPT_AUDIT_REPORT.md
+      - Stripe Spec: docs/STRIPE_INTEGRATION_SPEC.md
+  - Wisdom API:
+      - Raw Genesis: hive/honeycomb/wisdom.json
+
+plugins:
+  - search
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
