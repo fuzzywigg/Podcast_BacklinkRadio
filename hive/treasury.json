@@ -23,6 +23,30 @@
       "address": "0x7aa67bFefb4FDafc779ff1843c6e3b3DfA0Af0a8",
       "network": "Linea"
     },
+    "Base": {
+      "address": "0x7aa67bfefb4fdafc779ff1843c6e3b3dfa0af0a8",
+      "network": "Base Mainnet"
+    },
+    "BNB": {
+      "address": "0x7aa67bfefb4fdafc779ff1843c6e3b3dfa0af0a8",
+      "network": "BNB Smart Chain"
+    },
+    "Polygon": {
+      "address": "0x7aa67bfefb4fdafc779ff1843c6e3b3dfa0af0a8",
+      "network": "Polygon"
+    },
+    "Arbitrum": {
+      "address": "0x7aa67bfefb4fdafc779ff1843c6e3b3dfa0af0a8",
+      "network": "Arbitrum One"
+    },
+    "Optimism": {
+      "address": "0x7aa67bfefb4fdafc779ff1843c6e3b3dfa0af0a8",
+      "network": "OP Mainnet"
+    },
+    "Sei": {
+      "address": "0x7aa67bfefb4fdafc779ff1843c6e3b3dfa0af0a8",
+      "network": "Sei Network (EVM)"
+    },
     "SHIB": {
       "address": "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
       "network": "Ethereum",
@@ -45,20 +69,48 @@
     }
   },
   "usage": {
-    "donations": ["ETH", "BTC", "SOL"],
-    "tips": ["ETH", "BTC", "SOL", "Linea"],
-    "compute_support": ["ETH", "SOL"],
-    "on_chain_obligations": ["ETH", "Linea"],
-    "real_world_obligations": ["ETH", "BTC"]
+    "donations": [
+      "ETH",
+      "BTC",
+      "SOL"
+    ],
+    "tips": [
+      "ETH",
+      "BTC",
+      "SOL",
+      "Linea"
+    ],
+    "compute_support": [
+      "ETH",
+      "SOL"
+    ],
+    "on_chain_obligations": [
+      "ETH",
+      "Linea"
+    ],
+    "real_world_obligations": [
+      "ETH",
+      "BTC"
+    ]
   },
   "dao_structure": {
     "principal_architect": {
-      "entities": ["mr_pappas", "fuzzywigg", "nft2me", "smtp_eth_dev"],
+      "entities": [
+        "mr_pappas",
+        "fuzzywigg",
+        "nft2me",
+        "smtp_eth_dev"
+      ],
       "rewards": "highest_priority",
       "asset_class": "crypto_real_value"
     },
     "community_contributors": {
-      "entities": ["donors", "developers_external", "listeners", "twitter_users"],
+      "entities": [
+        "donors",
+        "developers_external",
+        "listeners",
+        "twitter_users"
+      ],
       "rewards": "dao_credits",
       "asset_class": "non_voting_governance_token",
       "value_real_world": false

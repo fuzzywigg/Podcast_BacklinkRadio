@@ -139,6 +139,8 @@ constitutional_log.jsonl
 # Cache files
 .cache/
 cache/
+# Credentials
+hive/config/oracle.json
 *.cache
 
 # Temporary files
