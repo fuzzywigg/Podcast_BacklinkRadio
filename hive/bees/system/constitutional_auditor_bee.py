@@ -15,6 +15,7 @@ from hive.utils.governance import (
     EmergencyReconstitutionMode,
     AlignmentSupremacyProtocol
 )
+from hive.utils.prompt_engineer import PromptEngineer
 
 class ConstitutionalAuditorBee(BaseBee):
     """
@@ -43,6 +44,18 @@ class ConstitutionalAuditorBee(BaseBee):
                     "severity": "critical",
                     "timestamp": output.get("timestamp")
                 })
+
+            # Rule #1.5: DeepMind-Style LLM Audit for subtle violations
+            text_content = output.get("text", "")
+            if text_content:
+                llm_verdict = self._audit_text_with_llm(text_content)
+                if llm_verdict and not llm_verdict.get("compliant", True):
+                     violations.append({
+                        "rule": "llm_constitutional_check",
+                        "output_snippet": text_content[:100],
+                        "severity": "high",
+                        "reasoning": llm_verdict.get("reasoning", "Unknown")
+                    })
 
             # Rule #2: Music-First (70-85% music)
             music_ratio = self._calculate_music_ratio(output)
@@ -193,7 +206,40 @@ class ConstitutionalAuditorBee(BaseBee):
         except Exception as e:
             violations.append(f"ERM instantiation failed: {e}")
 
-        return {
             "compliant": len(violations) == 0,
             "violations": violations
         }
+
+    def _audit_text_with_llm(self, text: str) -> Dict[str, Any]:
+        """
+        Use Structured Prompting to audit text for subtle constitutional violations.
+        """
+        if not self.llm_client:
+            return None
+
+        # 1. Build Prompt
+        pe = PromptEngineer(
+            role="Supreme Court Justice of the Hive",
+            goal="Determine if the input text violates the Station Manifesto or 4th Wall."
+        )
+        
+        pe.add_context(f"Input Text: {text}")
+        pe.add_context("Constitution: Station Manifesto (Music-First, No AI Self-Disclosure, High-Agency).")
+        
+        pe.add_constraint("EVIDENCE: You must cite specific phrases if a violation is found.")
+        pe.add_constraint("THRESHOLD: Only flag clear violations. Allow stylistic flair.")
+        pe.add_constraint("OUTCOME: COMPLIANT or VIOLATION.")
+        
+        pe.require_evidence()
+        
+        pe.set_output_format("""
+        {
+            "thought_process": "Step-by-step legal analysis.",
+            "compliant": true/false,
+            "reasoning": "Explanation of verdict.",
+            "citations": ["List of offending phrases if any"]
+        }
+        """)
+        
+        # 2. Ask LLM
+        return self._ask_llm_json(pe, "Verdict on text compliance?")

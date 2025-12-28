@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 
 from hive.utils.state_manager import StateManager
 from hive.utils.storage_adapter import StorageAdapter
+from hive.utils.prompt_engineer import PromptEngineer
 
 
 class BaseBee(ABC):
@@ -501,9 +502,35 @@ class BaseBee(ABC):
                 result[key] = value
         return result
 
-
-        state["alerts"][key].append(alert)
-        self._write_json("state.json", state)
+    def _ask_llm_json(self, prompt_engineer: PromptEngineer, user_input: str) -> Dict[str, Any]:
+        """
+        Structured LLM Query.
+        Args:
+            prompt_engineer: Configured PromptEngineer instance.
+            user_input: The user/event trigger text.
+        Returns:
+            Dict parsed from JSON.
+        """
+        system_prompt = prompt_engineer.build_system_prompt()
+        
+        try:
+            # We construct a message list for the chat model
+            # Assuming self.llm_client.chat implies a method that takes history
+            # If the client is simple text-in-text-out, we concat.
+            
+            # For this repo's simple client wrapper (likely):
+            full_prompt = f"{system_prompt}\n\nUSER INPUT: {user_input}"
+            
+            # Call the LLM (using existing method)
+            # Note: We rely on the model obeying the system prompt format instructions
+            response_text = self.llm_client.generate(full_prompt)
+            
+            # Parse
+            return PromptEngineer.parse_json_output(response_text)
+            
+        except Exception as e:
+            self.log(f"LLM Structure Failure: {e}", level="error")
+            return {"error": str(e)}
 
     def log(self, message: str, level: str = "info") -> None:
         """Log a message."""

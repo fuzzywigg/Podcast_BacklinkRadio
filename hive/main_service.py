@@ -9,7 +9,6 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from hive.queen.orchestrator import QueenOrchestrator
-
 # Global Queen instance
 queen: QueenOrchestrator = None
 queen_thread: threading.Thread = None

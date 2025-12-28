@@ -20,6 +20,8 @@ except ImportError:
 
 from hive.bees.base_bee import ScoutBee
 from hive.utils.web_search import WebSearch
+from hive.utils.prompt_engineer import PromptEngineer
+import json
 
 
 class ListenerIntelBee(ScoutBee):
@@ -355,6 +357,29 @@ class ListenerIntelBee(ScoutBee):
         except Exception as e:
             self.log(f"Twitter API research failed for {handle}: {e}")
             return None
+
+    def _synthesize_profile_with_llm(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Use LLM to synthesize a listener profile from raw data."""
+        pe = PromptEngineer(
+            role="Intelligence Analyst",
+            goal="Synthesize a coherent listener profile from scattered data points."
+        )
+        
+        pe.add_context(f"Raw Data: {json.dumps(data, default=str)}")
+        pe.add_constraint("FACTUALITY: Do not invent details. Use keywords like 'Unknown' if missing.")
+        pe.add_constraint("PRIVACY: Do not include PII (Exact address, phone, email) even if present.")
+        pe.add_constraint("OUTPUT: JSON with 'summary', 'key_interests', 'communication_style'.")
+        
+        pe.set_output_format("""
+        {
+            "summary": "2-sentence bio of the listener.",
+            "key_interests": ["list", "of", "interests"],
+            "communication_style": "formal|casual|memelord|hostile",
+            "suggested_topics": ["topic1", "topic2"]
+        }
+        """)
+        
+        return self._ask_llm_json(pe, "Synthesize profile.")
 
     def _research_public_web(self, handle: str) -> Optional[Dict[str, Any]]:
         """Research profile via web search (malicious compliance)."""

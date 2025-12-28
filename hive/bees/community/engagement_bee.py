@@ -16,6 +16,7 @@ from hive.utils.safety import validate_interaction, sanitize_payment_message, sa
 from hive.utils.economy import calculate_dao_rewards
 from hive.utils.payment_gate import PaymentGate
 from hive.utils.plausible_andon import analytics
+from hive.utils.prompt_engineer import PromptEngineer
 
 
 class EngagementBee(EmployedBee):
@@ -620,17 +621,33 @@ class EngagementBee(EmployedBee):
         sender: str,
         content: str
     ) -> Optional[str]:
-        """Generate an appropriate response."""
+        """Generate an appropriate response using Context-Aware Prompting."""
+        
+        if not self.llm_client:
+             responses = {
+                "request": f"Request received from {sender}. Adding to the queue.",
+                "praise": f"We see you, {sender}. Thanks for tuning in.",
+                "question": f"Good question from {sender}. Let us look into that.",
+                "criticism": None,  # Don't engage with negativity
+                "mention": f"Signal received from {sender}."
+            }
+             return responses.get(mention_type)
 
-        responses = {
-            "request": f"Request received from {sender}. Adding to the queue.",
-            "praise": f"We see you, {sender}. Thanks for tuning in.",
-            "question": f"Good question from {sender}. Let us look into that.",
-            "criticism": None,  # Don't engage with negativity
-            "mention": f"Signal received from {sender}."
-        }
-
-        return responses.get(mention_type)
+        pe = PromptEngineer(
+            role="Community Manager",
+            goal="Engage with listeners authentically, maintaining the Swarm persona."
+        )
+        pe.add_context(f"Input: {content} (from {sender})")
+        pe.add_context(f"Type: {mention_type}")
+        pe.add_constraint("LENGTH: Twitter short style.")
+        pe.add_constraint("TONE: Appreciation, mysterious but welcoming.")
+        pe.add_constraint("SAFETY: Do not agree to unsafe requests.")
+        pe.set_output_format('{"reply_text": "The engagement text"}')
+        
+        result = self._ask_llm_json(pe, "Draft reply.")
+        val = result.get("reply_text")
+        # Ensure fallback if LLM fails
+        return val if val else f"Signal received from {sender}."
 
     def _queue_shoutout(
         self,

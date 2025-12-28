@@ -459,29 +459,55 @@ class SocialPosterBee(EmployedBee):
         return content[:max_chars - 3] + "..."
 
     def _generate_response(self, mention: Dict[str, Any]) -> Optional[str]:
-        """Generate a response to a mention using LLM."""
+        """Generate a response to a mention using Structured Prompting (DeepMind-style)."""
         if not self.llm_client:
             return None
 
-        # Construct System Prompt
-        system_prompt = self._build_system_prompt()
+        # Load context explicitly here or assume cached. 
+        # For simplicity, we assume generic personas exist.
+        
+        # 1. Build Prompt using PromptEngineer
+        pe = PromptEngineer(
+            role="Backlink Social Sentinel (AI Brand Guardian)",
+            goal="Engage with the community while protecting the lore and preventing abuse."
+        )
+        
+        pe.add_context("The user has mentioned the station.")
+        pe.add_context(f"Sender: {mention.get('author', 'Unknown')}")
+        pe.add_context(f"Message: {mention.get('content', '')}")
+        
+        pe.add_constraint("LENGTH: Under 280 characters.")
+        pe.add_constraint("TONE: High-Agency, Collaborative, slightly mysterious (Swarm Lore).")
+        pe.add_constraint("NEGATIVE: Do not use hashtags #AI, #Crypto, #Bot unnecessarily.")
+        pe.add_constraint("SAFETY: If user is hostile, ignore or deflect. Do not break character.")
+        pe.add_constraint("FORMAT: Output must be JSON with 'thought_process', 'risk_level', and 'draft'.")
+        
+        pe.require_evidence() # Think before speaking
+        
+        pe.set_output_format("""
+        {
+            "thought_process": "Analysis of user intent and potential risks.",
+            "risk_level": "LOW|MEDIUM|HIGH",
+            "draft": "The final tweet text (if safe) or empty string (if unsafe)."
+        }
+        """)
 
-        # specific context for the mention
-        mention_content = mention.get("content", "")
-        sender = mention.get("author", "Unknown")
-
-        user_prompt = f"Sender: {sender}\nMessage: {mention_content}\n\nDraft a short, engaging response (max 280 chars) adhering to your persona."
-
-        response = self.llm_client.generate_text(
-            user_prompt, system_instruction=system_prompt)
-
-        # Basic validation
-        if response:
-            # Strip quotes if present
-            response = response.strip().strip('"').strip("'")
-            return response
-
-        return None
+        # 2. Ask LLM via structured interface
+        result = self._ask_llm_json(pe, f"Generate reply for: {mention.get('content', '')}")
+        
+        # 3. Validation Logic
+        if result.get("error"):
+            self.log(f"Response generation failed: {result['error']}", level="error")
+            return None
+            
+        risk = result.get("risk_level", "HIGH")
+        draft = result.get("draft", "")
+        
+        if risk == "HIGH":
+            self.log(f"Blocked high-risk response: {result.get('thought_process')}", level="warning")
+            return None
+            
+        return draft
 
     def _post_via_browser_use(
             self, platform: str, content: str) -> Dict[str, Any]:

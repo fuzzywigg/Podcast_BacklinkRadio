@@ -261,8 +261,7 @@ class QueenOrchestrator:
             f"⚠ EXORCISM PROTOCOL INITIATED for {bee_type} ⚠",
             level="critical")
         self.log(
-            f"Bee {bee_type} has failed {
-                self.MAX_BEE_FAILURES} times consecutively.")
+            f"Bee {bee_type} has failed {self.MAX_BEE_FAILURES} times consecutively.")
 
         # 1. Post Critical Alert
         self._update_state({
@@ -471,9 +470,7 @@ class QueenOrchestrator:
                 # Process task queue
                 queue_result = self.process_task_queue()
                 if queue_result.get("processed", 0) > 0:
-                    self.log(
-                        f"Processed {
-                            queue_result['processed']} queued tasks")
+                    self.log(f"Processed {queue_result['processed']} queued tasks")
 
                 if once:
                     break

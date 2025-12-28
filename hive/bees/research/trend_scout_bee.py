@@ -9,6 +9,7 @@ Responsibilities:
 
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
+from hive.utils.prompt_engineer import PromptEngineer
 import asyncio
 
 from hive.bees.base_bee import ScoutBee
@@ -162,20 +163,37 @@ class TrendScoutBee(ScoutBee):
         """
         On-air breaking news (15 seconds max)
         """
-        return (
-            f"Quick signal update: {
-                news_item['headline']}. " f"Developing story—following it for our {
-                news_item.get(
-                    'affected_nodes',
-                    'many')} " f"Nodes in the affected area. Stay tuned.")
+        pe = PromptEngineer(
+            role="News Anchor",
+            goal="Write a 15-second radio script for breaking news."
+        )
+        pe.add_context(f"News Item: {news_item}")
+        pe.add_constraint("LENGTH: Under 40 words. 15 seconds read time.")
+        pe.add_constraint("TONE: Serious but fast-paced.")
+        pe.set_output_format('{"script": "The spoken text"}')
+        
+        result = self._ask_llm_json(pe, "Draft radio brief.")
+        return result.get("script", "")
 
     def _compose_news_tweet(self, news_item: Dict) -> str:
-        return (
-            f"🚨 Signal Intel: {news_item['headline']} | "
-            f"Source: {news_item.get('source', 'Unknown')} | "
-            f"Nodes in affected area: {news_item.get('affected_nodes', 0)} | "
-            f"More: {news_item.get('url', 'backlink.radio')}"
+        """Compose a breaking news tweet using specific framing."""
+        if not self.llm_client:
+             # Fallback
+             return f"🚨 Signal Intel: {news_item['headline']} | More: {news_item.get('url', 'backlink.radio')}"
+
+        pe = PromptEngineer(
+            role="News Curation Bot",
+            goal="Compose a tweet for breaking news relative to the station's lore."
         )
+        pe.add_context(f"News Item: {news_item}")
+        pe.add_constraint("LENGTH: Max 280 chars.")
+        pe.add_constraint("TONE: Urgent, Tech-focused, 'Signal' terminology.")
+        pe.add_constraint("FORMAT: Output JSON with 'tweet_text'.")
+        
+        pe.set_output_format('{"tweet_text": "The tweet content"}')
+        
+        result = self._ask_llm_json(pe, "Draft tweet.")
+        return result.get("tweet_text", "")
 
     def _fetch_breaking_news_simulated(self) -> list:
         import random

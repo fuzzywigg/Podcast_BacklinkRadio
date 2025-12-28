@@ -3,8 +3,12 @@ Cache Manager for Backlink Broadcast
 Ensures station identity persists across sessions
 """
 
-from google import genai
-from google.genai import types
+try:
+    from google import genai
+    from google.genai import types
+except ImportError:
+    genai = None
+    print("WARNING: google.genai not found. Caching disabled.")
 import os
 from pathlib import Path
 
@@ -13,7 +17,10 @@ class BacklinkCacheManager:
     """Manage Gemini context cache for Backlink station identity"""
 
     def __init__(self):
-        self.client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
+        if genai:
+            self.client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
+        else:
+            self.client = None
         self.repo_root = Path(__file__).parent.parent.parent
         self.cache_name_file = self.repo_root / '.backlink_cache'
 
@@ -40,6 +47,9 @@ class BacklinkCacheManager:
         print("🧹 Clearing old Backlink caches...")
         deleted = 0
 
+        if not self.client:
+            return 0
+
         for cache in self.client.caches.list():
             if 'backlink' in cache.display_name.lower():
                 self.client.caches.delete(name=cache.name)
@@ -57,6 +67,9 @@ class BacklinkCacheManager:
         """
         # Load station identity
         station_content = self.load_station_identity()
+
+        if not self.client:
+            return None
 
         # Create cache with maximum TTL
         cache = self.client.caches.create(
@@ -98,6 +111,8 @@ class BacklinkCacheManager:
                 cache_name = f.read().strip()
 
             try:
+                if not self.client:
+                    return None
                 cache = self.client.caches.get(name=cache_name)
                 return cache
             except Exception:
