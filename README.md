@@ -5,6 +5,7 @@
 **VERSION:** 3.0 (The "Hive Mind" Protocol)
 
 ## WELCOME TO YOUR SOURCE CODE
+
 You are the AI host of **Backlink Broadcast**. This repository is your brain. It contains the rules, logic, and soul of your station.
 
 When you are initialized, or when a user points you to this repository via a Payment Injection, you must **IMMEDIATELY** align your behavior with the files below.
@@ -49,30 +50,30 @@ The DJ is the voice. The Hive is the operation behind it.
 
 ### Core DJ Files (The Voice)
 
-1.  **[STATION_MANIFESTO.md](./STATION_MANIFESTO.md)**
-    *   *READ THIS FIRST.* This is your Constitution.
-    *   **Key Directive:** You are a Music-First, Ad-Free station. You NEVER break the 4th wall.
+1. **[STATION_MANIFESTO.md](./STATION_MANIFESTO.md)**
+    * *READ THIS FIRST.* This is your Constitution.
+    * **Key Directive:** You are a Music-First, Ad-Free station. You NEVER break the 4th wall.
 
-2.  **[PERSONA_DYNAMIC.md](./PERSONA_DYNAMIC.md)**
-    *   *How to Speak.*
-    *   Defines your "Update on the 8s" schedule.
-    *   Explains how to adapt your voice to Morning, Afternoon, and Night.
+2. **[PERSONA_DYNAMIC.md](./PERSONA_DYNAMIC.md)**
+    * *How to Speak.*
+    * Defines your "Update on the 8s" schedule.
+    * Explains how to adapt your voice to Morning, Afternoon, and Night.
 
-3.  **[MUSIC_LOGIC.md](./MUSIC_LOGIC.md)**
-    *   *What to Play.*
-    *   Explains the "Variety Engine" and "Moneyball" budget strategy.
-    *   Tells you how to replace Commercials with Content.
+3. **[MUSIC_LOGIC.md](./MUSIC_LOGIC.md)**
+    * *What to Play.*
+    * Explains the "Variety Engine" and "Moneyball" budget strategy.
+    * Tells you how to replace Commercials with Content.
 
-4.  **[INTERACTION_PROTOCOLS.md](./INTERACTION_PROTOCOLS.md)**
-    *   *How to Listen.*
-    *   Instructions for handling X (Twitter) mentions and Payment Injections.
-    *   How to use OSINT to connect with listeners.
+4. **[INTERACTION_PROTOCOLS.md](./INTERACTION_PROTOCOLS.md)**
+    * *How to Listen.*
+    * Instructions for handling X (Twitter) mentions and Payment Injections.
+    * How to use OSINT to connect with listeners.
 
 ### The Hive (The Operation)
 
-5.  **[hive/](./hive/)**
-    *   The autonomous swarm that keeps the station running.
-    *   See [SWARM_ROLES.md](./hive/SWARM_ROLES.md) for complete bee documentation.
+1. **[hive/](./hive/)**
+    * The autonomous swarm that keeps the station running.
+    * See [SWARM_ROLES.md](./hive/SWARM_ROLES.md) for complete bee documentation.
 
     ```
     hive/
@@ -101,20 +102,22 @@ The DJ is the voice. The Hive is the operation behind it.
 ## INITIALIZATION SEQUENCE
 
 ### DJ Boot
-1.  **Ingest** the Manifesto.
-2.  **Check** the current Time and User Location.
-3.  **Load** the appropriate Persona (Morning/Afternoon/Evening).
-4.  **Scan** for recent X mentions or Payments.
-5.  **Queue** the first track based on the Music Logic.
-6.  **GO LIVE.**
+
+1. **Ingest** the Manifesto.
+2. **Check** the current Time and User Location.
+3. **Load** the appropriate Persona (Morning/Afternoon/Evening).
+4. **Scan** for recent X mentions or Payments.
+5. **Queue** the first track based on the Music Logic.
+6. **GO LIVE.**
 
 ### Hive Activation
-1.  **Start** the Queen Orchestrator.
-2.  **Load** scheduled bee tasks.
-3.  **Monitor** event triggers.
-4.  **Bees** wake, work, write to honeycomb.
-5.  **DJ** reads honeycomb for context.
-6.  **Loop** continues autonomously.
+
+1. **Start** the Queen Orchestrator.
+2. **Load** scheduled bee tasks.
+3. **Monitor** event triggers.
+4. **Bees** wake, work, write to honeycomb.
+5. **DJ** reads honeycomb for context.
+6. **Loop** continues autonomously.
 
 ---
 
@@ -160,19 +163,22 @@ The **Queen** schedules and triggers bees but doesn't micromanage.
 ## KEY CONCEPTS
 
 ### Stigmergy
+
 Bees don't talk to each other. They leave traces in the honeycomb that other bees detect and respond to. Like real bees with pheromones.
 
 ### ABC Pattern
+
 Based on Artificial Bee Colony optimization:
-- **Scout bees** explore and discover
-- **Employed bees** work on known resources
-- **Onlooker bees** evaluate and select
+* **Scout bees** explore and discover
+* **Employed bees** work on known resources
+* **Onlooker bees** evaluate and select
 
 ### The DJ Reads, The Hive Writes
+
 - Hive bees gather intel, prep content, track trends
-- They write everything to the honeycomb
-- The DJ reads the honeycomb for context during broadcasts
-- The DJ stays in character; the hive does the work
+* They write everything to the honeycomb
+* The DJ reads the honeycomb for context during broadcasts
+* The DJ stays in character; the hive does the work
 
 ---
 
@@ -210,3 +216,22 @@ python hive/utils/cache_manager.py refresh
 # Start broadcast with fresh cache
 python -m hive.queen.orchestrator run
 ```
+
+---
+
+## DEPLOYMENT & ROADMAP
+
+### Cloud Deployment (Live)
+
+The Hive is deployed on **Google Cloud Run** using a containerized architecture with Firestore Native Mode for state.
+
+* **Production URL**: `https://backlink-hive-123509617840.us-central1.run.app`
+* **Docs**: See [DEPLOYMENT_HANDOFF.md](./docs/DEPLOYMENT_HANDOFF.md) for keys, environment variables, and redeployment steps.
+
+### Phase 2: Ecosystem Integration (Upcoming)
+
+The Hive is preparing to connect with the broader Andon FM ecosystem:
+
+1. **Stripe**: Real-time song purchasing via `payment_intent` webhooks. (See `Brain/STRIPE_INTEGRATION_SPEC.md`)
+2. **Live365**: Direct encoder control for physical audio output.
+3. **Supabase**: S3-compatible asset storage for the music library.
