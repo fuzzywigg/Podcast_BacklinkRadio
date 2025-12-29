@@ -8,11 +8,10 @@ Responsibilities:
 - Route payments via optimal path (Onramp vs Web3).
 """
 
-from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
+from typing import Any
 
 from hive.bees.base_bee import BaseBee
-from hive.utils.economy import calculate_dao_rewards
 
 
 class PayoutProcessorBee(BaseBee):
@@ -32,7 +31,7 @@ class PayoutProcessorBee(BaseBee):
     REFUND_WINDOW_SECONDS = 5
     SLASH_PENALTY_PERCENT = 0.01  # 1%
 
-    def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def work(self, task: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Execute payout tasks.
 
@@ -56,7 +55,7 @@ class PayoutProcessorBee(BaseBee):
 
         return {"error": "Unknown action"}
 
-    def _process_refund(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_refund(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Execute an immediate 100% refund.
         """
@@ -65,8 +64,7 @@ class PayoutProcessorBee(BaseBee):
         reason = payload.get("reason", "content_delivery_failure")
         tx_id = payload.get("original_tx_id")
 
-        self.log(
-            f"Initiating REFUND: {amount} to {user_wallet}. Reason: {reason}")
+        self.log(f"Initiating REFUND: {amount} to {user_wallet}. Reason: {reason}")
 
         # 1. Select Payment Path (Fastest)
         path = self._select_payment_path()
@@ -77,16 +75,14 @@ class PayoutProcessorBee(BaseBee):
             "value": amount,
             "data": "0x",  # Simple transfer
             "path": path,
-            "nonce": self._get_nonce()
+            "nonce": self._get_nonce(),
         }
 
         # 3. Broadcast (Simulated)
         success = True  # Assume success for simulation
 
         # 4. Log & Alert
-        self.post_alert(
-            f"REFUND ISSUED: {amount} to {user_wallet} ({reason})",
-            priority=True)
+        self.post_alert(f"REFUND ISSUED: {amount} to {user_wallet} ({reason})", priority=True)
 
         # 5. Discord Webhook (Simulated via log)
         self.log(f"DISCORD_WEBHOOK_SENT: Refund processed for {user_wallet}")
@@ -95,10 +91,10 @@ class PayoutProcessorBee(BaseBee):
             "status": "refunded",
             "amount": amount,
             "wallet": user_wallet,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-    def _slash_stake(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _slash_stake(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Slash a node's stake for failure.
         """
@@ -110,19 +106,18 @@ class PayoutProcessorBee(BaseBee):
         self.log(f"SLASHING STAKE: Node {node_id} penalized {penalty} (1%)")
 
         # Update Node Intel
-        self.add_listener_intel(node_id, {
-            "stake_slashed": penalty,  # Accumulate
-            "last_slash_at": datetime.now(timezone.utc).isoformat(),
-            "notes": [f"Slashed {penalty} due to crash/failure"]
-        })
+        self.add_listener_intel(
+            node_id,
+            {
+                "stake_slashed": penalty,  # Accumulate
+                "last_slash_at": datetime.now(timezone.utc).isoformat(),
+                "notes": [f"Slashed {penalty} due to crash/failure"],
+            },
+        )
 
-        return {
-            "status": "slashed",
-            "node_id": node_id,
-            "penalty_amount": penalty
-        }
+        return {"status": "slashed", "node_id": node_id, "penalty_amount": penalty}
 
-    def _route_payment(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _route_payment(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Determine the best way to route a user's payment.
         """
@@ -130,10 +125,7 @@ class PayoutProcessorBee(BaseBee):
 
         path = self._select_payment_path(user_preference)
 
-        return {
-            "selected_path": path,
-            "instructions": f"Use {path} provider"
-        }
+        return {"selected_path": path, "instructions": f"Use {path} provider"}
 
     def _select_payment_path(self, preference: str = "crypto") -> str:
         """

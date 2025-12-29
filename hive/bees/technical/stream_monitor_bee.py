@@ -8,11 +8,12 @@ Responsibilities:
 - Alert on problems
 """
 
-from typing import Any, Dict, Optional
-from datetime import datetime, timezone
 import json
-import urllib.request
 import time
+import urllib.request
+from datetime import datetime, timezone
+from typing import Any
+
 import requests
 
 from hive.bees.base_bee import OnlookerBee
@@ -36,13 +37,13 @@ class StreamMonitorBee(OnlookerBee):
         "dead_air_seconds": 10,
         "bitrate_min_kbps": 128,
         "listener_drop_percent": 20,
-        "latency_max_ms": 5000
+        "latency_max_ms": 5000,
     }
 
     # Stream configuration
     STREAM_URL = "https://das-edge12-live365-dal02.cdnstream.com/a13541"
 
-    def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def work(self, task: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Monitor stream health.
 
@@ -53,8 +54,7 @@ class StreamMonitorBee(OnlookerBee):
 
         # Read previous state for transition detection
         previous_state = self.read_state()
-        was_online = previous_state.get(
-            "broadcast", {}).get("status") == "online"
+        was_online = previous_state.get("broadcast", {}).get("status") == "online"
 
         health_status = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -63,7 +63,7 @@ class StreamMonitorBee(OnlookerBee):
             "latency_ok": False,
             "bitrate_ok": False,
             "listener_count": 0,
-            "issues": []
+            "issues": [],
         }
 
         # Check stream status
@@ -93,17 +93,18 @@ class StreamMonitorBee(OnlookerBee):
 
         if not bitrate_check.get("ok"):
             if bitrate_check.get("bitrate_kbps", 0) > 0:
-                health_status["issues"].append(
-                    f"Low bitrate: {bitrate_check['bitrate_kbps']}kbps")
+                health_status["issues"].append(f"Low bitrate: {bitrate_check['bitrate_kbps']}kbps")
 
         # Update broadcast state
-        self.write_state({
-            "broadcast": {
-                "status": "online" if health_status["stream_online"] else "offline",
-                "listener_count": listener_count
-            },
-            "health": health_status
-        })
+        self.write_state(
+            {
+                "broadcast": {
+                    "status": "online" if health_status["stream_online"] else "offline",
+                    "listener_count": listener_count,
+                },
+                "health": health_status,
+            }
+        )
 
         # Track transitions and metrics
         is_online = health_status["stream_online"]
@@ -113,9 +114,7 @@ class StreamMonitorBee(OnlookerBee):
             analytics.track_broadcast_status("ended")
 
         # Always track listener count for RLVR engagement metrics
-        analytics.track_event(
-            "Listener Count", props={
-                "count": listener_count})
+        analytics.track_event("Listener Count", props={"count": listener_count})
 
         # Alert on critical issues
         if health_status["issues"]:
@@ -124,14 +123,13 @@ class StreamMonitorBee(OnlookerBee):
                     self.post_alert(f"Stream issue: {issue}", priority=True)
 
         self.log(
-            f"Health check complete. Online: {
-                health_status['stream_online']}, " f"Listeners: {listener_count}, Issues: {
-                len(
-                    health_status['issues'])}")
+            f"Health check complete. Online: {health_status['stream_online']}, "
+            f"Listeners: {listener_count}, Issues: {len(health_status['issues'])}"
+        )
 
         return health_status
 
-    def _check_stream(self) -> Dict[str, Any]:
+    def _check_stream(self) -> dict[str, Any]:
         """Check if stream is online and accessible."""
 
         # Default fallback
@@ -141,17 +139,13 @@ class StreamMonitorBee(OnlookerBee):
         try:
             config_path = self.hive_path / "config.json"
             if config_path.exists():
-                with open(config_path, 'r') as f:
+                with open(config_path) as f:
                     config = json.load(f)
-                    endpoint = config.get(
-                        "integrations", {}).get(
-                        "streaming", {}).get("endpoint")
+                    endpoint = config.get("integrations", {}).get("streaming", {}).get("endpoint")
                     if endpoint:
                         stream_url = endpoint
         except Exception as e:
-            self.log(
-                f"Error reading config for stream URL: {e}",
-                level="warning")
+            self.log(f"Error reading config for stream URL: {e}", level="warning")
 
         result = {
             "stream_online": False,
@@ -160,7 +154,7 @@ class StreamMonitorBee(OnlookerBee):
             "status_code": None,
             "error": None,
             "response_time_ms": 0,
-            "loudness_db": None
+            "loudness_db": None,
         }
 
         try:
@@ -172,8 +166,7 @@ class StreamMonitorBee(OnlookerBee):
             # Extract headers before closing
             if "X-Loudness" in response.headers:
                 try:
-                    result["loudness_db"] = float(
-                        response.headers["X-Loudness"])
+                    result["loudness_db"] = float(response.headers["X-Loudness"])
                 except (ValueError, TypeError):
                     pass
 
@@ -193,8 +186,7 @@ class StreamMonitorBee(OnlookerBee):
 
         return result
 
-    def _check_audio(
-            self, loudness_db: Optional[float] = None) -> Dict[str, Any]:
+    def _check_audio(self, loudness_db: float | None = None) -> dict[str, Any]:
         """
         Check audio levels for dead air.
 
@@ -213,10 +205,10 @@ class StreamMonitorBee(OnlookerBee):
             "ok": is_ok,
             "peak_db": -6.0,  # Still placeholder as X-Loudness is likely avg/integrated
             "avg_db": avg_db,
-            "issue": f"Dead air detected ({avg_db} dB)" if not is_ok else None
+            "issue": f"Dead air detected ({avg_db} dB)" if not is_ok else None,
         }
 
-    def _check_latency(self) -> Dict[str, Any]:
+    def _check_latency(self) -> dict[str, Any]:
         """Check stream latency."""
         start_time = time.perf_counter()
 
@@ -233,10 +225,9 @@ class StreamMonitorBee(OnlookerBee):
             ok = False
 
         return {
-            "ok": ok and (
-                latency_ms > 0) and (
-                latency_ms < self.THRESHOLDS["latency_max_ms"]), "latency_ms": round(
-                latency_ms, 2) if latency_ms > 0 else 0}
+            "ok": ok and (latency_ms > 0) and (latency_ms < self.THRESHOLDS["latency_max_ms"]),
+            "latency_ms": round(latency_ms, 2) if latency_ms > 0 else 0,
+        }
 
     def _get_listener_count(self) -> int:
         """Get current listener count."""
@@ -253,11 +244,9 @@ class StreamMonitorBee(OnlookerBee):
 
         if config_path.exists():
             try:
-                with open(config_path, 'r') as f:
+                with open(config_path) as f:
                     config = json.load(f)
-                    endpoint = config.get(
-                        "integrations", {}).get(
-                        "streaming", {}).get("endpoint")
+                    endpoint = config.get("integrations", {}).get("streaming", {}).get("endpoint")
                     if endpoint:
                         return endpoint
             except Exception as e:
@@ -265,27 +254,23 @@ class StreamMonitorBee(OnlookerBee):
 
         return fallback_url
 
-    def _check_bitrate(self) -> Dict[str, Any]:
+    def _check_bitrate(self) -> dict[str, Any]:
         """Check stream bitrate."""
         url = self._get_stream_url()
         bitrate_kbps = 0
 
         try:
             with urllib.request.urlopen(url, timeout=5) as response:
-                bitrate_header = response.getheader('icy-br')
+                bitrate_header = response.getheader("icy-br")
                 if bitrate_header:
                     bitrate_kbps = int(bitrate_header)
         except Exception as e:
             self.log(f"Bitrate check failed: {e}", level="warning")
-            return {
-                "ok": False,
-                "bitrate_kbps": 0,
-                "error": str(e)
-            }
+            return {"ok": False, "bitrate_kbps": 0, "error": str(e)}
 
         return {
             "ok": bitrate_kbps >= self.THRESHOLDS["bitrate_min_kbps"],
-            "bitrate_kbps": bitrate_kbps
+            "bitrate_kbps": bitrate_kbps,
         }
 
 

@@ -7,11 +7,10 @@ Responsibilities:
 - Provide weather snippets for the DJ.
 """
 
-from typing import Any, Dict, Optional
 from datetime import datetime, timezone
+from typing import Any
 
 from hive.bees.base_bee import EmployedBee
-from hive.utils.plausible_andon import analytics
 
 
 class WeatherBee(EmployedBee):
@@ -23,8 +22,7 @@ class WeatherBee(EmployedBee):
     BEE_NAME = "Weather Bee"
     CATEGORY = "research"
 
-    async def work(
-            self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def work(self, task: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Execute weather tasks.
         """
@@ -44,10 +42,9 @@ class WeatherBee(EmployedBee):
             weather_reports.append(report)
 
         # 2. Update Honeycomb (for DJ to read)
-        latest_snippet = f"{
-            weather_reports[0]['city']}: {
-            weather_reports[0]['temp']}F, {
-            weather_reports[0]['conditions']}"
+        latest_snippet = f"{weather_reports[0]['city']}: {weather_reports[0]['temp']}F, {
+            weather_reports[0]['conditions']
+        }"
         self._update_weather_intel(weather_reports, latest_snippet)
 
         # 3. Tweet if time match
@@ -58,7 +55,7 @@ class WeatherBee(EmployedBee):
         return {
             "status": "success",
             "reports_fetched": len(weather_reports),
-            "tweet_sent": tweet_result
+            "tweet_sent": tweet_result,
         }
 
     async def _tweet_weather_on_8s(self, weather_data: list):
@@ -70,11 +67,7 @@ class WeatherBee(EmployedBee):
             "type": "marketing",
             "bee_type": "social_poster",
             "priority": 8,
-            "payload": {
-                "action": "post",
-                "content": tweet,
-                "platforms": ["twitter"]
-            }
+            "payload": {"action": "post", "content": tweet, "platforms": ["twitter"]},
         }
         self.write_task(task)
         return tweet
@@ -89,29 +82,30 @@ class WeatherBee(EmployedBee):
             )
 
         return (
-            f"🌤️ Weather Check ({datetime.now().strftime('%I:%M %p')})\n" +
-            "\n".join(lines) +
-            f"\n#Backlink #WeatherOnThe8s"
+            f"🌤️ Weather Check ({datetime.now().strftime('%I:%M %p')})\n"
+            + "\n".join(lines)
+            + "\n#Backlink #WeatherOnThe8s"
         )
 
-    def _fetch_weather_simulated(self, location: Dict) -> Dict:
+    def _fetch_weather_simulated(self, location: dict) -> dict:
         """Simulate fetching weather."""
         import random
+
         conditions = ["Clear", "Rain", "Cloudy", "Windy", "Snow"]
         return {
             "city": location["city"],
             "temp": random.randint(30, 90),
             "conditions": random.choice(conditions),
-            "node_count": location.get("count", 0)
+            "node_count": location.get("count", 0),
         }
 
-    def _get_top_node_locations(self, intel: Dict) -> list:
+    def _get_top_node_locations(self, intel: dict) -> list:
         """Get top locations from intel."""
         # Simulated
         return [
             {"city": "New York", "count": 12},
             {"city": "London", "count": 8},
-            {"city": "Tokyo", "count": 5}
+            {"city": "Tokyo", "count": 5},
         ]
 
     def _update_weather_intel(self, reports: list, snippet: str):
@@ -120,6 +114,6 @@ class WeatherBee(EmployedBee):
         intel["weather"] = {
             "reports": reports,
             "latest_snippet": snippet,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         self._write_json("intel.json", intel)

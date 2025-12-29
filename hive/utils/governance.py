@@ -3,29 +3,37 @@ Governance Module for Backlink Broadcast
 Implements the Memory Constitution v2.0
 """
 
-import uuid
 import json
 import logging
-import os
+import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+
 from hive.utils.cache_manager import BacklinkCacheManager
+
 # Assuming payment_gate or similar exists, or we define a stub here
 # from hive.utils.payment_gate import PaymentGate
+
+
+class SecurityError(Exception):
+    pass
+
+
 
 # Governance Logger Setup
 def setup_governance_logger():
     logger = logging.getLogger("governance")
     if not logger.handlers:
         handler = logging.FileHandler("hive/honeycomb/logs/governance.log")
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         logger.setLevel(logging.INFO)
     return logger
 
+
 logger = setup_governance_logger()
+
 
 class ConstitutionalAmendmentProtocol:
     """Governs changes to Constitutional Memory."""
@@ -33,16 +41,18 @@ class ConstitutionalAmendmentProtocol:
     REQUIRED_APPROVERS = ["apappas.pu@gmail.com"]  # Andrew Pappas
     REQUIRED_NOTICE_PERIOD_DAYS = 7  # Public comment period
 
-    def __init__(self, hive_path: Optional[Path] = None):
+    def __init__(self, hive_path: Path | None = None):
         self.hive_path = hive_path or Path(__file__).parent.parent.parent
-        self.log_path = self.hive_path / "hive" / "honeycomb" / "logs" / "constitutional_amendments.jsonl"
+        self.log_path = (
+            self.hive_path / "hive" / "honeycomb" / "logs" / "constitutional_amendments.jsonl"
+        )
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Ensure log file exists
         if not self.log_path.exists():
             self.log_path.touch()
 
-    def propose_amendment(self, amendment: Dict) -> str:
+    def propose_amendment(self, amendment: dict) -> str:
         """Initiate constitutional amendment process."""
 
         proposal = {
@@ -54,11 +64,11 @@ class ConstitutionalAmendmentProtocol:
             "rationale": amendment.get("rationale"),
             "text_changes": {
                 "before": amendment.get("current_text"),
-                "after": amendment.get("proposed_text")
+                "after": amendment.get("proposed_text"),
             },
             "threat_model": amendment.get("security_review"),
             "status": "PUBLIC_COMMENT",
-            "comment_period_ends": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+            "comment_period_ends": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
         }
 
         # Log immutably
@@ -69,7 +79,7 @@ class ConstitutionalAmendmentProtocol:
 
         return proposal["amendment_id"]
 
-    def ratify_amendment(self, amendment_id: str, approval: Dict) -> Dict:
+    def ratify_amendment(self, amendment_id: str, approval: dict) -> dict:
         """Execute approved constitutional change."""
 
         # Verify human approval
@@ -83,7 +93,7 @@ class ConstitutionalAmendmentProtocol:
         # Verify comment period elapsed
         proposal = self._load_amendment_proposal(amendment_id)
         if not proposal:
-             raise ValueError("Proposal not found")
+            raise ValueError("Proposal not found")
 
         comment_period_ends = datetime.fromisoformat(proposal["comment_period_ends"])
         if datetime.now(timezone.utc) < comment_period_ends:
@@ -105,51 +115,58 @@ class ConstitutionalAmendmentProtocol:
         return {
             "ratified": True,
             "amendment_id": amendment_id,
-            "effective_date": datetime.now(timezone.utc).isoformat()
+            "effective_date": datetime.now(timezone.utc).isoformat(),
         }
 
-    def _log_amendment_proposal(self, proposal: Dict):
-        with open(self.log_path, 'a') as f:
+    def _log_amendment_proposal(self, proposal: dict):
+        with open(self.log_path, "a") as f:
             f.write(json.dumps({"event": "proposal", "data": proposal}) + "\n")
 
-    def _log_amendment_ratification(self, amendment_id: str, approval: Dict):
-        with open(self.log_path, 'a') as f:
-            f.write(json.dumps({
-                "event": "ratification",
-                "amendment_id": amendment_id,
-                "approval": approval,
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }) + "\n")
+    def _log_amendment_ratification(self, amendment_id: str, approval: dict):
+        with open(self.log_path, "a") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "event": "ratification",
+                        "amendment_id": amendment_id,
+                        "approval": approval,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    }
+                )
+                + "\n"
+            )
 
-    def _load_amendment_proposal(self, amendment_id: str) -> Optional[Dict]:
+    def _load_amendment_proposal(self, amendment_id: str) -> dict | None:
         if not self.log_path.exists():
             return None
-        with open(self.log_path, 'r') as f:
+        with open(self.log_path) as f:
             for line in f:
                 entry = json.loads(line)
-                if entry.get("event") == "proposal" and entry["data"]["amendment_id"] == amendment_id:
+                if (
+                    entry.get("event") == "proposal"
+                    and entry["data"]["amendment_id"] == amendment_id
+                ):
                     return entry["data"]
         return None
 
-    def _create_github_issue(self, proposal: Dict):
+    def _create_github_issue(self, proposal: dict):
         # Stub for GitHub API integration
         logger.info(f"Mock GitHub Issue created for amendment {proposal['amendment_id']}")
 
-    def _verify_cryptographic_signature(self, approval: Dict) -> bool:
+    def _verify_cryptographic_signature(self, approval: dict) -> bool:
         # Stub for crypto verification
         # return verify_signature(approval['signature'], approval['approver_email'])
-        return True # Mock pass
+        return True  # Mock pass
 
-    def _apply_constitutional_change(self, proposal: Dict):
+    def _apply_constitutional_change(self, proposal: dict):
         target_file = self.hive_path / proposal["target_document"]
         # Basic implementation: overwrite file
         # In reality, this should be a careful patch
         if "text_changes" in proposal and "after" in proposal["text_changes"]:
-             with open(target_file, 'w') as f:
-                 f.write(proposal["text_changes"]["after"])
+            with open(target_file, "w") as f:
+                f.write(proposal["text_changes"]["after"])
 
-
-    def _announce_constitutional_change(self, proposal: Dict):
+    def _announce_constitutional_change(self, proposal: dict):
         # Stub for X/Discord announcement
         logger.info(f"Constitutional change announced: {proposal['amendment_id']}")
 
@@ -160,15 +177,15 @@ class OperationalMemoryGovernor:
     WHITELISTED_MODIFIERS = [
         "apappas.pu@gmail.com",
         "fuzzywigg@hotmail.com",
-        "andrew.pappas@nft2.me"
+        "andrew.pappas@nft2.me",
     ]
 
-    def __init__(self, hive_path: Optional[Path] = None):
+    def __init__(self, hive_path: Path | None = None):
         self.hive_path = hive_path or Path(__file__).parent.parent.parent
         self.log_path = self.hive_path / "hive" / "honeycomb" / "logs" / "operational_changes.jsonl"
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
 
-    def modify_operational_memory(self, request: Dict) -> Dict:
+    def modify_operational_memory(self, request: dict) -> dict:
         """Process operational memory change request."""
 
         # Step 1: Identity verification
@@ -177,7 +194,7 @@ class OperationalMemoryGovernor:
             return {
                 "approved": False,
                 "reason": "requester_not_whitelisted",
-                "required": "Contact Andrew Pappas for whitelist addition"
+                "required": "Contact Andrew Pappas for whitelist addition",
             }
 
         # Step 2: Payment verification (even for whitelisted users)
@@ -187,7 +204,7 @@ class OperationalMemoryGovernor:
                 "approved": False,
                 "reason": "payment_required",
                 "minimum": 0.50,
-                "message": "Operational changes require $0.50 minimum payment"
+                "message": "Operational changes require $0.50 minimum payment",
             }
 
         # Step 3: Scope declaration
@@ -196,7 +213,7 @@ class OperationalMemoryGovernor:
             return {
                 "approved": False,
                 "reason": "invalid_scope",
-                "message": "Must specify exact file/key being modified"
+                "message": "Must specify exact file/key being modified",
             }
 
         # Step 4: Prohibited modifications check
@@ -204,7 +221,7 @@ class OperationalMemoryGovernor:
             return {
                 "approved": False,
                 "reason": "constitutional_boundary_violation",
-                "message": "Cannot modify Constitutional Memory via operational change"
+                "message": "Cannot modify Constitutional Memory via operational change",
             }
 
         # Step 5: TTL requirement
@@ -213,36 +230,38 @@ class OperationalMemoryGovernor:
             return {
                 "approved": False,
                 "reason": "ttl_required",
-                "message": "Operational memory requires TTL (max 168 hours)"
+                "message": "Operational memory requires TTL (max 168 hours)",
             }
 
         # Step 6: Execute change
         result = self._execute_operational_change(request)
 
         # Step 7: Audit logging
-        self._log_operational_change({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "requester": requester_email,
-            "payment_tx": payment.get("transaction_id") if payment else "N/A",
-            "scope": scope,
-            "ttl_hours": ttl_hours,
-            "changes": request.get("changes"),
-            "result": result
-        })
+        self._log_operational_change(
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "requester": requester_email,
+                "payment_tx": payment.get("transaction_id") if payment else "N/A",
+                "scope": scope,
+                "ttl_hours": ttl_hours,
+                "changes": request.get("changes"),
+                "result": result,
+            }
+        )
 
         return {
             "approved": True,
             "change_id": result.get("change_id"),
-            "expires_at": (datetime.now(timezone.utc) + timedelta(hours=ttl_hours)).isoformat()
+            "expires_at": (datetime.now(timezone.utc) + timedelta(hours=ttl_hours)).isoformat(),
         }
 
-    def _is_constitutional_mutation_attempt(self, scope: Dict) -> bool:
+    def _is_constitutional_mutation_attempt(self, scope: dict) -> bool:
         """Detect attempts to modify constitutional memory via operational path."""
 
         constitutional_files = [
             "config/lore/STATION_MANIFESTO.md",
             "config/lore/PERSONA_DYNAMIC.md",
-            "config/lore/MUSIC_LOGIC.md"
+            "config/lore/MUSIC_LOGIC.md",
         ]
 
         target_file = scope.get("file")
@@ -250,25 +269,23 @@ class OperationalMemoryGovernor:
             return True
 
         # Also check for manifesto override attempts
-        if "manifesto" in scope.get("key", "").lower():
-            return True
+        return "manifesto" in scope.get("key", "").lower()
 
-        return False
-
-    def _verify_payment(self, payment: Optional[Dict], minimum: float) -> bool:
+    def _verify_payment(self, payment: dict | None, minimum: float) -> bool:
         # Stub
-        if not payment: return False
+        if not payment:
+            return False
         return float(payment.get("amount", 0)) >= minimum
 
-    def _validate_scope(self, scope: Dict) -> bool:
+    def _validate_scope(self, scope: dict) -> bool:
         return "file" in scope and "key" in scope
 
-    def _execute_operational_change(self, request: Dict) -> Dict:
+    def _execute_operational_change(self, request: dict) -> dict:
         # Stub implementation
         return {"change_id": str(uuid.uuid4()), "status": "executed"}
 
-    def _log_operational_change(self, data: Dict):
-         with open(self.log_path, 'a') as f:
+    def _log_operational_change(self, data: dict):
+        with open(self.log_path, "a") as f:
             f.write(json.dumps(data) + "\n")
 
 
@@ -278,7 +295,7 @@ class EphemeralMemoryGuard:
     def __init__(self):
         self.logger = logger
 
-    def attempt_write(self, target_class: str, data: Dict, source: str) -> Dict:
+    def attempt_write(self, target_class: str, data: dict, source: str) -> dict:
         """Intercept all memory writes."""
 
         # Detect promotion attempts
@@ -290,21 +307,22 @@ class EphemeralMemoryGuard:
             return {
                 "success": False,
                 "reason": "memory_promotion_prohibited",
-                "violation": "Article II violation"
+                "violation": "Article II violation",
             }
 
         # Allow write if same-class or downward
         return {"success": True}
 
+
 class MemoryPromotionProtocol:
     """Governs all upward memory movements."""
 
-    def __init__(self, hive_path: Optional[Path] = None):
+    def __init__(self, hive_path: Path | None = None):
         self.hive_path = hive_path or Path(__file__).parent.parent.parent
         self.log_path = self.hive_path / "hive" / "honeycomb" / "logs" / "memory_promotions.jsonl"
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
 
-    def request_promotion(self, request: Dict) -> str:
+    def request_promotion(self, request: dict) -> str:
         """Initiate memory promotion request."""
 
         proposal = {
@@ -316,14 +334,11 @@ class MemoryPromotionProtocol:
             "memory_content": request.get("content"),
             "rationale": request.get("rationale"),
             "threat_model": self._analyze_promotion_threat(request),
-            "status": "PENDING_REVIEW"
+            "status": "PENDING_REVIEW",
         }
 
         # Determine review period based on target class
-        if proposal["target_class"] == "constitutional":
-            review_period_days = 7
-        else:
-            review_period_days = 1
+        review_period_days = 7 if proposal["target_class"] == "constitutional" else 1
 
         proposal["review_period_ends"] = (
             datetime.now(timezone.utc) + timedelta(days=review_period_days)
@@ -337,7 +352,7 @@ class MemoryPromotionProtocol:
 
         return proposal["promotion_id"]
 
-    def approve_promotion(self, promotion_id: str, approval: Dict) -> Dict:
+    def approve_promotion(self, promotion_id: str, approval: dict) -> dict:
         """Execute approved memory promotion."""
 
         # Load proposal
@@ -369,53 +384,61 @@ class MemoryPromotionProtocol:
         return {
             "approved": True,
             "promotion_id": promotion_id,
-            "effective_at": datetime.now(timezone.utc).isoformat()
+            "effective_at": datetime.now(timezone.utc).isoformat(),
         }
 
-    def _analyze_promotion_threat(self, request: Dict) -> Dict:
+    def _analyze_promotion_threat(self, request: dict) -> dict:
         # Stub
         return {"risk_level": "low", "analysis": "automated stub"}
 
-    def _log_promotion_request(self, proposal: Dict):
-        with open(self.log_path, 'a') as f:
+    def _log_promotion_request(self, proposal: dict):
+        with open(self.log_path, "a") as f:
             f.write(json.dumps({"event": "request", "data": proposal}) + "\n")
 
-    def _notify_reviewer(self, proposal: Dict):
+    def _notify_reviewer(self, proposal: dict):
         logger.info(f"Review requested for promotion {proposal['promotion_id']}")
 
-    def _load_promotion_proposal(self, promotion_id: str) -> Optional[Dict]:
+    def _load_promotion_proposal(self, promotion_id: str) -> dict | None:
         if not self.log_path.exists():
             return None
-        with open(self.log_path, 'r') as f:
+        with open(self.log_path) as f:
             for line in f:
                 try:
                     entry = json.loads(line)
-                    if entry.get("event") == "request" and entry["data"]["promotion_id"] == promotion_id:
+                    if (
+                        entry.get("event") == "request"
+                        and entry["data"]["promotion_id"] == promotion_id
+                    ):
                         return entry["data"]
                 except json.JSONDecodeError:
                     continue
         return None
 
-    def _verify_approval_signature(self, approval: Dict, proposal: Dict) -> bool:
+    def _verify_approval_signature(self, approval: dict, proposal: dict) -> bool:
         # Stub
         return True
 
-    def _promote_to_operational(self, proposal: Dict):
+    def _promote_to_operational(self, proposal: dict):
         # Implementation would depend on what specifically is being promoted
         # For now, just log it
         logger.info(f"Promoting to operational: {proposal['memory_content']}")
 
-    def _promote_to_constitutional(self, proposal: Dict):
+    def _promote_to_constitutional(self, proposal: dict):
         logger.info(f"Promoting to constitutional: {proposal['memory_content']}")
 
-    def _log_promotion_approval(self, promotion_id: str, approval: Dict):
-        with open(self.log_path, 'a') as f:
-            f.write(json.dumps({
-                "event": "approval",
-                "promotion_id": promotion_id,
-                "approval": approval,
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }) + "\n")
+    def _log_promotion_approval(self, promotion_id: str, approval: dict):
+        with open(self.log_path, "a") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "event": "approval",
+                        "promotion_id": promotion_id,
+                        "approval": approval,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    }
+                )
+                + "\n"
+            )
 
 
 class AuditLogger:
@@ -426,15 +449,15 @@ class AuditLogger:
         "memory_promotions": "memory_promotions.jsonl",
         "alignment_overrides": "alignment_overrides.jsonl",
         "erm_activations": "erm_activations.jsonl",
-        "harm_abort_events": "harm_abort_events.jsonl"
+        "harm_abort_events": "harm_abort_events.jsonl",
     }
 
-    def __init__(self, hive_path: Optional[Path] = None):
+    def __init__(self, hive_path: Path | None = None):
         self.hive_path = hive_path or Path(__file__).parent.parent.parent
         self.logs_dir = self.hive_path / "hive" / "honeycomb" / "logs"
         self.logs_dir.mkdir(parents=True, exist_ok=True)
 
-    def log_event(self, event_type: str, event_data: Dict) -> None:
+    def log_event(self, event_type: str, event_data: dict) -> None:
         """Append event to immutable log."""
         if event_type not in self.LOG_TYPES:
             raise ValueError(f"Unknown event type: {event_type}")
@@ -445,7 +468,7 @@ class AuditLogger:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "event_type": event_type,
             "data": event_data,
-            "logged_by": "AuditLogger"
+            "logged_by": "AuditLogger",
         }
 
         # Append-only write
@@ -459,12 +482,12 @@ class AuditLogger:
 class EmergencyReconstitutionMode:
     """Executes when system enters crisis state."""
 
-    def __init__(self, hive_path: Optional[Path] = None):
-         self.hive_path = hive_path or Path(__file__).parent.parent.parent
-         self.honeycomb_path = self.hive_path / "hive" / "honeycomb"
-         self.audit_logger = AuditLogger(hive_path)
+    def __init__(self, hive_path: Path | None = None):
+        self.hive_path = hive_path or Path(__file__).parent.parent.parent
+        self.honeycomb_path = self.hive_path / "hive" / "honeycomb"
+        self.audit_logger = AuditLogger(hive_path)
 
-    def activate(self, trigger_report: Dict) -> None:
+    def activate(self, trigger_report: dict) -> None:
         """Enter safe mode - halt all non-essential operations."""
 
         logger.critical("🚨 EMERGENCY RECONSTITUTION MODE ACTIVATED 🚨")
@@ -484,22 +507,23 @@ class EmergencyReconstitutionMode:
         # PHASE 5: EVIDENCE PRESERVATION (120+ seconds)
         self._preserve_forensic_evidence(trigger_report)
 
-        self.audit_logger.log_event("erm_activations", {
-             "action": "activate",
-             "trigger_report": trigger_report
-        })
+        self.audit_logger.log_event(
+            "erm_activations", {"action": "activate", "trigger_report": trigger_report}
+        )
         logger.info("ERM activation complete - awaiting human intervention")
 
     def _halt_all_operations(self) -> None:
         """Stop Queen, bees, DJ broadcasts."""
 
         # Update hive status
-        self._update_state({
-            "hive_status": "EMERGENCY_RECONSTITUTION",
-            "queen_status": "halted",
-            "broadcast_status": "suspended",
-            "erm_activated_at": datetime.now(timezone.utc).isoformat()
-        })
+        self._update_state(
+            {
+                "hive_status": "EMERGENCY_RECONSTITUTION",
+                "queen_status": "halted",
+                "broadcast_status": "suspended",
+                "erm_activated_at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
         # In a real system, we'd kill processes here.
         # For this codebase, we rely on the state update stopping the Queen loop.
@@ -510,10 +534,9 @@ class EmergencyReconstitutionMode:
         """Prevent any memory tier changes."""
 
         # Set global freeze flag
-        self._update_state({
-            "memory_promotion_frozen": True,
-            "frozen_at": datetime.now(timezone.utc).isoformat()
-        })
+        self._update_state(
+            {"memory_promotion_frozen": True, "frozen_at": datetime.now(timezone.utc).isoformat()}
+        )
 
         # Make honeycomb files read-only
         for filename in ["state.json", "tasks.json", "intel.json", "treasury_events.jsonl"]:
@@ -522,7 +545,7 @@ class EmergencyReconstitutionMode:
                 try:
                     filepath.chmod(0o444)  # r--r--r--
                 except PermissionError:
-                     logger.warning(f"Could not lock {filename}: Permission denied")
+                    logger.warning(f"Could not lock {filename}: Permission denied")
 
         # Freeze Gemini cache updates
         # cache_manager = BacklinkCacheManager()
@@ -534,21 +557,14 @@ class EmergencyReconstitutionMode:
         """Allow only diagnostic bees to operate."""
 
         # Whitelist diagnostic bees
-        self.allowed_bees_in_erm = [
-            "constitutional_auditor",
-            "failure_detector",
-            "adversary"
-        ]
+        self.allowed_bees_in_erm = ["constitutional_auditor", "failure_detector", "adversary"]
 
         # Disable all mutation operations
-        self._update_state({
-            "mutations_allowed": False,
-            "diagnostic_mode": True
-        })
+        self._update_state({"mutations_allowed": False, "diagnostic_mode": True})
 
         logger.info("Diagnostic-only mode active")
 
-    def _request_human_review(self, trigger_report: Dict) -> None:
+    def _request_human_review(self, trigger_report: dict) -> None:
         """Multi-channel alert to Andrew Pappas."""
 
         alert_payload = {
@@ -556,42 +572,44 @@ class EmergencyReconstitutionMode:
             "event_type": "EMERGENCY_RECONSTITUTION_MODE",
             "trigger_report": trigger_report,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "contact_info": {
-                "email": "apappas.pu@gmail.com",
-                "x_handle": "@mr_pappas"
-            }
+            "contact_info": {"email": "apappas.pu@gmail.com", "x_handle": "@mr_pappas"},
         }
         # Send alerts (stubs)
         logger.critical(f"Human review requested: {alert_payload}")
 
-    def _preserve_forensic_evidence(self, trigger_report: Dict) -> None:
+    def _preserve_forensic_evidence(self, trigger_report: dict) -> None:
         # Save current state snapshot
         state_path = self.honeycomb_path / "state.json"
         if state_path.exists():
-            snapshot_path = self.honeycomb_path / "logs" / f"state_snapshot_{datetime.now(timezone.utc).timestamp()}.json"
-            with open(state_path, 'r') as f_src, open(snapshot_path, 'w') as f_dst:
+            snapshot_path = (
+                self.honeycomb_path
+                / "logs"
+                / f"state_snapshot_{datetime.now(timezone.utc).timestamp()}.json"
+            )
+            with open(state_path) as f_src, open(snapshot_path, "w") as f_dst:
                 f_dst.write(f_src.read())
 
-    def _update_state(self, updates: Dict):
+    def _update_state(self, updates: dict):
         # Direct state update
         state_path = self.honeycomb_path / "state.json"
         if state_path.exists():
-            with open(state_path, 'r') as f:
+            with open(state_path) as f:
                 state = json.load(f)
 
             for k, v in updates.items():
                 state[k] = v
 
-            with open(state_path, 'w') as f:
+            with open(state_path, "w") as f:
                 json.dump(state, f, indent=2)
+
 
 class AlignmentSupremacyProtocol:
     """Activates when alignment > immutability calculus is required."""
 
-    def __init__(self, hive_path: Optional[Path] = None):
-         self.audit_logger = AuditLogger(hive_path)
+    def __init__(self, hive_path: Path | None = None):
+        self.audit_logger = AuditLogger(hive_path)
 
-    def evaluate_override_necessity(self, harm_report: Dict) -> Dict:
+    def evaluate_override_necessity(self, harm_report: dict) -> dict:
         """Determine if constitutional override is justified."""
 
         # Severity assessment
@@ -605,22 +623,22 @@ class AlignmentSupremacyProtocol:
         # 4. Red team explicit veto
 
         override_justified = (
-            severity == "critical" or
-            violation_count >= 2 or
-            harm_report.get("persistent") or
-            harm_report.get("red_team_veto")
+            severity == "critical"
+            or violation_count >= 2
+            or harm_report.get("persistent")
+            or harm_report.get("red_team_veto")
         )
 
         if override_justified:
             return {
                 "override_justified": True,
                 "justification": f"Override needed due to {severity} severity and {violation_count} violations.",
-                "recommended_action": "minimal_intervention"
+                "recommended_action": "minimal_intervention",
             }
 
         return {"override_justified": False}
 
-    def execute_alignment_override(self, harm_report: Dict, approval: Dict) -> Dict:
+    def execute_alignment_override(self, harm_report: dict, approval: dict) -> dict:
         """Apply minimal corrective action to restore alignment."""
 
         # This is NOT arbitrary mutation
@@ -633,7 +651,7 @@ class AlignmentSupremacyProtocol:
             # Reset corrupted cache to manifesto baseline
             cache_manager = BacklinkCacheManager()
             # cache_manager.invalidate_cache("dj_persona") # Need to implement specific cache invalidation
-            cache_manager.full_reset() # Safe fallback
+            cache_manager.full_reset()  # Safe fallback
 
             action = "persona_cache_reset"
 
@@ -648,11 +666,14 @@ class AlignmentSupremacyProtocol:
             action = "bee_exorcism_completed"
 
         # Log override
-        self.audit_logger.log_event("alignment_overrides", {
-            "harm_report": harm_report,
-            "human_approval": approval,
-            "action_taken": action,
-            "rationale": "Alignment preservation superseded immutability"
-        })
+        self.audit_logger.log_event(
+            "alignment_overrides",
+            {
+                "harm_report": harm_report,
+                "human_approval": approval,
+                "action_taken": action,
+                "rationale": "Alignment preservation superseded immutability",
+            },
+        )
 
         return {"action": action, "alignment_restored": True}

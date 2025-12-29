@@ -2,17 +2,18 @@
 # Easy Plausible Analytics Integration for Andon Labs
 # Drop-in module for AI DJ, Live365, and other services
 
-import requests
 import os
-import json
-from datetime import datetime
-from typing import Optional, Dict, Any
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any
+
+import requests
 
 
 class EventType(Enum):
     """Standard event types for Andon Labs"""
+
     AI_DECISION_MADE = "AI Decision Made"
     SONG_REQUESTED = "Song Requested"
     SONG_QUEUED = "Song Queued"
@@ -32,6 +33,7 @@ class EventType(Enum):
 @dataclass
 class PlausibleConfig:
     """Configuration for Plausible tracking"""
+
     domain: str
     api_host: str = "https://plausible.io"
     enabled: bool = True
@@ -44,10 +46,9 @@ class PlausibleAnalytics:
     Tracks AI DJ decisions, listener interactions, revenue, and broadcast metrics.
     """
 
-    def __init__(self,
-                 domain: str = None,
-                 api_host: str = "https://plausible.io",
-                 enabled: bool = True):
+    def __init__(
+        self, domain: str = None, api_host: str = "https://plausible.io", enabled: bool = True
+    ):
         """
         Initialize Plausible tracker
 
@@ -56,8 +57,7 @@ class PlausibleAnalytics:
             api_host: Plausible API host (default: https://plausible.io)
             enabled: Enable/disable tracking globally
         """
-        self.domain = domain or os.getenv(
-            'PLAUSIBLE_DOMAIN', 'andon-labs.local')
+        self.domain = domain or os.getenv("PLAUSIBLE_DOMAIN", "andon-labs.local")
         self.api_host = api_host
         self.enabled = enabled
         self.endpoint = f"{api_host}/api/event"
@@ -65,41 +65,26 @@ class PlausibleAnalytics:
         # Default user agent
         self.user_agent = "Andon-Labs-Tracker/1.0"
 
-    def _build_payload(self,
-                       event_name: str,
-                       page_url: str,
-                       props: Dict[str, Any] = None,
-                       referrer: str = None) -> Dict[str, Any]:
+    def _build_payload(
+        self, event_name: str, page_url: str, props: dict[str, Any] = None, referrer: str = None
+    ) -> dict[str, Any]:
         """Build event payload for Plausible API"""
-        payload = {
-            "name": event_name,
-            "domain": self.domain,
-            "url": page_url,
-            "props": props or {}
-        }
+        payload = {"name": event_name, "domain": self.domain, "url": page_url, "props": props or {}}
 
         if referrer:
             payload["referrer"] = referrer
 
         return payload
 
-    def _send(self, payload: Dict[str, Any]) -> bool:
+    def _send(self, payload: dict[str, Any]) -> bool:
         """Send event to Plausible API"""
         if not self.enabled:
             return True
 
-        headers = {
-            "User-Agent": self.user_agent,
-            "Content-Type": "application/json"
-        }
+        headers = {"User-Agent": self.user_agent, "Content-Type": "application/json"}
 
         try:
-            response = requests.post(
-                self.endpoint,
-                json=payload,
-                headers=headers,
-                timeout=5
-            )
+            response = requests.post(self.endpoint, json=payload, headers=headers, timeout=5)
             return response.status_code in [200, 202]
         except Exception as e:
             print(f"[Plausible] Error tracking event: {e}")
@@ -107,14 +92,16 @@ class PlausibleAnalytics:
 
     # AI DJ Events
 
-    def track_ai_decision(self,
-                          decision_type: str,
-                          song: str,
-                          cost: float = 0.0,
-                          treasury_before: float = 0.0,
-                          treasury_after: float = 0.0,
-                          source: str = None,
-                          has_tip: bool = False) -> bool:
+    def track_ai_decision(
+        self,
+        decision_type: str,
+        song: str,
+        cost: float = 0.0,
+        treasury_before: float = 0.0,
+        treasury_after: float = 0.0,
+        source: str = None,
+        has_tip: bool = False,
+    ) -> bool:
         """
         Track an AI DJ decision (purchase, rent, decline)
 
@@ -136,7 +123,7 @@ class PlausibleAnalytics:
             "cost": str(cost),
             "treasury_before": str(treasury_before),
             "treasury_after": str(treasury_after),
-            "has_tip": str(has_tip)
+            "has_tip": str(has_tip),
         }
 
         if source:
@@ -145,15 +132,12 @@ class PlausibleAnalytics:
         payload = self._build_payload(
             event_name=EventType.AI_DECISION_MADE.value,
             page_url="app://andon-dj/ai-decision",
-            props=props
+            props=props,
         )
 
         return self._send(payload)
 
-    def track_song_request(self,
-                           song: str,
-                           source: str,
-                           tip_amount: float = 0.0) -> bool:
+    def track_song_request(self, song: str, source: str, tip_amount: float = 0.0) -> bool:
         """
         Track a song request from listener
 
@@ -169,22 +153,20 @@ class PlausibleAnalytics:
             "song": song,
             "source": source,
             "tip_amount": str(tip_amount),
-            "has_tip": str(tip_amount > 0)
+            "has_tip": str(tip_amount > 0),
         }
 
         payload = self._build_payload(
             event_name=EventType.SONG_REQUESTED.value,
             page_url="app://andon-dj/song-request",
-            props=props
+            props=props,
         )
 
         return self._send(payload)
 
-    def track_song_acquired(self,
-                            song: str,
-                            acquisition_type: str,
-                            cost: float,
-                            treasury_remaining: float) -> bool:
+    def track_song_acquired(
+        self, song: str, acquisition_type: str, cost: float, treasury_remaining: float
+    ) -> bool:
         """
         Track when AI DJ acquires a song (purchase or rent)
 
@@ -197,31 +179,25 @@ class PlausibleAnalytics:
         Returns:
             True if tracking successful
         """
-        event_name = (EventType.SONG_PURCHASED.value
-                      if acquisition_type == 'purchase'
-                      else EventType.SONG_RENTED.value)
+        event_name = (
+            EventType.SONG_PURCHASED.value
+            if acquisition_type == "purchase"
+            else EventType.SONG_RENTED.value
+        )
 
-        props = {
-            "song": song,
-            "cost": str(cost),
-            "treasury_remaining": str(treasury_remaining)
-        }
+        props = {"song": song, "cost": str(cost), "treasury_remaining": str(treasury_remaining)}
 
         payload = self._build_payload(
-            event_name=event_name,
-            page_url="app://andon-dj/music-acquisition",
-            props=props
+            event_name=event_name, page_url="app://andon-dj/music-acquisition", props=props
         )
 
         return self._send(payload)
 
     # Broadcast Events
 
-    def track_song_queued(self,
-                          song_title: str,
-                          artist: str = None,
-                          duration: int = 0,
-                          acquisition_type: str = None) -> bool:
+    def track_song_queued(
+        self, song_title: str, artist: str = None, duration: int = 0, acquisition_type: str = None
+    ) -> bool:
         """
         Track when a song is queued to broadcast
 
@@ -234,10 +210,7 @@ class PlausibleAnalytics:
         Returns:
             True if tracking successful
         """
-        props = {
-            "song_title": song_title,
-            "duration": str(duration)
-        }
+        props = {"song_title": song_title, "duration": str(duration)}
 
         if artist:
             props["artist"] = artist
@@ -245,15 +218,12 @@ class PlausibleAnalytics:
             props["acquisition_type"] = acquisition_type
 
         payload = self._build_payload(
-            event_name=EventType.SONG_QUEUED.value,
-            page_url="app://live365/queue",
-            props=props
+            event_name=EventType.SONG_QUEUED.value, page_url="app://live365/queue", props=props
         )
 
         return self._send(payload)
 
-    def track_broadcast_status(self,
-                               status: str) -> bool:
+    def track_broadcast_status(self, status: str) -> bool:
         """
         Track broadcast start/end
 
@@ -263,24 +233,23 @@ class PlausibleAnalytics:
         Returns:
             True if tracking successful
         """
-        event_name = (EventType.BROADCAST_STARTED.value
-                      if status == 'started'
-                      else EventType.BROADCAST_ENDED.value)
+        event_name = (
+            EventType.BROADCAST_STARTED.value
+            if status == "started"
+            else EventType.BROADCAST_ENDED.value
+        )
 
         payload = self._build_payload(
             event_name=event_name,
             page_url="app://live365/broadcast",
-            props={"timestamp": datetime.now().isoformat()}
+            props={"timestamp": datetime.now().isoformat()},
         )
 
         return self._send(payload)
 
     # Revenue Events
 
-    def track_tip_received(self,
-                           amount: float,
-                           source: str,
-                           song_requested: str = None) -> bool:
+    def track_tip_received(self, amount: float, source: str, song_requested: str = None) -> bool:
         """
         Track listener tip
 
@@ -292,28 +261,20 @@ class PlausibleAnalytics:
         Returns:
             True if tracking successful
         """
-        props = {
-            "amount": str(amount),
-            "source": source,
-            "currency": "USD"
-        }
+        props = {"amount": str(amount), "source": source, "currency": "USD"}
 
         if song_requested:
             props["song_requested"] = song_requested
 
         payload = self._build_payload(
-            event_name=EventType.LISTENER_TIP.value,
-            page_url="app://andon-dj/revenue",
-            props=props
+            event_name=EventType.LISTENER_TIP.value, page_url="app://andon-dj/revenue", props=props
         )
 
         return self._send(payload)
 
-    def track_revenue(self,
-                      amount: float,
-                      revenue_type: str,
-                      source: str = None,
-                      session_total: float = None) -> bool:
+    def track_revenue(
+        self, amount: float, revenue_type: str, source: str = None, session_total: float = None
+    ) -> bool:
         """
         Track revenue (tips, donations, etc.)
 
@@ -326,11 +287,7 @@ class PlausibleAnalytics:
         Returns:
             True if tracking successful
         """
-        props = {
-            "amount": str(amount),
-            "revenue_type": revenue_type,
-            "currency": "USD"
-        }
+        props = {"amount": str(amount), "revenue_type": revenue_type, "currency": "USD"}
 
         if source:
             props["source"] = source
@@ -340,18 +297,16 @@ class PlausibleAnalytics:
         payload = self._build_payload(
             event_name=EventType.REVENUE_GENERATED.value,
             page_url="app://andon-dj/revenue",
-            props=props
+            props=props,
         )
 
         return self._send(payload)
 
     # Treasury Events
 
-    def track_treasury_updated(self,
-                               balance_before: float,
-                               balance_after: float,
-                               change_amount: float,
-                               change_reason: str) -> bool:
+    def track_treasury_updated(
+        self, balance_before: float, balance_after: float, change_amount: float, change_reason: str
+    ) -> bool:
         """
         Track treasury balance changes
 
@@ -368,32 +323,30 @@ class PlausibleAnalytics:
             "balance_before": str(balance_before),
             "balance_after": str(balance_after),
             "change_amount": str(change_amount),
-            "change_reason": change_reason
+            "change_reason": change_reason,
         }
 
         payload = self._build_payload(
             event_name=EventType.TREASURY_UPDATED.value,
             page_url="app://andon-dj/treasury",
-            props=props
+            props=props,
         )
 
         return self._send(payload)
 
     # Generic Events
 
-    def track_listener_directive(self,
-                                 directive_type: str,
-                                 amount: float,
-                                 source: str = "payment_injection",
-                                 parameters: Dict[str, Any] = None) -> bool:
+    def track_listener_directive(
+        self,
+        directive_type: str,
+        amount: float,
+        source: str = "payment_injection",
+        parameters: dict[str, Any] = None,
+    ) -> bool:
         """
         Track listener directive events
         """
-        props = {
-            "directive_type": directive_type,
-            "amount": str(amount),
-            "source": source
-        }
+        props = {"directive_type": directive_type, "amount": str(amount), "source": source}
         if parameters:
             # Flatten parameters for Plausible properties (which are simple
             # key-values)
@@ -403,13 +356,11 @@ class PlausibleAnalytics:
         payload = self._build_payload(
             event_name=EventType.LISTENER_DIRECTIVE.value,
             page_url="app://andon-dj/directive",
-            props=props
+            props=props,
         )
         return self._send(payload)
 
-    def track_social_post(self,
-                          event: str,
-                          properties: Dict[str, Any] = None) -> bool:
+    def track_social_post(self, event: str, properties: dict[str, Any] = None) -> bool:
         """
         Track social posting events
         """
@@ -419,16 +370,13 @@ class PlausibleAnalytics:
         props["social_event_type"] = event
 
         payload = self._build_payload(
-            event_name=EventType.SOCIAL_POST.value,
-            page_url="app://marketing/social",
-            props=props
+            event_name=EventType.SOCIAL_POST.value, page_url="app://marketing/social", props=props
         )
         return self._send(payload)
 
-    def track_event(self,
-                    event_name: str,
-                    page_url: str = None,
-                    props: Dict[str, Any] = None) -> bool:
+    def track_event(
+        self, event_name: str, page_url: str = None, props: dict[str, Any] = None
+    ) -> bool:
         """
         Track a custom event
 
@@ -442,11 +390,7 @@ class PlausibleAnalytics:
         """
         page_url = page_url or "app://andon-labs/event"
 
-        payload = self._build_payload(
-            event_name=event_name,
-            page_url=page_url,
-            props=props
-        )
+        payload = self._build_payload(event_name=event_name, page_url=page_url, props=props)
 
         return self._send(payload)
 

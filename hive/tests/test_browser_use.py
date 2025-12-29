@@ -8,7 +8,7 @@ from hive.utils.browser_use_client import BrowserUseClient
 def test_browser_client():
     # Load key from config
     config_path = Path("hive/config.json")
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         config = json.load(f)
 
     # Try to get from env first, then config

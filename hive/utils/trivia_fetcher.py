@@ -4,10 +4,11 @@ Trivia Fetcher Utility.
 Fetches trivia from various public APIs with failover support.
 """
 
-import requests
 import html
 import random
-from typing import List, Dict, Any, Optional
+from typing import Any
+
+import requests
 
 from hive.utils.keys import KeyManager
 
@@ -22,7 +23,7 @@ class TriviaFetcher:
     - API Ninjas (api-ninjas.com)
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         """
         Initialize with hive config.
 
@@ -34,20 +35,30 @@ class TriviaFetcher:
         self.key_manager = KeyManager()
 
         # Fallback static trivia
-        self.static_backup = [{"type": "music",
-                               "text": "The first song played on MTV was 'Video Killed the Radio Star.' Ironic.",
-                               "use_after_genre": "rock"},
-                              {"type": "tech",
-                               "text": "The first radio broadcast was in 1906. We've been connecting nodes ever since.",
-                               "use_after_genre": None},
-                              {"type": "station",
-                               "text": "Commercial-free since day one. That's the Backlink promise.",
-                               "use_after_genre": None},
-                              {"type": "science",
-                               "text": "Honey bees communicate through a 'waggle dance' to share locations of food sources.",
-                               "use_after_genre": None}]
+        self.static_backup = [
+            {
+                "type": "music",
+                "text": "The first song played on MTV was 'Video Killed the Radio Star.' Ironic.",
+                "use_after_genre": "rock",
+            },
+            {
+                "type": "tech",
+                "text": "The first radio broadcast was in 1906. We've been connecting nodes ever since.",
+                "use_after_genre": None,
+            },
+            {
+                "type": "station",
+                "text": "Commercial-free since day one. That's the Backlink promise.",
+                "use_after_genre": None,
+            },
+            {
+                "type": "science",
+                "text": "Honey bees communicate through a 'waggle dance' to share locations of food sources.",
+                "use_after_genre": None,
+            },
+        ]
 
-    def fetch(self, count: int = 3) -> List[Dict[str, Any]]:
+    def fetch(self, count: int = 3) -> list[dict[str, Any]]:
         """
         Fetch trivia items from enabled providers.
 
@@ -80,8 +91,7 @@ class TriviaFetcher:
                 break
 
             try:
-                new_items = self._fetch_from_provider(
-                    provider, count - len(results))
+                new_items = self._fetch_from_provider(provider, count - len(results))
                 results.extend(new_items)
             except Exception as e:
                 print(f"Error fetching from {provider['name']}: {e}")
@@ -91,16 +101,11 @@ class TriviaFetcher:
         if len(results) < count:
             needed = count - len(results)
             # Pick random backup items
-            results.extend(
-                random.sample(
-                    self.static_backup, min(
-                        needed, len(
-                            self.static_backup))))
+            results.extend(random.sample(self.static_backup, min(needed, len(self.static_backup))))
 
         return results[:count]
 
-    def _fetch_from_provider(
-            self, provider: Dict[str, Any], count: int) -> List[Dict[str, Any]]:
+    def _fetch_from_provider(self, provider: dict[str, Any], count: int) -> list[dict[str, Any]]:
         """Dispatch to specific provider method."""
         name = provider.get("name")
 
@@ -113,7 +118,7 @@ class TriviaFetcher:
         else:
             return []
 
-    def _fetch_opentdb(self, count: int) -> List[Dict[str, Any]]:
+    def _fetch_opentdb(self, count: int) -> list[dict[str, Any]]:
         """Fetch from Open Trivia DB."""
         # OpenTDB allows up to 50 items.
         # URL: https://opentdb.com/api.php?amount=X
@@ -121,9 +126,9 @@ class TriviaFetcher:
         url = "https://opentdb.com/api.php"
         params = {
             "amount": count,
-            "type": "boolean"  # 'multiple' or 'boolean' or omit for mixed.
-                               # Boolean (True/False) often makes for good "Did you know?" facts.
-                               # Actually, let's use default (mixed) and format it appropriately.
+            "type": "boolean",  # 'multiple' or 'boolean' or omit for mixed.
+            # Boolean (True/False) often makes for good "Did you know?" facts.
+            # Actually, let's use default (mixed) and format it appropriately.
         }
 
         resp = requests.get(url, params=params, timeout=5)
@@ -134,8 +139,7 @@ class TriviaFetcher:
         if data.get("response_code") == 0:
             for result in data.get("results", []):
                 question = html.unescape(result.get("question", ""))
-                correct_answer = html.unescape(
-                    result.get("correct_answer", ""))
+                correct_answer = html.unescape(result.get("correct_answer", ""))
 
                 # Format as a fact or Q&A
                 text = f"Trivia: {question} The answer is {correct_answer}."
@@ -143,16 +147,18 @@ class TriviaFetcher:
                 category = result.get("category", "General").lower()
                 genre_map = self._map_category_to_genre(category)
 
-                items.append({
-                    "type": "trivia",
-                    "text": text,
-                    "use_after_genre": genre_map,
-                    "source": "OpenTDB"
-                })
+                items.append(
+                    {
+                        "type": "trivia",
+                        "text": text,
+                        "use_after_genre": genre_map,
+                        "source": "OpenTDB",
+                    }
+                )
 
         return items
 
-    def _fetch_uselessfacts(self, count: int) -> List[Dict[str, Any]]:
+    def _fetch_uselessfacts(self, count: int) -> list[dict[str, Any]]:
         """Fetch from Useless Facts API."""
         # URL: https://uselessfacts.jsph.pl/api/v2/facts/random
         # Only returns 1 at a time usually.
@@ -168,19 +174,22 @@ class TriviaFetcher:
 
                 text = data.get("text", "")
                 if text:
-                    items.append({
-                        "type": "fact",
-                        "text": text,
-                        "use_after_genre": None,
-                        "source": "UselessFacts"
-                    })
+                    items.append(
+                        {
+                            "type": "fact",
+                            "text": text,
+                            "use_after_genre": None,
+                            "source": "UselessFacts",
+                        }
+                    )
             except Exception:
                 pass
 
         return items
 
     def _fetch_api_ninjas(
-            self, provider_config: Dict[str, Any], count: int) -> List[Dict[str, Any]]:
+        self, provider_config: dict[str, Any], count: int
+    ) -> list[dict[str, Any]]:
         """Fetch from API Ninjas Facts API."""
         # Requires Key
         env_var = provider_config.get("api_key_env")
@@ -204,16 +213,13 @@ class TriviaFetcher:
         for fact in data:
             text = fact.get("fact", "")
             if text:
-                items.append({
-                    "type": "fact",
-                    "text": text,
-                    "use_after_genre": None,
-                    "source": "APINinjas"
-                })
+                items.append(
+                    {"type": "fact", "text": text, "use_after_genre": None, "source": "APINinjas"}
+                )
 
         return items
 
-    def _map_category_to_genre(self, category: str) -> Optional[str]:
+    def _map_category_to_genre(self, category: str) -> str | None:
         """Map generic trivia categories to music genres for DJ flow."""
         category = category.lower()
 

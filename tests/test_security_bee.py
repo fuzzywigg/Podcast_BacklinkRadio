@@ -1,14 +1,14 @@
-
 import os
-import shutil
-import json
-from pathlib import Path
+
 import pytest
+
 from hive.bees.base_bee import BaseBee
+
 
 class TestBee(BaseBee):
     def work(self, task=None):
         pass
+
 
 @pytest.fixture
 def temp_hive(tmp_path):
@@ -17,6 +17,7 @@ def temp_hive(tmp_path):
     honeycomb_path = hive_path / "honeycomb"
     os.makedirs(honeycomb_path, exist_ok=True)
     return hive_path
+
 
 def test_path_traversal_read(temp_hive):
     """Test that reading outside honeycomb is blocked."""
@@ -33,6 +34,7 @@ def test_path_traversal_read(temp_hive):
     # Should return empty dict (failure)
     assert data == {}
 
+
 def test_path_traversal_write(temp_hive):
     """Test that writing outside honeycomb is blocked."""
     bee = TestBee(hive_path=str(temp_hive))
@@ -43,6 +45,7 @@ def test_path_traversal_write(temp_hive):
     # Check that file was NOT created
     hacked_file = temp_hive / "hacked.json"
     assert not hacked_file.exists()
+
 
 def test_valid_read_write(temp_hive):
     """Test that valid read/write still works."""

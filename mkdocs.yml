@@ -23,17 +23,28 @@ theme:
     - content.code.copy
 
 nav:
-  - Home: README.md
+  - Home: index.md
   - Governance:
-      - Swarm Roles: docs/SWARM_ROLES.md
-      - Investors: docs/INVESTORS.md
+      - Swarm Roles: SWARM_ROLES.md
+      - Investors: INVESTORS.md
+  - Planning:
+      - Roadmap: planning/ROADMAP.md
+      - Pathway: planning/PATHWAY.md
+      - Gap Assessment: planning/GAP_ASSESSMENT.md
+      - Scratchpad: planning/SCRATCHPAD.md
+      - Requirements: planning/WORKSPACE_REQUIREMENTS.json
   - Technical Specs:
-      - Architecture: docs/DEPLOYMENT_HANDOFF.md
-      - Gap Analysis: docs/GAP_ANALYSIS_REPORT.md
-      - Prompt Audit: docs/PROMPT_AUDIT_REPORT.md
-      - Stripe Spec: docs/STRIPE_INTEGRATION_SPEC.md
+      - Architecture: DEPLOYMENT_HANDOFF.md
+      - Gap Analysis: GAP_ANALYSIS_REPORT.md
+      - Prompt Audit: PROMPT_AUDIT_REPORT.md
+      - Stripe Spec: STRIPE_INTEGRATION_SPEC.md
+  - Lore:
+      - Manifesto: lore/STATION_MANIFESTO.md
+      - Agents: lore/AGENTS.md
+      - Persona: lore/PERSONA_DYNAMIC.md
+      - Music Logic: lore/MUSIC_LOGIC.md
   - Wisdom API:
-      - Raw Genesis: hive/honeycomb/wisdom.json
+      - Raw Genesis: api/wisdom.json
 
 plugins:
   - search

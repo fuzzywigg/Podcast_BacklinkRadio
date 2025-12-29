@@ -1,8 +1,8 @@
-from hive.queen.orchestrator import QueenOrchestrator
 import json
 import sys
-import os
 from pathlib import Path
+
+from hive.queen.orchestrator import QueenOrchestrator
 
 # Add the hive directory to sys.path so we can import modules
 current_dir = Path(__file__).parent
@@ -13,25 +13,17 @@ sys.path.append(str(hive_dir))
 def main():
     # UX Improvements: Colors and Formatting
     class Colors:
-        HEADER = '\033[95m'
-        BLUE = '\033[94m'
-        CYAN = '\033[96m'
-        GREEN = '\033[92m'
-        WARNING = '\033[93m'
-        FAIL = '\033[91m'
-        ENDC = '\033[0m'
-        BOLD = '\033[1m'
+        HEADER = "\033[95m"
+        BLUE = "\033[94m"
+        CYAN = "\033[96m"
+        GREEN = "\033[92m"
+        WARNING = "\033[93m"
+        FAIL = "\033[91m"
+        ENDC = "\033[0m"
+        BOLD = "\033[1m"
 
     def print_header(text):
-        print(
-            f"\n{
-                Colors.HEADER}{
-                Colors.BOLD}{
-                '=' *
-                60}\n {text}\n{
-                    '=' *
-                    60}{
-                        Colors.ENDC}")
+        print(f"\n{Colors.HEADER}{Colors.BOLD}{'=' * 60}\n {text}\n{'=' * 60}{Colors.ENDC}")
 
     def print_result(bee_type, task_id, result, duration=None):
         is_success = result.get("success", False)
@@ -43,10 +35,10 @@ def main():
             duration_str = f" in {duration:.2f}s"
 
         print(
-            f"{color}{status_text} {
-                Colors.ENDC} {
-                Colors.CYAN}{bee_type}{
-                Colors.ENDC} -> Task: {task_id}{duration_str}")
+            f"{color}{status_text} {Colors.ENDC} {Colors.CYAN}{bee_type}{Colors.ENDC} -> Task: {
+                task_id
+            }{duration_str}"
+        )
 
         error = result.get("error")
         if not is_success and error:
@@ -57,7 +49,7 @@ def main():
 
     # Load tasks.json
     tasks_path = queen.honeycomb_path / "tasks.json"
-    with open(tasks_path, 'r') as f:
+    with open(tasks_path) as f:
         tasks_data = json.load(f)
 
     pending_tasks = tasks_data.get("pending", [])
@@ -67,17 +59,14 @@ def main():
         "social": "social_poster",
         "research": "listener_intel",
         "scout": "trend_scout",
-        "monetization": "sponsor_hunter"
+        "monetization": "sponsor_hunter",
     }
 
     print(
-        f"\n🔎 Found {
-            Colors.BOLD}{
-            len(pending_tasks)}{
-                Colors.ENDC} pending tasks and {
-                    Colors.BOLD}{
-                        len(recurring_tasks)}{
-                            Colors.ENDC} recurring tasks.")
+        f"\n🔎 Found {Colors.BOLD}{len(pending_tasks)}{Colors.ENDC} pending tasks and {Colors.BOLD}{
+            len(recurring_tasks)
+        }{Colors.ENDC} recurring tasks."
+    )
 
     stats = {"success": 0, "failed": 0, "skipped": 0}
 
@@ -87,12 +76,9 @@ def main():
         for task in pending_tasks:
             bee_type = task.get("bee_type")
             mapped_bee = bee_mapping.get(bee_type, bee_type)
-            task_id = task.get('id', 'unknown')
+            task_id = task.get("id", "unknown")
 
-            print(
-                f"\n{
-                    Colors.BOLD}▶ Executing:{
-                    Colors.ENDC} {task_id} ({mapped_bee})")
+            print(f"\n{Colors.BOLD}▶ Executing:{Colors.ENDC} {task_id} ({mapped_bee})")
             result = queen.spawn_bee(mapped_bee, task)
 
             if result.get("success"):
@@ -100,21 +86,16 @@ def main():
             else:
                 stats["failed"] += 1
 
-            print_result(
-                mapped_bee,
-                task_id,
-                result,
-                result.get("duration_seconds"))
+            print_result(mapped_bee, task_id, result, result.get("duration_seconds"))
     else:
         print(f"\n{Colors.BLUE}ℹ️  No pending tasks to execute.{Colors.ENDC}")
 
     # 2. Execute Recurring Tasks
     print_header("Executing Recurring Tasks (Immediate)")
     for task in recurring_tasks:
-        task_id = task.get('id')
+        task_id = task.get("id")
         if not task.get("enabled", True):
-            print(
-                f"{Colors.WARNING}⚠️  Skipping disabled task: {task_id}{Colors.ENDC}")
+            print(f"{Colors.WARNING}⚠️  Skipping disabled task: {task_id}{Colors.ENDC}")
             stats["skipped"] += 1
             continue
 
@@ -123,16 +104,14 @@ def main():
 
         if not mapped_bee:
             print(
-                f"{
-                    Colors.WARNING}⚠️  Warning: Could not map bee type '{bee_short_type}' for task '{task_id}'. Skipping.{
-                    Colors.ENDC}")
+                f"{Colors.WARNING}⚠️  Warning: Could not map bee type '{bee_short_type}' for task '{
+                    task_id
+                }'. Skipping.{Colors.ENDC}"
+            )
             stats["skipped"] += 1
             continue
 
-        print(
-            f"\n{
-                Colors.BOLD}▶ Executing:{
-                Colors.ENDC} {task_id} ({mapped_bee})")
+        print(f"\n{Colors.BOLD}▶ Executing:{Colors.ENDC} {task_id} ({mapped_bee})")
         result = queen.spawn_bee(mapped_bee)
 
         if result.get("success"):
@@ -140,21 +119,14 @@ def main():
         else:
             stats["failed"] += 1
 
-        print_result(
-            mapped_bee,
-            task_id,
-            result,
-            result.get("duration_seconds"))
+        print_result(mapped_bee, task_id, result, result.get("duration_seconds"))
 
     # Summary
     print_header("Execution Summary")
     print(f"{Colors.GREEN}✅ Success: {stats['success']}{Colors.ENDC}")
     print(f"{Colors.FAIL}❌ Failed:  {stats['failed']}{Colors.ENDC}")
     print(f"{Colors.WARNING}⏭️  Skipped: {stats['skipped']}{Colors.ENDC}")
-    print(
-        f"\n{
-            Colors.BLUE}All scheduled tasks execution attempt complete.{
-            Colors.ENDC}")
+    print(f"\n{Colors.BLUE}All scheduled tasks execution attempt complete.{Colors.ENDC}")
 
 
 if __name__ == "__main__":

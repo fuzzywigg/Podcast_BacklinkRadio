@@ -1,6 +1,6 @@
-import unittest
-from unittest.mock import patch, MagicMock
 import os
+import unittest
+from unittest.mock import MagicMock, patch
 
 from hive.bees.research.listener_intel_bee import ListenerIntelBee
 
@@ -8,10 +8,7 @@ from hive.bees.research.listener_intel_bee import ListenerIntelBee
 class TestListenerIntelBeeIntegration(unittest.TestCase):
     def setUp(self):
         self.bee = ListenerIntelBee()
-        self.location = {
-            "city": "New York",
-            "country": "US",
-            "timezone": "America/New_York"}
+        self.location = {"city": "New York", "country": "US", "timezone": "America/New_York"}
 
     def test_fallback_when_no_keys(self):
         """Test that we get fallback data when no API keys are present."""
@@ -25,7 +22,7 @@ class TestListenerIntelBeeIntegration(unittest.TestCase):
             self.assertTrue(len(result["notable"]) == 1)
             self.assertIn("[AI SIMULATION]", result["notable"][0]["title"])
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_weather_api_success(self, mock_get):
         """Test successful weather API call."""
         # Mock response
@@ -33,7 +30,7 @@ class TestListenerIntelBeeIntegration(unittest.TestCase):
         mock_response.status_code = 200
         mock_response.json.return_value = {
             "weather": [{"main": "Clouds", "description": "broken clouds"}],
-            "main": {"temp": 15.5}
+            "main": {"temp": 15.5},
         }
         mock_get.return_value = mock_response
 
@@ -50,9 +47,9 @@ class TestListenerIntelBeeIntegration(unittest.TestCase):
             mock_get.assert_called()
             args, kwargs = mock_get.call_args
             self.assertIn("api.openweathermap.org", args[0])
-            self.assertEqual(kwargs['params']['q'], "New York,US")
+            self.assertEqual(kwargs["params"]["q"], "New York,US")
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_news_api_success(self, mock_get):
         """Test successful news API call."""
         # We need to handle multiple calls if weather is also tried.
@@ -64,7 +61,7 @@ class TestListenerIntelBeeIntegration(unittest.TestCase):
         mock_response.json.return_value = {
             "articles": [
                 {"title": "News 1", "source": {"name": "Source 1"}, "url": "http://1"},
-                {"title": "News 2", "source": {"name": "Source 2"}, "url": "http://2"}
+                {"title": "News 2", "source": {"name": "Source 2"}, "url": "http://2"},
             ]
         }
         mock_get.return_value = mock_response
@@ -80,9 +77,9 @@ class TestListenerIntelBeeIntegration(unittest.TestCase):
             mock_get.assert_called()
             args, kwargs = mock_get.call_args
             self.assertIn("newsapi.org", args[0])
-            self.assertEqual(kwargs['params']['country'], "us")
+            self.assertEqual(kwargs["params"]["country"], "us")
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_api_failure_fallback(self, mock_get):
         """Test fallback when API call fails."""
         mock_get.side_effect = Exception("API Connection Error")
@@ -94,5 +91,5 @@ class TestListenerIntelBeeIntegration(unittest.TestCase):
             self.assertIn("[AI ESTIMATION]", result["weather"]["description"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

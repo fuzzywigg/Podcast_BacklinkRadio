@@ -8,13 +8,12 @@ or a local keys.json file (not in version control).
 import json
 import os
 from pathlib import Path
-from typing import Optional
 
 
 class KeyManager:
     """Manages API keys and secrets."""
 
-    def __init__(self, hive_path: Optional[str] = None):
+    def __init__(self, hive_path: str | None = None):
         """Initialize with path to hive."""
         if hive_path is None:
             # Default to hive directory relative to this file
@@ -27,14 +26,14 @@ class KeyManager:
         """Load keys from local JSON file if it exists."""
         if self.keys_path.exists():
             try:
-                with open(self.keys_path, 'r') as f:
+                with open(self.keys_path) as f:
                     return json.load(f)
             except Exception as e:
                 print(f"Warning: Failed to load keys.json: {e}")
                 return {}
         return {}
 
-    def get_key(self, env_var_name: str) -> Optional[str]:
+    def get_key(self, env_var_name: str) -> str | None:
         """
         Retrieve a key by its environment variable name.
 

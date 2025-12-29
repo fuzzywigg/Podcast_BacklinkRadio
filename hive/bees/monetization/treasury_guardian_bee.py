@@ -3,22 +3,24 @@ Treasury Guardian Bee
 P0 Requirement: Financial Governance.
 """
 
-from typing import Dict, Any, List
-from datetime import datetime, timezone
 import json
+from typing import Any
+
 from hive.bees.base_bee import BaseBee
+
 
 class TreasuryGuardianBee(BaseBee):
     """
     Enforces treasury spending limits and monitors budget health.
     """
+
     BEE_TYPE = "treasury_guardian"
     CATEGORY = "monetization"
 
     MAX_SINGLE_TRANSACTION = 100.00  # USD
-    MIN_RESERVE_BALANCE = 20.00      # Emergency reserve
+    MIN_RESERVE_BALANCE = 20.00  # Emergency reserve
 
-    def work(self, task: Dict[str, Any] = None) -> Dict[str, Any]:
+    def work(self, task: dict[str, Any] = None) -> dict[str, Any]:
         """
         Guard treasury integrity.
         """
@@ -43,34 +45,37 @@ class TreasuryGuardianBee(BaseBee):
         health = self.assess_budget_health(balance, events)
 
         if health["status"] == "critical":
-            self.post_alert(f"Treasury Critical: {health['runway_days']:.1f} days runway remaining", priority=True)
+            self.post_alert(
+                f"Treasury Critical: {health['runway_days']:.1f} days runway remaining",
+                priority=True,
+            )
 
         return {
             "current_balance": balance,
             "budget_health": health,
-            "transaction_validation": validation
+            "transaction_validation": validation,
         }
 
-    def _load_treasury_events(self) -> List[Dict]:
+    def _load_treasury_events(self) -> list[dict]:
         """Load treasury event log."""
         log_path = self.honeycomb_path / "treasury_events.jsonl"
         events = []
         if log_path.exists():
-            with open(log_path, 'r') as f:
+            with open(log_path) as f:
                 for line in f:
                     if line.strip():
                         try:
                             # Handling potentially empty list if init wrong, but standard JSONL is one dict per line
                             val = json.loads(line)
                             if isinstance(val, list):
-                                events.extend(val) # Handle the init case where I wrote []
+                                events.extend(val)  # Handle the init case where I wrote []
                             else:
                                 events.append(val)
                         except json.JSONDecodeError:
                             pass
         return events
 
-    def _compute_balance_from_events(self, events: List[Dict]) -> float:
+    def _compute_balance_from_events(self, events: list[dict]) -> float:
         """Compute balance by replaying events."""
         balance = 0.0
         for event in events:
@@ -82,7 +87,7 @@ class TreasuryGuardianBee(BaseBee):
                 balance -= amount
         return balance
 
-    def validate_transaction(self, tx: Dict, current_balance: float) -> Dict:
+    def validate_transaction(self, tx: dict, current_balance: float) -> dict:
         """Pre-flight checks for transactions."""
         amount = float(tx.get("amount", 0))
         reason = tx.get("reason", "unknown")
@@ -106,7 +111,7 @@ class TreasuryGuardianBee(BaseBee):
 
         return {"approved": True}
 
-    def assess_budget_health(self, balance: float, events: List[Dict]) -> Dict:
+    def assess_budget_health(self, balance: float, events: list[dict]) -> dict:
         """Evaluate treasury sustainability."""
         # Calculate burn rate (spending per day)
         # Simplified: average of last 7 days debits
@@ -117,11 +122,11 @@ class TreasuryGuardianBee(BaseBee):
         total_spent = sum(e.get("amount", 0) for e in debits)
 
         # Rough estimation if we don't have dates, default to a safe burn rate or 0
-        burn_rate = 1.0 # Default dummy value to avoid div by zero if no history
+        burn_rate = 1.0  # Default dummy value to avoid div by zero if no history
         if debits:
-            burn_rate = total_spent / 7.0 # average over "a week" concept
+            burn_rate = total_spent / 7.0  # average over "a week" concept
 
-        runway_days = balance / burn_rate if burn_rate > 0 else float('inf')
+        runway_days = balance / burn_rate if burn_rate > 0 else float("inf")
 
         if runway_days < 3:
             status = "critical"
@@ -134,5 +139,5 @@ class TreasuryGuardianBee(BaseBee):
             "status": status,
             "balance": balance,
             "burn_rate_per_day": burn_rate,
-            "runway_days": runway_days
+            "runway_days": runway_days,
         }

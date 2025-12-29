@@ -106,9 +106,7 @@ class BeeLoggerAdapter(logging.LoggerAdapter):
         logger.info("Found new trend")  # Automatically includes bee context
     """
 
-    def process(
-        self, msg: str, kwargs: dict[str, Any]
-    ) -> tuple[str, dict[str, Any]]:
+    def process(self, msg: str, kwargs: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         """Add extra context to log record."""
         extra = kwargs.get("extra", {})
         extra.update(self.extra)
@@ -215,10 +213,7 @@ def configure_root_logger() -> None:
 # ─────────────────────────────────────────────────────────────────────────────────
 
 
-def log_task_start(
-        logger: logging.Logger,
-        task_name: str,
-        **kwargs: Any) -> None:
+def log_task_start(logger: logging.Logger, task_name: str, **kwargs: Any) -> None:
     """Log the start of a task with context."""
     logger.info(f"Starting: {task_name}", extra={"task": task_name, **kwargs})
 

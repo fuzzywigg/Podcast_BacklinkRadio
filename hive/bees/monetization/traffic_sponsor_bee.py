@@ -7,8 +7,8 @@ Responsibilities:
 - Trigger sponsored announcements.
 """
 
-from typing import Any, Dict, Optional
 from datetime import datetime, timezone
+from typing import Any
 
 from hive.bees.base_bee import EmployedBee
 
@@ -22,8 +22,7 @@ class TrafficSponsorBee(EmployedBee):
     BEE_NAME = "Traffic Sponsor Bee"
     CATEGORY = "monetization"
 
-    async def work(
-            self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def work(self, task: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Execute traffic tasks.
         """
@@ -39,9 +38,7 @@ class TrafficSponsorBee(EmployedBee):
 
         # Check Sponsor
         config = self._load_config()
-        sponsor_cfg = config.get(
-            "sponsored_content", {}).get(
-            "traffic_sponsor", {})
+        sponsor_cfg = config.get("sponsored_content", {}).get("traffic_sponsor", {})
 
         if not sponsor_cfg.get("active"):
             return {"status": "skipped", "reason": "no_active_sponsor"}
@@ -57,31 +54,25 @@ class TrafficSponsorBee(EmployedBee):
         # or just log it for the DJ to pick up via intel.
 
         announcement = {
-            'type': 'sponsored_traffic',
-            'duration': 20,
-            'script': script,
-            'sponsor': sponsor_cfg.get('name')
+            "type": "sponsored_traffic",
+            "duration": 20,
+            "script": script,
+            "sponsor": sponsor_cfg.get("name"),
         }
 
         # For now, we update intel so DJ sees it
         self._update_traffic_intel(announcement)
 
-        return {
-            "status": "success",
-            "announcement": announcement
-        }
+        return {"status": "success", "announcement": announcement}
 
-    def _compose_traffic_report(self, sponsor: Dict, data: list) -> str:
+    def _compose_traffic_report(self, sponsor: dict, data: list) -> str:
         """Format: Brought to you by [Sponsor]..."""
-        intro = f"Traffic on the hour, brought to you by {
-            sponsor.get(
-                'name', 'Sponsor')}. "
+        intro = f"Traffic on the hour, brought to you by {sponsor.get('name', 'Sponsor')}. "
 
         reports = []
         for item in data:
-            if item['incidents'] > 0:
-                reports.append(
-                    f"{item['city']}: {item['incidents']} incidents reported.")
+            if item["incidents"] > 0:
+                reports.append(f"{item['city']}: {item['incidents']} incidents reported.")
             else:
                 reports.append(f"{item['city']}: clear.")
 
@@ -91,22 +82,23 @@ class TrafficSponsorBee(EmployedBee):
     def _fetch_traffic_simulated(self) -> list:
         return [
             {"city": "New York", "incidents": 2, "delays": "15m"},
-            {"city": "London", "incidents": 0, "delays": "0m"}
+            {"city": "London", "incidents": 0, "delays": "0m"},
         ]
 
-    def _update_traffic_intel(self, announcement: Dict):
+    def _update_traffic_intel(self, announcement: dict):
         intel = self.read_intel()
         intel["traffic"] = {
             "latest_announcement": announcement,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         self._write_json("intel.json", intel)
 
-    def _load_config(self) -> Dict:
+    def _load_config(self) -> dict:
         """Load hive config."""
         try:
-            with open(self.hive_path / "config.json", "r") as f:
+            with open(self.hive_path / "config.json") as f:
                 import json
+
                 return json.load(f)
         except BaseException:
             return {}

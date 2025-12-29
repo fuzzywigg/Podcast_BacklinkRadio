@@ -8,9 +8,10 @@ Responsibilities:
 - Provide context for personalized shoutouts
 """
 
-from typing import Any, Dict, List, Optional
-from datetime import datetime, timezone
 import os
+from datetime import datetime, timezone
+from typing import Any
+
 import requests
 
 try:
@@ -18,10 +19,11 @@ try:
 except ImportError:
     tweepy = None
 
-from hive.bees.base_bee import ScoutBee
-from hive.utils.web_search import WebSearch
-from hive.utils.prompt_engineer import PromptEngineer
 import json
+
+from hive.bees.base_bee import ScoutBee
+from hive.utils.prompt_engineer import PromptEngineer
+from hive.utils.web_search import WebSearch
 
 
 class ListenerIntelBee(ScoutBee):
@@ -36,7 +38,7 @@ class ListenerIntelBee(ScoutBee):
     BEE_NAME = "Listener Intel Bee"
     CATEGORY = "research"
 
-    def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def work(self, task: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Gather intel on listeners.
 
@@ -61,9 +63,7 @@ class ListenerIntelBee(ScoutBee):
 
         elif task and task.get("refresh_all"):
             # Refresh all known nodes
-            known = self.read_intel().get(
-                "listeners", {}).get(
-                "known_nodes", {})
+            known = self.read_intel().get("listeners", {}).get("known_nodes", {})
             for node_id in known.keys():
                 intel = self._research_node(node_id)
                 intel_gathered.append(intel)
@@ -74,30 +74,20 @@ class ListenerIntelBee(ScoutBee):
 
         self.log(f"Gathered intel on {len(intel_gathered)} nodes")
 
-        return {
-            "nodes_researched": len(intel_gathered),
-            "intel": intel_gathered
-        }
+        return {"nodes_researched": len(intel_gathered), "intel": intel_gathered}
 
-    def _research_node(self, node_id: str,
-                       handle: Optional[str] = None) -> Dict[str, Any]:
+    def _research_node(self, node_id: str, handle: str | None = None) -> dict[str, Any]:
         """Research a specific listener node."""
 
         self.log(f"Researching node: {node_id}")
 
         # Get existing intel
-        existing = self.read_intel().get(
-            "listeners",
-            {}).get(
-            "known_nodes",
-            {}).get(
-            node_id,
-            {})
+        existing = self.read_intel().get("listeners", {}).get("known_nodes", {}).get(node_id, {})
 
         intel = {
             "node_id": node_id,
             "handle": handle or existing.get("handle"),
-            "researched_at": datetime.now(timezone.utc).isoformat()
+            "researched_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # If we have a location, get local context
@@ -124,7 +114,7 @@ class ListenerIntelBee(ScoutBee):
 
         return intel
 
-    def _research_location(self, location: Dict[str, str]) -> Dict[str, Any]:
+    def _research_location(self, location: dict[str, str]) -> dict[str, Any]:
         """Research a location for context."""
 
         city = location.get("city", "Unknown")
@@ -136,19 +126,20 @@ class ListenerIntelBee(ScoutBee):
 
         # Store in local_intel
         location_key = f"{city}_{country}".lower().replace(" ", "_")
-        self.write_intel("local_intel", f"cities.{location_key}", {
-            "city": city,
-            "country": country,
-            "context": context,
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        })
+        self.write_intel(
+            "local_intel",
+            f"cities.{location_key}",
+            {
+                "city": city,
+                "country": country,
+                "context": context,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            },
+        )
 
-        return {
-            "location": location,
-            "context": context
-        }
+        return {"location": location, "context": context}
 
-    def _get_local_context(self, location: Dict[str, str]) -> Dict[str, Any]:
+    def _get_local_context(self, location: dict[str, str]) -> dict[str, Any]:
         """Get local context for a location (weather, news, events)."""
 
         city = location.get("city", "Unknown")
@@ -167,11 +158,11 @@ class ListenerIntelBee(ScoutBee):
             "shoutout_hooks": [
                 f"Sending this one out to {city}",
                 f"We see you, {city}",
-                f"Signal strong from {city}"
-            ]
+                f"Signal strong from {city}",
+            ],
         }
 
-    def _fetch_weather(self, city: str, country: str) -> Dict[str, Any]:
+    def _fetch_weather(self, city: str, country: str) -> dict[str, Any]:
         """Fetch weather from OpenWeatherMap."""
         api_key = os.environ.get("OPENWEATHER_API_KEY")
         if not api_key:
@@ -180,11 +171,7 @@ class ListenerIntelBee(ScoutBee):
         try:
             query = f"{city},{country}" if country else city
             url = "https://api.openweathermap.org/data/2.5/weather"
-            params = {
-                "q": query,
-                "appid": api_key,
-                "units": "metric"
-            }
+            params = {"q": query, "appid": api_key, "units": "metric"}
             response = requests.get(url, params=params, timeout=5)
             response.raise_for_status()
             data = response.json()
@@ -192,21 +179,21 @@ class ListenerIntelBee(ScoutBee):
             return {
                 "condition": data["weather"][0]["main"].lower(),
                 "temp_c": data["main"]["temp"],
-                "description": data["weather"][0]["description"]
+                "description": data["weather"][0]["description"],
             }
         except Exception as e:
             self.log(f"Weather API error: {e}")
             return self._get_fallback_weather()
 
-    def _get_fallback_weather(self) -> Dict[str, Any]:
+    def _get_fallback_weather(self) -> dict[str, Any]:
         """Return fallback weather data."""
         return {
             "condition": "simulated",
             "temp_c": 20,
-            "description": "[AI ESTIMATION] Weather data unavailable. Assuming mild conditions."
+            "description": "[AI ESTIMATION] Weather data unavailable. Assuming mild conditions.",
         }
 
-    def _fetch_news(self, city: str, country: str) -> List[Dict[str, Any]]:
+    def _fetch_news(self, city: str, country: str) -> list[dict[str, Any]]:
         """Fetch news from NewsAPI."""
         api_key = os.environ.get("NEWS_API_KEY")
         if not api_key:
@@ -219,10 +206,7 @@ class ListenerIntelBee(ScoutBee):
             # valid
 
             # Simple heuristic: if country is 2 chars, use it. Else try q=city
-            params = {
-                "apiKey": api_key,
-                "pageSize": 3
-            }
+            params = {"apiKey": api_key, "pageSize": 3}
 
             if country and len(country) == 2:
                 params["country"] = country.lower()
@@ -236,28 +220,30 @@ class ListenerIntelBee(ScoutBee):
 
             articles = []
             for article in data.get("articles", []):
-                articles.append({
-                    "title": article["title"],
-                    "source": article["source"]["name"],
-                    "url": article["url"]
-                })
+                articles.append(
+                    {
+                        "title": article["title"],
+                        "source": article["source"]["name"],
+                        "url": article["url"],
+                    }
+                )
             return articles
 
         except Exception as e:
             self.log(f"News API error: {e}")
             return self._get_fallback_news()
 
-    def _get_fallback_news(self) -> List[Dict[str, Any]]:
+    def _get_fallback_news(self) -> list[dict[str, Any]]:
         """Return fallback news data."""
         return [
             {
                 "title": "[AI SIMULATION] Local news feed currently offline",
                 "source": "System",
-                "url": "#"
+                "url": "#",
             }
         ]
 
-    def _research_profile(self, handle: str) -> Dict[str, Any]:
+    def _research_profile(self, handle: str) -> dict[str, Any]:
         """Research a public social profile."""
 
         # 1. Try Official API (Primary)
@@ -277,13 +263,13 @@ class ListenerIntelBee(ScoutBee):
             "method": "fallback",
             "public_info": {
                 "description": "[AI ESTIMATION] Profile not accessible.",
-                "followers_count": 0
+                "followers_count": 0,
             },
             "interests": [],
-            "engagement_history": []
+            "engagement_history": [],
         }
 
-    def _get_twitter_client(self) -> Optional[Any]:
+    def _get_twitter_client(self) -> Any | None:
         """Authenticate and return Twitter v2 Client."""
         if not tweepy:
             return None
@@ -301,16 +287,14 @@ class ListenerIntelBee(ScoutBee):
                 consumer_key=api_key,
                 consumer_secret=api_secret,
                 access_token=access_token,
-                access_token_secret=access_token_secret
+                access_token_secret=access_token_secret,
             )
             return client
         except Exception as e:
-            self.log(
-                f"Failed to authenticate with Twitter: {e}",
-                level="error")
+            self.log(f"Failed to authenticate with Twitter: {e}", level="error")
             return None
 
-    def _research_twitter_api(self, handle: str) -> Optional[Dict[str, Any]]:
+    def _research_twitter_api(self, handle: str) -> dict[str, Any] | None:
         """Fetch profile data via Twitter API."""
         client = self._get_twitter_client()
         if not client:
@@ -328,7 +312,9 @@ class ListenerIntelBee(ScoutBee):
                     "public_metrics",
                     "created_at",
                     "verified",
-                    "url"])
+                    "url",
+                ],
+            )
 
             if not user.data:
                 return None
@@ -348,28 +334,32 @@ class ListenerIntelBee(ScoutBee):
                     "tweet_count": metrics.get("tweet_count", 0),
                     "verified": data.verified,
                     "created_at": data.created_at.isoformat() if data.created_at else None,
-                    "url": data.url
+                    "url": data.url,
                 },
                 "interests": [],  # Would need recent tweets analysis
-                "engagement_history": []
+                "engagement_history": [],
             }
 
         except Exception as e:
             self.log(f"Twitter API research failed for {handle}: {e}")
             return None
 
-    def _synthesize_profile_with_llm(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _synthesize_profile_with_llm(self, data: dict[str, Any]) -> dict[str, Any]:
         """Use LLM to synthesize a listener profile from raw data."""
         pe = PromptEngineer(
             role="Intelligence Analyst",
-            goal="Synthesize a coherent listener profile from scattered data points."
+            goal="Synthesize a coherent listener profile from scattered data points.",
         )
-        
+
         pe.add_context(f"Raw Data: {json.dumps(data, default=str)}")
-        pe.add_constraint("FACTUALITY: Do not invent details. Use keywords like 'Unknown' if missing.")
-        pe.add_constraint("PRIVACY: Do not include PII (Exact address, phone, email) even if present.")
+        pe.add_constraint(
+            "FACTUALITY: Do not invent details. Use keywords like 'Unknown' if missing."
+        )
+        pe.add_constraint(
+            "PRIVACY: Do not include PII (Exact address, phone, email) even if present."
+        )
         pe.add_constraint("OUTPUT: JSON with 'summary', 'key_interests', 'communication_style'.")
-        
+
         pe.set_output_format("""
         {
             "summary": "2-sentence bio of the listener.",
@@ -378,10 +368,10 @@ class ListenerIntelBee(ScoutBee):
             "suggested_topics": ["topic1", "topic2"]
         }
         """)
-        
+
         return self._ask_llm_json(pe, "Synthesize profile.")
 
-    def _research_public_web(self, handle: str) -> Optional[Dict[str, Any]]:
+    def _research_public_web(self, handle: str) -> dict[str, Any] | None:
         """Research profile via web search (malicious compliance)."""
 
         # Search for the specific handle on Twitter
@@ -391,8 +381,7 @@ class ListenerIntelBee(ScoutBee):
         if not results:
             # Try broader social search
             query = f'"{handle}" (site:instagram.com OR site:tiktok.com OR site:linkedin.com)'
-            results = WebSearch.search(
-                query, num_results=1, include_social=True)
+            results = WebSearch.search(query, num_results=1, include_social=True)
 
         if not results:
             return None
@@ -409,13 +398,13 @@ class ListenerIntelBee(ScoutBee):
                 "description": snippet,
                 "location": None,  # Hard to parse reliably
                 "followers_count": 0,  # Placeholder
-                "source_url": result.get("url")
+                "source_url": result.get("url"),
             },
             "interests": [],
-            "engagement_history": []
+            "engagement_history": [],
         }
 
-    def _calculate_engagement(self, existing: Dict[str, Any]) -> float:
+    def _calculate_engagement(self, existing: dict[str, Any]) -> float:
         """Calculate engagement score for a node."""
 
         score = 0.0
@@ -446,7 +435,7 @@ class ListenerIntelBee(ScoutBee):
 
         return min(score, 1.0)
 
-    def _check_stale_intel(self) -> List[Dict[str, Any]]:
+    def _check_stale_intel(self) -> list[dict[str, Any]]:
         """Find nodes with stale intel that need refreshing."""
 
         intel = self.read_intel()

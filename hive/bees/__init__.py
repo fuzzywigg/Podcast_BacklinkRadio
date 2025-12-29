@@ -13,7 +13,7 @@ This package contains all worker bee agents organized by category:
 All bees inherit from BaseBee and communicate via the honeycomb.
 """
 
-from .base_bee import BaseBee, ScoutBee, EmployedBee, OnlookerBee
+from .base_bee import BaseBee, EmployedBee, OnlookerBee, ScoutBee
 from .community.engagement_bee import EngagementBee
 from .monetization.treasury_guardian_bee import TreasuryGuardianBee
 from .system.constitutional_auditor_bee import ConstitutionalAuditorBee
@@ -25,5 +25,5 @@ __all__ = [
     "OnlookerBee",
     "EngagementBee",
     "TreasuryGuardianBee",
-    "ConstitutionalAuditorBee"
+    "ConstitutionalAuditorBee",
 ]

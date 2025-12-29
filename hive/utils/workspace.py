@@ -5,7 +5,8 @@ Handles interactions with Google Workspace (Sheets, Docs) using a Service Accoun
 """
 
 from pathlib import Path
-from typing import List, Any, Optional
+from typing import Any
+
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -15,12 +16,12 @@ class WorkspaceClient:
     """Client for interacting with Google Sheets and Docs."""
 
     SCOPES = [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/documents',
-        'https://www.googleapis.com/auth/drive'
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/documents",
+        "https://www.googleapis.com/auth/drive",
     ]
 
-    def __init__(self, hive_path: Optional[str] = None):
+    def __init__(self, hive_path: str | None = None):
         """
         Initialize the Workspace client.
 
@@ -49,28 +50,26 @@ class WorkspaceClient:
         if self.creds_path.exists():
             try:
                 self.creds = service_account.Credentials.from_service_account_file(
-                    str(self.creds_path), scopes=self.SCOPES)
+                    str(self.creds_path), scopes=self.SCOPES
+                )
                 self.enabled = True
                 # Build services lazily or upfront
-                self.sheets_service = build(
-                    'sheets', 'v4', credentials=self.creds)
-                self.docs_service = build('docs', 'v1', credentials=self.creds)
-                self.drive_service = build(
-                    'drive', 'v3', credentials=self.creds)
-                print(
-                    f"[{self.__class__.__name__}] Successfully authenticated with Workspace.")
+                self.sheets_service = build("sheets", "v4", credentials=self.creds)
+                self.docs_service = build("docs", "v1", credentials=self.creds)
+                self.drive_service = build("drive", "v3", credentials=self.creds)
+                print(f"[{self.__class__.__name__}] Successfully authenticated with Workspace.")
             except Exception as e:
                 print(f"[{self.__class__.__name__}] Auth Error: {e}")
         else:
             print(
-                f"[{self.__class__.__name__}] Warning: 'google_workspace_key.json' not found. Workspace features disabled.")
+                f"[{self.__class__.__name__}] Warning: 'google_workspace_key.json' not found. Workspace features disabled."
+            )
 
     # ─────────────────────────────────────────────────────────────
     # SHEETS METHODS (The Database)
     # ─────────────────────────────────────────────────────────────
 
-    def append_row(self, spreadsheet_id: str, sheet_range: str,
-                   values: List[Any]) -> bool:
+    def append_row(self, spreadsheet_id: str, sheet_range: str, values: list[Any]) -> bool:
         """
         Append a row of data to a Google Sheet.
 
@@ -83,29 +82,31 @@ class WorkspaceClient:
             return False
 
         try:
-            body = {'values': [values]}
+            body = {"values": [values]}
             self.sheets_service.spreadsheets().values().append(
                 spreadsheetId=spreadsheet_id,
                 range=sheet_range,
-                valueInputOption='USER_ENTERED',
-                body=body
+                valueInputOption="USER_ENTERED",
+                body=body,
             ).execute()
             return True
         except HttpError as err:
             print(f"[{self.__class__.__name__}] Sheet Append Error: {err}")
             return False
 
-    def read_range(self, spreadsheet_id: str,
-                   sheet_range: str) -> List[List[Any]]:
+    def read_range(self, spreadsheet_id: str, sheet_range: str) -> list[list[Any]]:
         """Read data from a range."""
         if not self.enabled:
             return []
 
         try:
-            result = self.sheets_service.spreadsheets().values().get(
-                spreadsheetId=spreadsheet_id, range=sheet_range
-            ).execute()
-            return result.get('values', [])
+            result = (
+                self.sheets_service.spreadsheets()
+                .values()
+                .get(spreadsheetId=spreadsheet_id, range=sheet_range)
+                .execute()
+            )
+            return result.get("values", [])
         except HttpError as err:
             print(f"[{self.__class__.__name__}] Sheet Read Error: {err}")
             return []
@@ -114,8 +115,7 @@ class WorkspaceClient:
     # DOCS METHODS (The Report)
     # ─────────────────────────────────────────────────────────────
 
-    def write_to_doc(self, document_id: str, text: str,
-                     title_style: bool = False) -> bool:
+    def write_to_doc(self, document_id: str, text: str, title_style: bool = False) -> bool:
         """
         Append text to the end of a Google Doc.
 
@@ -130,20 +130,13 @@ class WorkspaceClient:
         try:
             # 1. Get current end index
             doc = self.docs_service.documents().get(documentId=document_id).execute()
-            content = doc.get('body').get('content')
-            end_index = content[-1].get('endIndex') - 1
+            content = doc.get("body").get("content")
+            end_index = content[-1].get("endIndex") - 1
 
-            requests = [
-                {
-                    'insertText': {
-                        'location': {'index': end_index},
-                        'text': text + "\n"
-                    }
-                }
-            ]
+            requests = [{"insertText": {"location": {"index": end_index}, "text": text + "\n"}}]
 
             self.docs_service.documents().batchUpdate(
-                documentId=document_id, body={'requests': requests}
+                documentId=document_id, body={"requests": requests}
             ).execute()
             return True
         except HttpError as err:
@@ -157,22 +150,15 @@ class WorkspaceClient:
 
         try:
             doc = self.docs_service.documents().get(documentId=document_id).execute()
-            content = doc.get('body').get('content')
-            end_index = content[-1].get('endIndex') - 1
+            content = doc.get("body").get("content")
+            end_index = content[-1].get("endIndex") - 1
 
             if end_index <= 1:
                 return True  # Already empty
 
-            requests = [{
-                'deleteContentRange': {
-                    'range': {
-                        'startIndex': 1,
-                        'endIndex': end_index
-                    }
-                }
-            }]
+            requests = [{"deleteContentRange": {"range": {"startIndex": 1, "endIndex": end_index}}}]
             self.docs_service.documents().batchUpdate(
-                documentId=document_id, body={'requests': requests}
+                documentId=document_id, body={"requests": requests}
             ).execute()
             return True
         except HttpError as err:

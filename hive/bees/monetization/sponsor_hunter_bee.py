@@ -8,9 +8,9 @@ Responsibilities:
 - Monitor deal progress
 """
 
-from typing import Any, Dict, List, Optional, Set
-from datetime import datetime, timezone
 import uuid
+from datetime import datetime, timezone
+from typing import Any
 
 from hive.bees.base_bee import ScoutBee
 from hive.utils.web_search import WebSearch
@@ -30,26 +30,26 @@ class SponsorHunterBee(ScoutBee):
 
     # Sponsor categories aligned with station vibe
     TARGET_CATEGORIES = [
-        "music_tech",        # DAWs, plugins, gear
-        "streaming",         # Platforms, apps
-        "lifestyle",         # Coffee, wellness, fashion
-        "creator_tools",     # Editing, design, AI tools
-        "gaming",            # Indie games, peripherals
-        "education",         # Courses, books, learning
-        "local_business"     # Location-specific sponsors
+        "music_tech",  # DAWs, plugins, gear
+        "streaming",  # Platforms, apps
+        "lifestyle",  # Coffee, wellness, fashion
+        "creator_tools",  # Editing, design, AI tools
+        "gaming",  # Indie games, peripherals
+        "education",  # Courses, books, learning
+        "local_business",  # Location-specific sponsors
     ]
 
     # Pipeline stages
     STAGES = [
-        "prospect",      # Identified as potential fit
-        "researched",    # Dug into their brand/fit
-        "pitched",       # Sent initial outreach
-        "negotiating",   # In discussions
-        "active",        # Deal live
-        "churned"        # Relationship ended
+        "prospect",  # Identified as potential fit
+        "researched",  # Dug into their brand/fit
+        "pitched",  # Sent initial outreach
+        "negotiating",  # In discussions
+        "active",  # Deal live
+        "churned",  # Relationship ended
     ]
 
-    def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def work(self, task: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Execute sponsor hunting tasks.
 
@@ -77,14 +77,14 @@ class SponsorHunterBee(ScoutBee):
 
         return {"error": "Unknown action"}
 
-    def _daily_pipeline_review(self) -> Dict[str, Any]:
+    def _daily_pipeline_review(self) -> dict[str, Any]:
         """Daily review of sponsor pipeline."""
 
         intel = self.read_intel()
         pipeline = intel.get("sponsors", {}).get("pipeline", {})
 
         # Count by stage
-        stage_counts = {stage: 0 for stage in self.STAGES}
+        stage_counts = dict.fromkeys(self.STAGES, 0)
         needs_attention = []
 
         for sponsor_id, data in pipeline.items():
@@ -105,10 +105,10 @@ class SponsorHunterBee(ScoutBee):
             "action": "daily_review",
             "pipeline_summary": stage_counts,
             "needs_attention": needs_attention,
-            "total_active": sum(stage_counts.values())
+            "total_active": sum(stage_counts.values()),
         }
 
-    def _scout_prospects(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def _scout_prospects(self, task: dict[str, Any]) -> dict[str, Any]:
         """Scout for new potential sponsors."""
 
         category = task.get("payload", {}).get("category", "all")
@@ -156,7 +156,7 @@ class SponsorHunterBee(ScoutBee):
                         "contact_method": "email",  # Default
                         "discovered_at": datetime.now(timezone.utc).isoformat(),
                         "url": url,
-                        "snippet": brand.get("snippet")
+                        "snippet": brand.get("snippet"),
                     }
                     prospects.append(prospect)
                     self._add_to_pipeline(prospect)
@@ -169,13 +169,9 @@ class SponsorHunterBee(ScoutBee):
 
         self.log(f"Scouted {new_count} new prospects")
 
-        return {
-            "action": "scout",
-            "prospects_found": new_count,
-            "prospects": prospects
-        }
+        return {"action": "scout", "prospects_found": new_count, "prospects": prospects}
 
-    def _add_to_pipeline(self, prospect: Dict[str, Any]) -> str:
+    def _add_to_pipeline(self, prospect: dict[str, Any]) -> str:
         """Add a prospect to the pipeline."""
 
         sponsor_id = str(uuid.uuid4())[:8]
@@ -189,18 +185,18 @@ class SponsorHunterBee(ScoutBee):
             "notes": [
                 f"Discovered: {prospect.get('reason')}",
                 f"URL: {prospect.get('url')}",
-                f"Snippet: {prospect.get('snippet')}"
+                f"Snippet: {prospect.get('snippet')}",
             ],
             "contact": prospect.get("contact_method"),
             "discovered_at": prospect.get("discovered_at"),
-            "last_contact": None
+            "last_contact": None,
         }
 
         self.write_intel("sponsors", "pipeline", {sponsor_id: sponsor_data})
 
         return sponsor_id
 
-    def _research_sponsor(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def _research_sponsor(self, task: dict[str, Any]) -> dict[str, Any]:
         """Deep research on a specific sponsor."""
 
         sponsor_id = task.get("payload", {}).get("sponsor_id")
@@ -221,26 +217,19 @@ class SponsorHunterBee(ScoutBee):
             "budget_signals": "medium",
             "past_sponsorships": [],
             "decision_maker": None,
-            "notes": ["Researched brand presence and fit"]
+            "notes": ["Researched brand presence and fit"],
         }
 
         # Update status
         sponsor["status"] = "researched"
         sponsor["research"] = research
-        sponsor["notes"].append(
-            f"Researched {
-                datetime.now(
-                    timezone.utc).isoformat()}")
+        sponsor["notes"].append(f"Researched {datetime.now(timezone.utc).isoformat()}")
 
         self.write_intel("sponsors", "pipeline", {sponsor_id: sponsor})
 
-        return {
-            "action": "research",
-            "sponsor_id": sponsor_id,
-            "research": research
-        }
+        return {"action": "research", "sponsor_id": sponsor_id, "research": research}
 
-    def _generate_pitch(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_pitch(self, task: dict[str, Any]) -> dict[str, Any]:
         """Generate a pitch for a sponsor."""
 
         sponsor_id = task.get("payload", {}).get("sponsor_id")
@@ -257,26 +246,23 @@ class SponsorHunterBee(ScoutBee):
         pitch = self._create_pitch_template(sponsor)
 
         # Create outreach task
-        self.write_task({
-            "type": "monetization",
-            "bee_type": "outreach",
-            "priority": 6,
-            "payload": {
-                "action": "send_pitch",
-                "sponsor_id": sponsor_id,
-                "pitch": pitch
+        self.write_task(
+            {
+                "type": "monetization",
+                "bee_type": "outreach",
+                "priority": 6,
+                "payload": {"action": "send_pitch", "sponsor_id": sponsor_id, "pitch": pitch},
             }
-        })
+        )
 
         return {
             "action": "pitch",
             "sponsor_id": sponsor_id,
             "pitch_generated": True,
-            "pitch": pitch
+            "pitch": pitch,
         }
 
-    def _create_pitch_template(
-            self, sponsor: Dict[str, Any]) -> Dict[str, Any]:
+    def _create_pitch_template(self, sponsor: dict[str, Any]) -> dict[str, Any]:
         """Create a pitch template for a sponsor."""
 
         company = sponsor.get("company", "Brand")
@@ -305,9 +291,11 @@ Backlink Broadcast
                 "Ad-free environment = higher attention",
                 "Loyal, engaged listener base",
                 "Authentic integration, not interruption",
-                "Flexible partnership structures"]}
+                "Flexible partnership structures",
+            ],
+        }
 
-    def _update_pipeline(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def _update_pipeline(self, task: dict[str, Any]) -> dict[str, Any]:
         """Update a sponsor's pipeline status."""
 
         payload = task.get("payload", {})
@@ -333,11 +321,7 @@ Backlink Broadcast
 
         self.write_intel("sponsors", "pipeline", {sponsor_id: sponsor})
 
-        return {
-            "action": "update",
-            "sponsor_id": sponsor_id,
-            "new_status": sponsor.get("status")
-        }
+        return {"action": "update", "sponsor_id": sponsor_id, "new_status": sponsor.get("status")}
 
 
 if __name__ == "__main__":

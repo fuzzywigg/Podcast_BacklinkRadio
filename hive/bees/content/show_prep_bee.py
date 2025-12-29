@@ -9,7 +9,7 @@ Responsibilities:
 """
 
 import json
-from typing import Any, Dict, Optional
+from typing import Any
 
 from hive.bees.base_bee import EmployedBee
 from hive.utils.trivia_fetcher import TriviaFetcher
@@ -27,7 +27,7 @@ class ShowPrepBee(EmployedBee):
     BEE_NAME = "Show Prep Bee"
     CATEGORY = "content"
 
-    def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def work(self, task: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Generate show prep materials.
 
@@ -52,12 +52,11 @@ class ShowPrepBee(EmployedBee):
             "talking_points": [],
             "listener_shoutouts": [],
             "trivia": [],
-            "local_context": {}
+            "local_context": {},
         }
 
         # Generate time-appropriate talking points
-        prep_materials["talking_points"] = self._generate_talking_points(
-            time_slot)
+        prep_materials["talking_points"] = self._generate_talking_points(time_slot)
 
         # Pull listener intel for shoutouts
         known_nodes = intel.get("listeners", {}).get("known_nodes", {})
@@ -70,16 +69,12 @@ class ShowPrepBee(EmployedBee):
         prep_materials["trivia"] = self._generate_trivia()
 
         # Write to state for DJ to pick up
-        self.write_state({
-            "show_prep": prep_materials
-        })
+        self.write_state({"show_prep": prep_materials})
 
         self.log(
-            f"Prep complete: {
-                len(
-                    prep_materials['talking_points'])} talking points, " f"{
-                len(
-                    prep_materials['listener_shoutouts'])} shoutouts ready")
+            f"Prep complete: {len(prep_materials['talking_points'])} talking points, "
+            f"{len(prep_materials['listener_shoutouts'])} shoutouts ready"
+        )
 
         return prep_materials
 
@@ -91,23 +86,23 @@ class ShowPrepBee(EmployedBee):
             "morning": [
                 {"type": "energy", "text": "Rise and grind. New day, new frequencies."},
                 {"type": "weather", "text": "Check your local conditions before heading out."},
-                {"type": "motivation", "text": "The queue is locked and loaded. Let's move."}
+                {"type": "motivation", "text": "The queue is locked and loaded. Let's move."},
             ],
             "afternoon": [
                 {"type": "focus", "text": "Midday momentum. Stay locked in."},
                 {"type": "productivity", "text": "This one's for the grinders still at it."},
-                {"type": "transition", "text": "Halfway there. Keep the signal strong."}
+                {"type": "transition", "text": "Halfway there. Keep the signal strong."},
             ],
             "evening": [
                 {"type": "unwind", "text": "Day's done. Time to decompress."},
                 {"type": "vibe", "text": "Evening frequencies settling in."},
-                {"type": "chill", "text": "No rush now. Just the music."}
+                {"type": "chill", "text": "No rush now. Just the music."},
             ],
             "night": [
                 {"type": "late", "text": "Night owls, you know who you are."},
                 {"type": "deep", "text": "The quiet hours. Best transmission time."},
-                {"type": "cosmic", "text": "Out there in the dark, we're all connected."}
-            ]
+                {"type": "cosmic", "text": "Out there in the dark, we're all connected."},
+            ],
         }
 
         return points_by_slot.get(time_slot, points_by_slot["evening"])
@@ -122,7 +117,7 @@ class ShowPrepBee(EmployedBee):
             "node_id": node_id,
             "city": city,
             "template": f"Signal coming in from {city}. We see you.",
-            "context": node_data.get("notes", [])[-1] if node_data.get("notes") else None
+            "context": node_data.get("notes", [])[-1] if node_data.get("notes") else None,
         }
 
     def _generate_trivia(self) -> list:
@@ -131,7 +126,7 @@ class ShowPrepBee(EmployedBee):
         # Securely read config from hive root, avoiding path traversal
         config = {}
         try:
-            with open(self.hive_path / "config.json", 'r') as f:
+            with open(self.hive_path / "config.json") as f:
                 config = json.load(f)
         except Exception:
             self.log("Warning: Could not load config.json for trivia", level="warning")

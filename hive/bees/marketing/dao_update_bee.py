@@ -6,8 +6,7 @@ Responsibilities:
 - Process votes via payment injection (handled in Engagement/Economy, but coordinated here).
 """
 
-from typing import Any, Dict, Optional
-from datetime import datetime, timezone
+from typing import Any
 
 from hive.bees.base_bee import EmployedBee
 
@@ -21,8 +20,7 @@ class DAOUpdateBee(EmployedBee):
     BEE_NAME = "DAO Update Bee"
     CATEGORY = "marketing"
 
-    async def work(
-            self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def work(self, task: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Execute DAO tasks.
         """
@@ -44,21 +42,13 @@ class DAOUpdateBee(EmployedBee):
             "type": "marketing",
             "bee_type": "social_poster",
             "priority": 5,
-            "payload": {
-                "action": "post",
-                "content": tweet,
-                "platforms": ["twitter"]
-            }
+            "payload": {"action": "post", "content": tweet, "platforms": ["twitter"]},
         }
         self.write_task(social_task)
 
-        return {
-            "status": "success",
-            "tweet_queued": True,
-            "proposal_id": proposal["id"]
-        }
+        return {"status": "success", "tweet_queued": True, "proposal_id": proposal["id"]}
 
-    def _compose_proposal_tweet(self, proposal: Dict) -> str:
+    def _compose_proposal_tweet(self, proposal: dict) -> str:
         return (
             f"🗳️ DAO Proposal #{proposal['id']}: {proposal['title']}\n"
             f"💰 Requested: ${proposal['amount']}\n"
@@ -69,11 +59,13 @@ class DAOUpdateBee(EmployedBee):
 
     def _fetch_active_proposals(self) -> list:
         # Simulated
-        return [{
-            "id": "5",
-            "title": "Fund physical broadcast expansion",
-            "amount": 500,
-            "votes_for": 12,
-            "votes_against": 2,
-            "deadline": "2023-12-31"
-        }]
+        return [
+            {
+                "id": "5",
+                "title": "Fund physical broadcast expansion",
+                "amount": 500,
+                "votes_for": 12,
+                "votes_against": 2,
+                "deadline": "2023-12-31",
+            }
+        ]

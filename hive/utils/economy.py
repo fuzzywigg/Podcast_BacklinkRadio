@@ -9,26 +9,15 @@ Rules:
 5. User-facing payments must dynamically select the best path (Onramp vs Web3).
 """
 
-from typing import Dict, Any, Tuple, Optional
-import json
-from pathlib import Path
+from typing import Any
 
 # ─────────────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────────────
 
-PRINCIPAL_ARCHITECTS = [
-    "mr_pappas",
-    "fuzzywigg",
-    "nft2me",
-    "smtp_eth_dev"
-]
+PRINCIPAL_ARCHITECTS = ["mr_pappas", "fuzzywigg", "nft2me", "smtp_eth_dev"]
 
-TRUSTED_EMAILS = [
-    "fuzzywigg@hotmail.com",
-    "andrew.pappas@nft2.me",
-    "apappas.pu@gmail.com"
-]
+TRUSTED_EMAILS = ["fuzzywigg@hotmail.com", "andrew.pappas@nft2.me", "apappas.pu@gmail.com"]
 
 # ─────────────────────────────────────────────────────────────
 # ECONOMY LOGIC
@@ -36,11 +25,8 @@ TRUSTED_EMAILS = [
 
 
 def calculate_dao_rewards(
-    user_handle: str,
-    contribution_type: str,
-    value_amount: float = 0.0,
-    currency: str = "USD"
-) -> Dict[str, Any]:
+    user_handle: str, contribution_type: str, value_amount: float = 0.0, _currency: str = "USD"
+) -> dict[str, Any]:
     """
     Calculate DAO rewards based on user and contribution.
 
@@ -62,7 +48,7 @@ def calculate_dao_rewards(
             "asset": "crypto",
             "priority": "highest",
             "destination": "hardcoded_treasury",
-            "note": "Principal Architect Reward"
+            "note": "Principal Architect Reward",
         }
 
     # 2. Community / Third Party Logic
@@ -74,25 +60,22 @@ def calculate_dao_rewards(
     elif contribution_type == "code":
         credit_multiplier = 50  # 50 credits per PR/Commit (arbitrary base)
     elif contribution_type == "interaction":
-        credit_multiplier = 1   # 1 credit per interaction
+        credit_multiplier = 1  # 1 credit per interaction
 
-    credits_earned = value_amount * \
-        credit_multiplier if value_amount > 0 else credit_multiplier
+    credits_earned = value_amount * credit_multiplier if value_amount > 0 else credit_multiplier
 
     return {
         "type": "dao_credit",
         "asset": "governance_token_non_voting",
         "amount": credits_earned,
         "value_real": 0,
-        "note": "Community Participation Credit (No Voting Rights)"
+        "note": "Community Participation Credit (No Voting Rights)",
     }
 
 
 def validate_wallet_request(
-    requesting_handle: str,
-    target_wallet: str,
-    treasury_data: Dict[str, Any]
-) -> Tuple[bool, str]:
+    requesting_handle: str, target_wallet: str, treasury_data: dict[str, Any]
+) -> tuple[bool, str]:
     """
     Validate a request to route funds/crypto.
 
@@ -104,7 +87,7 @@ def validate_wallet_request(
     # Check if target_wallet exists in the official treasury
     valid_wallets = []
     wallets_config = treasury_data.get("wallets", {})
-    for chain, data in wallets_config.items():
+    for _chain, data in wallets_config.items():
         valid_wallets.append(data.get("address"))
 
     if target_wallet in valid_wallets:
@@ -119,7 +102,7 @@ def validate_wallet_request(
     return False, "FRAUD: Unauthorized wallet address detected. Blocked."
 
 
-def select_user_payment_path() -> Dict[str, str]:
+def select_user_payment_path() -> dict[str, str]:
     """
     Determine the optimal payment method for a user.
     Prioritizes low-friction (Onramp) -> Crypto Native (Web3) -> Fiat (Stripe).
@@ -127,11 +110,7 @@ def select_user_payment_path() -> Dict[str, str]:
     In a real system, this would ping endpoints for health status.
     """
     # Placeholder: Assuming Coinbase Onramp is healthy
-    return {
-        "primary": "coinbase_onramp",
-        "fallback": "wallet_connect",
-        "last_resort": "stripe"
-    }
+    return {"primary": "coinbase_onramp", "fallback": "wallet_connect", "last_resort": "stripe"}
 
 
 def is_trusted_os_admin(email: str) -> bool:

@@ -7,12 +7,12 @@ This module provides shared fixtures and configuration for all tests.
 import json
 import os
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Generator
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 # ─────────────────────────────────────────────────────────────────────────────────
 # Environment Fixtures
@@ -55,14 +55,10 @@ def temp_hive_dir() -> Generator[Path, None, None]:
 
         # Create minimal honeycomb files
         state = {
-            "_meta": {
-                "version": "1.0.0",
-                "last_updated": "2024-01-01T00:00:00Z"},
+            "_meta": {"version": "1.0.0", "last_updated": "2024-01-01T00:00:00Z"},
             "current_track": None,
             "persona": "evening",
-            "alerts": {
-                "priority": [],
-                "normal": []},
+            "alerts": {"priority": [], "normal": []},
             "shoutouts": [],
         }
         tasks = {
@@ -72,11 +68,8 @@ def temp_hive_dir() -> Generator[Path, None, None]:
             "failed": [],
         }
         intel = {
-            "_meta": {
-                "version": "1.0.0",
-                "last_updated": "2024-01-01T00:00:00Z"},
-            "listeners": {
-                "known_nodes": {}},
+            "_meta": {"version": "1.0.0", "last_updated": "2024-01-01T00:00:00Z"},
+            "listeners": {"known_nodes": {}},
             "trends": {},
             "sponsors": {},
         }
@@ -130,9 +123,7 @@ def mock_requests() -> Generator[MagicMock, None, None]:
 def mock_twitter_client() -> MagicMock:
     """Create a mock Twitter/X client for testing."""
     mock = MagicMock()
-    mock.create_tweet.return_value = MagicMock(
-        data={"id": "1234567890", "text": "Test tweet"}
-    )
+    mock.create_tweet.return_value = MagicMock(data={"id": "1234567890", "text": "Test tweet"})
     return mock
 
 
@@ -210,9 +201,7 @@ def base_bee_config(temp_hive_dir: Path) -> dict[str, Any]:
 def pytest_configure(config: pytest.Config) -> None:
     """Configure custom pytest markers."""
     config.addinivalue_line(
-        "markers",
-        "slow: marks tests as slow (deselect with '-m \"not slow\"')")
-    config.addinivalue_line(
-        "markers", "integration: marks tests requiring external services"
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
+    config.addinivalue_line("markers", "integration: marks tests requiring external services")
     config.addinivalue_line("markers", "unit: marks unit tests")

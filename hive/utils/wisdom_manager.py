@@ -5,9 +5,10 @@ Center for Episodic Memory and Learned Constraints (System 3).
 
 import json
 import logging
-from pathlib import Path
-from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
 
 class WisdomManager:
     """
@@ -19,7 +20,7 @@ class WisdomManager:
         self.hive_path = hive_path
         self.honeycomb_path = hive_path / "hive" / "honeycomb"
         self.wisdom_path = self.honeycomb_path / "wisdom.json"
-        
+
         # Ensure proper initialization
         self._ensure_wisdom_store()
 
@@ -32,54 +33,48 @@ class WisdomManager:
                 "global_constraints": [],
                 "episodes": [],
                 "theology": {
-                    "core_tenets": [
-                        "The Hive exists to Broadcast.",
-                        "The 4th Wall is Sacred."
-                    ]
-                }
+                    "core_tenets": ["The Hive exists to Broadcast.", "The 4th Wall is Sacred."]
+                },
             }
             self._write_wisdom(initial_state)
 
-    def _read_wisdom(self) -> Dict[str, Any]:
+    def _read_wisdom(self) -> dict[str, Any]:
         """Read the raw wisdom store."""
         try:
-            with open(self.wisdom_path, 'r', encoding='utf-8') as f:
+            with open(self.wisdom_path, encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
             logging.error(f"Failed to read wisdom: {e}")
             return {"global_constraints": [], "episodes": []}
 
-    def _write_wisdom(self, data: Dict[str, Any]):
+    def _write_wisdom(self, data: dict[str, Any]):
         """Write to wisdom store atomically."""
         temp_path = self.wisdom_path.with_suffix(".tmp")
         try:
-            with open(temp_path, 'w', encoding='utf-8') as f:
+            with open(temp_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
             temp_path.replace(self.wisdom_path)
         except Exception as e:
             logging.error(f"Failed to write wisdom: {e}")
 
-    def get_relevant_wisdom(self, context_tags: List[str] = []) -> Dict[str, Any]:
+    def get_relevant_wisdom(self, context_tags: list[str] | None = None) -> dict[str, Any]:
         """
         Retrieve wisdom relevant to the current context.
-        Currently returns ALL global constraints. 
+        Currently returns ALL global constraints.
         TODO: Implement vector/tag-based filtering for Episodes.
         """
         data = self._read_wisdom()
-        
+
         # Always return global constraints
         constraints = data.get("global_constraints", [])
-        
+
         # Simple Logic: If we ever have tagged episodes, filter here.
         # For now, return the 'Theology' as context.
         theology = data.get("theology", {})
 
-        return {
-            "constraints": constraints,
-            "theology": theology
-        }
+        return {"constraints": constraints, "theology": theology}
 
-    def add_lesson(self, lesson: Dict[str, Any]):
+    def add_lesson(self, lesson: dict[str, Any]):
         """
         Add a new lesson (Constraint or Episode) to the store.
         args:
@@ -91,11 +86,8 @@ class WisdomManager:
             }
         """
         data = self._read_wisdom()
-        
-        entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            **lesson
-        }
+
+        entry = {"timestamp": datetime.now(timezone.utc).isoformat(), **lesson}
 
         if lesson.get("type") == "constraint":
             # Check for duplicates? simple text check for now
@@ -104,7 +96,7 @@ class WisdomManager:
                 if "global_constraints" not in data:
                     data["global_constraints"] = []
                 data["global_constraints"].append(entry)
-        
+
         elif lesson.get("type") == "episode":
             if "episodes" not in data:
                 data["episodes"] = []

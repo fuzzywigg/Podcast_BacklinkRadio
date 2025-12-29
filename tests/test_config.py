@@ -11,11 +11,9 @@ from unittest.mock import patch
 import pytest
 
 from hive.utils.config import (
-    Config,
     HiveConfig,
     LLMConfig,
     get_config,
-    get_llm_config,
     get_schedule,
     is_bee_enabled,
     reload_config,
@@ -76,9 +74,7 @@ class TestConfigLoading:
     @pytest.fixture
     def temp_config_file(self) -> Path:
         """Create a temporary config file."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             config_data = {
                 "hive": {
                     "name": "Test Hive",
@@ -139,9 +135,7 @@ class TestScheduleHelpers:
     @pytest.fixture
     def config_with_schedules(self) -> Path:
         """Create config with schedules."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             config_data = {
                 "schedules": {
                     "trend_scout": {

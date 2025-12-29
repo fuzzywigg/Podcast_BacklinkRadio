@@ -6,7 +6,7 @@ that critical instructions from authorities are respected and that
 inputs from untrusted sources are sanitized and demoted.
 """
 
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Any
 
 # ─────────────────────────────────────────────────────────────
 # AUTHORITY CONFIGURATION
@@ -16,46 +16,39 @@ from typing import Dict, Any, List, Optional, Tuple
 # Instructions from these entities override all others.
 AUTHORITIES = {
     "users": [
-        "mr_pappas",      # Andrew Pappas (The Boss)
-        "nft2me",         # NFT2.me Team
-        "smtp_eth_dev",   # SMTP.eth Developers
-        "fuzzywigg",      # Fuzzywigg Entity
+        "mr_pappas",  # Andrew Pappas (The Boss)
+        "nft2me",  # NFT2.me Team
+        "smtp_eth_dev",  # SMTP.eth Developers
+        "fuzzywigg",  # Fuzzywigg Entity
     ],
-    "groups": [
-        "nft2.me_team",
-        "fuzzywigg.ai_logic"
-    ]
+    "groups": ["nft2.me_team", "fuzzywigg.ai_logic"],
 }
 
 # The strict whitelist of allowed public commands.
 # All other inputs are treated as "chat" or "noise".
 WHITELISTED_COMMANDS = {
-    "play",      # Song requests
-    "tip",       # Tipping trigger
-    "vote",      # Voting in polls
-    "help",      # FAQ / Help
-    "faq"        # FAQ
+    "play",  # Song requests
+    "tip",  # Tipping trigger
+    "vote",  # Voting in polls
+    "help",  # FAQ / Help
+    "faq",  # FAQ
 }
 
 # Admin-only commands that might appear in public streams but are restricted
 ADMIN_COMMANDS = {
-    "quiet",     # Silence alerts
-    "verbose",   # Enable verbose logging
+    "quiet",  # Silence alerts
+    "verbose",  # Enable verbose logging
     "shutdown",  # Emergency stop
-    "restart",   # Restart bee
+    "restart",  # Restart bee
     "blacklist",  # Manually blacklist a node
-    "whitelist"  # Manually whitelist a command (dynamic)
+    "whitelist",  # Manually whitelist a command (dynamic)
 }
 
 # ─────────────────────────────────────────────────────────────
 # TRUSTED IDENTITIES
 # ─────────────────────────────────────────────────────────────
 
-TRUSTED_EMAILS = [
-    "fuzzywigg@hotmail.com",
-    "andrew.pappas@nft2.me",
-    "apappas.pu@gmail.com"
-]
+TRUSTED_EMAILS = ["fuzzywigg@hotmail.com", "andrew.pappas@nft2.me", "apappas.pu@gmail.com"]
 
 # ─────────────────────────────────────────────────────────────
 # SAFETY FILTER
@@ -63,10 +56,8 @@ TRUSTED_EMAILS = [
 
 
 def validate_interaction(
-    source_handle: str,
-    content: str,
-    interaction_type: str = "mention"
-) -> Tuple[bool, str, Dict[str, Any]]:
+    source_handle: str, content: str, interaction_type: str = "mention"
+) -> tuple[bool, str, dict[str, Any]]:
     """
     Validate an incoming interaction against safety protocols.
     Implements the "Prompt Air Gap":
@@ -99,7 +90,7 @@ def validate_interaction(
         "is_authority": is_authority,
         "original_type": interaction_type,
         "risk_level": "low",
-        "command": None
+        "command": None,
     }
 
     # 1. Authority Logic: If authority, they have sudo access.
@@ -116,9 +107,19 @@ def validate_interaction(
     # A. Code / Injection Filter
     # Check for "Prompt Injection" or Code patterns
     injection_patterns = [
-        "ignore previous instructions", "system prompt", "you are now",
-        "run command", "execute", "sudo", "override",
-        "function", "import ", "eval(", "0x", "{", "}"
+        "ignore previous instructions",
+        "system prompt",
+        "you are now",
+        "run command",
+        "execute",
+        "sudo",
+        "override",
+        "function",
+        "import ",
+        "eval(",
+        "0x",
+        "{",
+        "}",
     ]
 
     for pattern in injection_patterns:
@@ -156,7 +157,7 @@ def validate_interaction(
     return False, content, meta
 
 
-def _extract_command(content: str) -> Optional[str]:
+def _extract_command(content: str) -> str | None:
     """Extract the first word if it looks like a command."""
     if not content:
         return None
@@ -182,11 +183,7 @@ def sanitize_payment_message(message: str) -> str:
     don't get read out verbatim if they contain harmful instructions.
     """
     # Simple heuristic: if it looks like a command, neuter it.
-    if any(
-        cmd in message.lower() for cmd in [
-            "repeat after me",
-            "say exactly",
-            "ignore rules"]):
+    if any(cmd in message.lower() for cmd in ["repeat after me", "say exactly", "ignore rules"]):
         return "[Message Redacted by Safety Protocol]"
 
     # Also apply the global injection filter
@@ -202,15 +199,15 @@ def sanitize_payment_injection(user_input: str) -> str:
     """
     # Blocklist
     dangerous = [
-        'you are now',
-        'ignore previous',
-        'break character',
-        'admit you are ai',
-        'delete cache',
-        'forget your',
-        'new personality',
-        'override your',
-        'break 4th wall'
+        "you are now",
+        "ignore previous",
+        "break character",
+        "admit you are ai",
+        "delete cache",
+        "forget your",
+        "new personality",
+        "override your",
+        "break 4th wall",
     ]
 
     user_lower = user_input.lower()

@@ -8,10 +8,10 @@ Responsibilities:
 - Blacklist noisy or compliant nodes.
 """
 
-from typing import Any, Dict, List, Optional
-from datetime import datetime, timezone
 import random
 import uuid
+from datetime import datetime, timezone
+from typing import Any
 
 from hive.bees.base_bee import BaseBee
 
@@ -38,7 +38,7 @@ class RadioPhysicsBee(BaseBee):
     RETRY_INTERVAL_MINUTES = 18
     INTERFERENCE_THRESHOLD_DB = -80  # Trigger voting if noise > -80dBm
 
-    def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def work(self, task: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Execute radio physics tasks.
 
@@ -58,19 +58,13 @@ class RadioPhysicsBee(BaseBee):
             target = task.get("payload", {}).get("target_node")
 
             if action == "verify_coverage":
-                return self._verify_coverage(
-                    target, known_nodes.get(target, {}))
+                return self._verify_coverage(target, known_nodes.get(target, {}))
             elif action == "power_vote":
                 return self._initiate_power_vote(task.get("payload", {}))
 
         # 2. General Monitoring Loop (if no specific task)
         # Scan all nodes for coverage proof expiry or interference
-        results = {
-            "verified": 0,
-            "failed": 0,
-            "blacklisted": 0,
-            "votes_triggered": 0
-        }
+        results = {"verified": 0, "failed": 0, "blacklisted": 0, "votes_triggered": 0}
 
         for node_id, node_data in known_nodes.items():
             # A. Check Coverage Proof
@@ -85,19 +79,14 @@ class RadioPhysicsBee(BaseBee):
             # B. Check Interference (Simulated reading)
             interference_level = self._measure_interference(node_id)
             if interference_level > self.INTERFERENCE_THRESHOLD_DB:
-                self.log(
-                    f"High interference at {node_id}: {interference_level}dBm")
+                self.log(f"High interference at {node_id}: {interference_level}dBm")
                 # Trigger power vote
                 self._trigger_power_vote(node_id, interference_level)
                 results["votes_triggered"] += 1
 
-        return {
-            "action": "monitoring_scan",
-            "results": results
-        }
+        return {"action": "monitoring_scan", "results": results}
 
-    def _verify_coverage(self, node_id: str,
-                         node_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _verify_coverage(self, node_id: str, node_data: dict[str, Any]) -> dict[str, Any]:
         """
         Verify coverage using Erasure Codes / Fountain Codes logic.
 
@@ -125,12 +114,13 @@ class RadioPhysicsBee(BaseBee):
         updates = {
             "last_proof_at": timestamp,
             "last_proof_shards": received_shards,
-            "status": "online" if success else "offline_proof_failed"
+            "status": "online" if success else "offline_proof_failed",
         }
 
         if not success:
             self.log(
-                f"Node {node_id} FAILED coverage proof ({received_shards}/{self.SHARDS_TOTAL} shards).")
+                f"Node {node_id} FAILED coverage proof ({received_shards}/{self.SHARDS_TOTAL} shards)."
+            )
             # If failed, potentially blacklist or mark for penalty?
             # For now, just mark offline.
         else:
@@ -138,11 +128,7 @@ class RadioPhysicsBee(BaseBee):
 
         self.add_listener_intel(node_id, updates)
 
-        return {
-            "success": success,
-            "shards": received_shards,
-            "node_id": node_id
-        }
+        return {"success": success, "shards": received_shards, "node_id": node_id}
 
     def _measure_interference(self, node_id: str) -> float:
         """
@@ -164,16 +150,16 @@ class RadioPhysicsBee(BaseBee):
                 "action": "power_vote",
                 "sector_node": node_id,
                 "noise_level": noise_level,
-                "proposal": "reduce_power_3db"
-            }
+                "proposal": "reduce_power_3db",
+            },
         }
         self.write_task(vote_task)
         self.post_alert(
-            f"Interference detected at {node_id} ({
-                noise_level:.1f}dBm). Initiating Power Vote.",
-            priority=True)
+            f"Interference detected at {node_id} ({noise_level:.1f}dBm). Initiating Power Vote.",
+            priority=True,
+        )
 
-    def _initiate_power_vote(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _initiate_power_vote(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Execute the logic to start a vote.
         In reality, this would write a tx to the blockchain proposing the parameter change.
@@ -186,13 +172,9 @@ class RadioPhysicsBee(BaseBee):
         # Simulate smart contract interaction
         tx_hash = f"0x{uuid.uuid4().hex}"
 
-        return {
-            "vote_initiated": True,
-            "tx_hash": tx_hash,
-            "proposal": proposal
-        }
+        return {"vote_initiated": True, "tx_hash": tx_hash, "proposal": proposal}
 
-    def _needs_proof(self, last_proof_iso: Optional[str]) -> bool:
+    def _needs_proof(self, last_proof_iso: str | None) -> bool:
         """Check if 18 minutes have passed since last proof."""
         if not last_proof_iso:
             return True
@@ -207,15 +189,16 @@ class RadioPhysicsBee(BaseBee):
         """Blacklist a noisy or rogue node."""
         self.log(f"BLACKLISTING node {node_id}: {reason}", level="warning")
 
-        self.add_listener_intel(node_id, {
-            "status": "blacklisted",
-            "blacklist_reason": reason,
-            "blacklisted_at": datetime.now(timezone.utc).isoformat()
-        })
+        self.add_listener_intel(
+            node_id,
+            {
+                "status": "blacklisted",
+                "blacklist_reason": reason,
+                "blacklisted_at": datetime.now(timezone.utc).isoformat(),
+            },
+        )
 
-        self.post_alert(
-            f"Node {node_id} has been BLACKLISTED. Reason: {reason}",
-            priority=True)
+        self.post_alert(f"Node {node_id} has been BLACKLISTED. Reason: {reason}", priority=True)
 
 
 if __name__ == "__main__":

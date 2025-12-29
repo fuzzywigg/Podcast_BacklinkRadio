@@ -1,5 +1,6 @@
-from typing import List, Dict, Any, Optional
 import json
+from typing import Any
+
 
 class PromptEngineer:
     """
@@ -13,8 +14,8 @@ class PromptEngineer:
     def __init__(self, role: str, goal: str):
         self.role = role
         self.goal = goal
-        self.context_items: List[str] = []
-        self.constraints: List[str] = []
+        self.context_items: list[str] = []
+        self.constraints: list[str] = []
         self.format_instruction = ""
         self.evidence_required = False
 
@@ -50,7 +51,7 @@ class PromptEngineer:
 
     def build_system_prompt(self) -> str:
         """Construct the final system prompt."""
-        
+
         # 1. Context Anchor
         prompt = f"ROLE: {self.role}\n"
         prompt += f"GOAL: {self.goal}\n\n"
@@ -80,16 +81,16 @@ class PromptEngineer:
         return prompt
 
     @staticmethod
-    def parse_json_output(response_text: str) -> Dict[str, Any]:
+    def parse_json_output(response_text: str) -> dict[str, Any]:
         """Safely parse the LLM output, handling potential markdown wrapping."""
         clean_text = response_text.strip()
         if clean_text.startswith("```json"):
             clean_text = clean_text[7:]
         if clean_text.endswith("```"):
             clean_text = clean_text[:-3]
-        
+
         try:
             return json.loads(clean_text.strip())
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             # Fallback: simple text return wrapped in dict if parsing fails
             return {"error": "json_parse_error", "raw_content": response_text}

@@ -5,14 +5,15 @@ Uses "malicious compliance" to find high-value targets by scraping
 search engine results for commercial intent keywords.
 """
 
-import requests
-from bs4 import BeautifulSoup
-import time
 import random
-from typing import List, Dict, Any
-from urllib.parse import urlparse
 import re
 import sys
+import time
+from typing import Any
+from urllib.parse import urlparse
+
+import requests
+from bs4 import BeautifulSoup
 
 
 class WebSearch:
@@ -25,11 +26,13 @@ class WebSearch:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.5",
-        "Referer": "https://duckduckgo.com/"}
+        "Referer": "https://duckduckgo.com/",
+    }
 
     @staticmethod
-    def search(query: str, num_results: int = 10,
-               include_social: bool = False) -> List[Dict[str, Any]]:
+    def search(
+        query: str, num_results: int = 10, include_social: bool = False
+    ) -> list[dict[str, Any]]:
         """
         Perform a web search and return parsed results.
         """
@@ -37,19 +40,18 @@ class WebSearch:
             # Sleep briefly to avoid aggressive rate limiting
             time.sleep(random.uniform(1.0, 3.0))
 
-            payload = {'q': query}
+            payload = {"q": query}
             response = requests.post(
-                WebSearch.BASE_URL,
-                data=payload,
-                headers=WebSearch.HEADERS,
-                timeout=15)
+                WebSearch.BASE_URL, data=payload, headers=WebSearch.HEADERS, timeout=15
+            )
 
             # Check for bot detection (202 usually means challenge page on DDG
             # HTML)
             if response.status_code == 202 or "anomaly-modal" in response.text:
                 print(
                     f"[WebSearch] Bot detection triggered for '{query}'. Using simulation.",
-                    file=sys.stderr)
+                    file=sys.stderr,
+                )
                 return WebSearch._simulate_results(query, num_results)
 
             response.raise_for_status()
@@ -59,34 +61,32 @@ class WebSearch:
             if not results:
                 print(
                     f"[WebSearch] No results found for '{query}'. Using simulation.",
-                    file=sys.stderr)
+                    file=sys.stderr,
+                )
                 return WebSearch._simulate_results(query, num_results)
 
             return results
 
         except requests.RequestException as e:
-            print(
-                f"[WebSearch] Network error searching for '{query}': {e}",
-                file=sys.stderr)
+            print(f"[WebSearch] Network error searching for '{query}': {e}", file=sys.stderr)
             return WebSearch._simulate_results(query, num_results)
         except Exception as e:
-            print(
-                f"[WebSearch] Unexpected error searching for '{query}': {e}",
-                file=sys.stderr)
+            print(f"[WebSearch] Unexpected error searching for '{query}': {e}", file=sys.stderr)
             return WebSearch._simulate_results(query, num_results)
 
     @staticmethod
-    def _parse_ddg_html(html: str, limit: int,
-                        include_social: bool = False) -> List[Dict[str, Any]]:
+    def _parse_ddg_html(
+        html: str, limit: int, include_social: bool = False
+    ) -> list[dict[str, Any]]:
         """Parse DuckDuckGo HTML results."""
         if not html:
             return []
 
-        soup = BeautifulSoup(html, 'html.parser')
+        soup = BeautifulSoup(html, "html.parser")
         results = []
 
         # DDG HTML structure selectors
-        result_divs = soup.find_all('div', class_='result')
+        result_divs = soup.find_all("div", class_="result")
 
         for div in result_divs:
             if len(results) >= limit:
@@ -94,31 +94,32 @@ class WebSearch:
 
             try:
                 # Title and Link
-                title_tag = div.find('a', class_='result__a')
+                title_tag = div.find("a", class_="result__a")
                 if not title_tag:
                     continue
 
                 title = title_tag.get_text(strip=True)
-                link = title_tag.get('href')
+                link = title_tag.get("href")
 
                 if not link or not title:
                     continue
 
                 # Snippet
-                snippet_tag = div.find('a', class_='result__snippet')
-                snippet = snippet_tag.get_text(
-                    strip=True) if snippet_tag else ""
+                snippet_tag = div.find("a", class_="result__snippet")
+                snippet = snippet_tag.get_text(strip=True) if snippet_tag else ""
 
                 # Filter out generic or non-useful links
                 if not include_social and WebSearch._is_ignored_domain(link):
                     continue
 
-                results.append({
-                    "title": title,
-                    "url": link,
-                    "snippet": snippet,
-                    "domain": urlparse(link).netloc
-                })
+                results.append(
+                    {
+                        "title": title,
+                        "url": link,
+                        "snippet": snippet,
+                        "domain": urlparse(link).netloc,
+                    }
+                )
 
             except Exception:
                 continue
@@ -126,7 +127,7 @@ class WebSearch:
         return results
 
     @staticmethod
-    def _simulate_results(query: str, limit: int) -> List[Dict[str, Any]]:
+    def _simulate_results(query: str, limit: int) -> list[dict[str, Any]]:
         """
         Generate realistic mock results when scraping fails.
         This ensures the bee logic can be tested and verified even if blocked.
@@ -139,7 +140,7 @@ class WebSearch:
             "creator": ["Create", "Edit", "Pixel", "Art", "Design"],
             "gaming": ["Play", "Game", "Bit", "Pixel", "Quest"],
             "education": ["Learn", "Academy", "Skill", "Master", "Brain"],
-            "local": ["City", "Town", "Local", "Metro", "Urban"]
+            "local": ["City", "Town", "Local", "Metro", "Urban"],
         }
 
         context = "tech"
@@ -153,24 +154,19 @@ class WebSearch:
 
         results = []
         for _ in range(limit):
-            company = f"{
-                random.choice(prefixes)}{
-                random.choice(
-                    [
-                        'Lab',
-                        'Hub',
-                        'Works',
-                        'Box',
-                        'ify',
-                        'ly'])}"
+            company = f"{random.choice(prefixes)}{
+                random.choice(['Lab', 'Hub', 'Works', 'Box', 'ify', 'ly'])
+            }"
             domain = f"www.{company.lower()}.com"
 
-            results.append({
-                "title": f"{company} - The Leader in {context.capitalize()} Solutions",
-                "url": f"https://{domain}/pricing",
-                "snippet": f"{company} offers the best {context} platform for professionals. Enterprise pricing available. Book a demo today.",
-                "domain": domain
-            })
+            results.append(
+                {
+                    "title": f"{company} - The Leader in {context.capitalize()} Solutions",
+                    "url": f"https://{domain}/pricing",
+                    "snippet": f"{company} offers the best {context} platform for professionals. Enterprise pricing available. Book a demo today.",
+                    "domain": domain,
+                }
+            )
 
         return results
 
@@ -196,7 +192,7 @@ class WebSearch:
             "glassdoor.com",
             "trustpilot.com",
             "capterra.com",
-            "g2.com"
+            "g2.com",
         ]
         try:
             domain = urlparse(url).netloc.lower()
@@ -209,7 +205,7 @@ class WebSearch:
         return False
 
     @staticmethod
-    def find_brands_for_category(category: str) -> List[Dict[str, Any]]:
+    def find_brands_for_category(category: str) -> list[dict[str, Any]]:
         """
         Find potential sponsor brands for a category using aggressive commercial queries.
         """
@@ -223,7 +219,7 @@ class WebSearch:
             f'"{search_cat}" "contact sales" -linkedin',
             f'site:.com "{search_cat}" "become a partner"',
             f'"{search_cat}" "affiliate program" -coupon',
-            f'brands like "{search_cat}"'
+            f'brands like "{search_cat}"',
         ]
 
         # Specific overrides for better context
@@ -234,7 +230,7 @@ class WebSearch:
             # Fix for "local_business" -> "local business"
             # We want to avoid "local local business near me"
             term = search_cat.replace("local ", "")
-            queries = [f'{term} near me', f'top {term} in city']
+            queries = [f"{term} near me", f"top {term} in city"]
 
         all_results = []
         seen_domains = set()
@@ -246,17 +242,16 @@ class WebSearch:
         results = WebSearch.search(query, num_results=10)
 
         for res in results:
-            domain = res['domain']
+            domain = res["domain"]
             if domain not in seen_domains:
                 seen_domains.add(domain)
 
                 # Clean title to get company name estimate
-                company_name = WebSearch._extract_company_name(
-                    res['title'], domain)
+                company_name = WebSearch._extract_company_name(res["title"], domain)
 
-                res['category'] = category
-                res['company'] = company_name
-                res['estimated_value'] = WebSearch._infer_value(res['snippet'])
+                res["category"] = category
+                res["company"] = company_name
+                res["estimated_value"] = WebSearch._infer_value(res["snippet"])
                 all_results.append(res)
 
         return all_results
@@ -265,7 +260,7 @@ class WebSearch:
     def _extract_company_name(title: str, domain: str) -> str:
         """Attempt to extract a cleaner company name from title."""
         # Split by common separators | - :
-        parts = re.split(r'[|\-:]', title)
+        parts = re.split(r"[|\-:]", title)
 
         # Remove empty strings
         parts = [p.strip() for p in parts if p.strip()]
@@ -301,16 +296,9 @@ class WebSearch:
             "platform",
             "ai",
             "automated",
-            "official site"]
-        low_value_keywords = [
-            "blog",
-            "review",
-            "free",
-            "cheap",
-            "diy",
-            "hobby",
-            "forum",
-            "wiki"]
+            "official site",
+        ]
+        low_value_keywords = ["blog", "review", "free", "cheap", "diy", "hobby", "forum", "wiki"]
 
         if any(k in snippet for k in high_value_keywords):
             return "high"

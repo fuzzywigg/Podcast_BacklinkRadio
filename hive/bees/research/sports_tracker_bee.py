@@ -6,8 +6,7 @@ Responsibilities:
 - Tweet final scores.
 """
 
-from typing import Any, Dict, Optional
-from datetime import datetime, timezone
+from typing import Any
 
 from hive.bees.base_bee import EmployedBee
 
@@ -21,8 +20,7 @@ class SportsTrackerBee(EmployedBee):
     BEE_NAME = "Sports Tracker Bee"
     CATEGORY = "research"
 
-    async def work(
-            self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def work(self, task: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Execute sports tracking.
         """
@@ -35,7 +33,7 @@ class SportsTrackerBee(EmployedBee):
         # 2. Check Games (Simulated)
         game = self._check_games_simulated()
 
-        if game and game['status'] == 'final':
+        if game and game["status"] == "final":
             # Tweet
             tweet = self._compose_score_tweet(game)
 
@@ -44,11 +42,7 @@ class SportsTrackerBee(EmployedBee):
                 "type": "marketing",
                 "bee_type": "social_poster",
                 "priority": 6,
-                "payload": {
-                    "action": "post",
-                    "content": tweet,
-                    "platforms": ["twitter"]
-                }
+                "payload": {"action": "post", "content": tweet, "platforms": ["twitter"]},
             }
             self.write_task(social_task)
 
@@ -56,20 +50,23 @@ class SportsTrackerBee(EmployedBee):
 
         return {"status": "no_games_final"}
 
-    def _compose_score_tweet(self, game: Dict) -> str:
+    def _compose_score_tweet(self, game: dict) -> str:
         return (
             f"📊 Final: {game['team1']} {game['score1']} - "
             f"{game['team2']} {game['score2']} | "
             f"{game['node_count']} Nodes were tuned in. #BacklinkSports"
         )
 
-    def _check_games_simulated(self) -> Optional[Dict]:
+    def _check_games_simulated(self) -> dict | None:
         import random
+
         if random.random() > 0.8:  # Occasional game end
             return {
-                "team1": "Bears", "score1": 24,
-                "team2": "Packers", "score2": 21,
+                "team1": "Bears",
+                "score1": 24,
+                "team2": "Packers",
+                "score2": 21,
                 "status": "final",
-                "node_count": 15
+                "node_count": 15,
             }
         return None

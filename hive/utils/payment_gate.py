@@ -5,12 +5,14 @@ Ensures users are made whole if services fail, and penalizes
 underperforming nodes to maintain network integrity.
 """
 
+import contextlib
 import json
 import os
-import requests
-from pathlib import Path
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional
+from pathlib import Path
+from typing import Any
+
+import requests
 
 try:
     # Try importing from relative path if inside package
@@ -18,6 +20,7 @@ try:
 except ImportError:
     # Fallback for when running as script/different context
     import sys
+
     sys.path.append(str(Path(__file__).parent))
     from plausible_andon import analytics
 
@@ -30,7 +33,7 @@ class PaymentGate:
     - Incident logging (Discord/File)
     """
 
-    def __init__(self, hive_path: Optional[Path] = None):
+    def __init__(self, hive_path: Path | None = None):
         if hive_path is None:
             # Assume we are in hive/utils, so go up one level to hive
             self.hive_path = Path(__file__).parent.parent
@@ -45,12 +48,9 @@ class PaymentGate:
         # State for verbose mode
         self.state_path = self.honeycomb_path / "state.json"
 
-    def process_refund(self,
-                       user_handle: str,
-                       amount: float,
-                       reason: str,
-                       node_id: Optional[str] = None) -> Dict[str,
-                                                              Any]:
+    def process_refund(
+        self, user_handle: str, amount: float, reason: str, node_id: str | None = None
+    ) -> dict[str, Any]:
         """
         Process a full refund to the user.
 
@@ -75,18 +75,14 @@ class PaymentGate:
             "user": user_handle,
             "amount": amount,
             "reason": reason,
-            "node_id": node_id
+            "node_id": node_id,
         }
         self._log_incident(log_entry)
 
         # 3. Track in Plausible (RLVR Penalty)
         analytics.track_event(
             event_name="Refund Issued",
-            props={
-                "user": user_handle,
-                "amount": str(amount),
-                "reason": reason
-            }
+            props={"user": user_handle, "amount": str(amount), "reason": reason},
         )
 
         return {
@@ -94,11 +90,10 @@ class PaymentGate:
             "amount": amount,
             "recipient": user_handle,
             "timestamp": timestamp,
-            "message": "Refund processed successfully"
+            "message": "Refund processed successfully",
         }
 
-    def slash_node(self, node_id: str,
-                   percentage: float = 0.01) -> Dict[str, Any]:
+    def slash_node(self, node_id: str, percentage: float = 0.01) -> dict[str, Any]:
         """
         Slash a node's stake for failure.
 
@@ -113,7 +108,7 @@ class PaymentGate:
             return {"error": "Nodes registry not found"}
 
         try:
-            with open(self.nodes_path, 'r') as f:
+            with open(self.nodes_path) as f:
                 data = json.load(f)
 
             nodes = data.get("nodes", {})
@@ -127,36 +122,33 @@ class PaymentGate:
 
             # Apply slash
             nodes[node_id]["stake"] = new_stake
-            nodes[node_id]["last_slashed"] = datetime.now(
-                timezone.utc).isoformat()
+            nodes[node_id]["last_slashed"] = datetime.now(timezone.utc).isoformat()
 
             # Save
-            with open(self.nodes_path, 'w') as f:
+            with open(self.nodes_path, "w") as f:
                 json.dump(data, f, indent=2)
 
             # Log
-            self._log_incident({
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "type": "slashing",
-                "node_id": node_id,
-                "slash_amount": slash_amount,
-                "new_stake": new_stake
-            })
+            self._log_incident(
+                {
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "type": "slashing",
+                    "node_id": node_id,
+                    "slash_amount": slash_amount,
+                    "new_stake": new_stake,
+                }
+            )
 
             # Track in Plausible (System Health)
             analytics.track_event(
-                event_name="Node Slashed",
-                props={
-                    "node_id": node_id,
-                    "amount": str(slash_amount)
-                }
+                event_name="Node Slashed", props={"node_id": node_id, "amount": str(slash_amount)}
             )
 
             return {
                 "status": "slashed",
                 "node_id": node_id,
                 "amount_slashed": slash_amount,
-                "remaining_stake": new_stake
+                "remaining_stake": new_stake,
             }
 
         except Exception as e:
@@ -176,7 +168,7 @@ class PaymentGate:
             if not self.intel_path.exists():
                 return
 
-            with open(self.intel_path, 'r') as f:
+            with open(self.intel_path) as f:
                 intel = json.load(f)
 
             listeners = intel.get("listeners", {}).get("known_nodes", {})
@@ -199,33 +191,29 @@ class PaymentGate:
                 listeners[target_node_id] = {"handle": user_handle}
 
             # Update balance
-            current_balance = listeners[target_node_id].get(
-                "wallet_balance", 0.0)
+            current_balance = listeners[target_node_id].get("wallet_balance", 0.0)
             listeners[target_node_id]["wallet_balance"] = current_balance + amount
 
             # Add note
             notes = listeners[target_node_id].get("notes", [])
-            notes.append(
-                f"Refunded ${amount} at {
-                    datetime.now(
-                        timezone.utc).isoformat()}")
+            notes.append(f"Refunded ${amount} at {datetime.now(timezone.utc).isoformat()}")
             listeners[target_node_id]["notes"] = notes
 
             # Save
             intel["listeners"]["known_nodes"] = listeners
-            with open(self.intel_path, 'w') as f:
+            with open(self.intel_path, "w") as f:
                 json.dump(intel, f, indent=2)
 
         except Exception as e:
             print(f"Error crediting user: {e}")
 
-    def _log_incident(self, data: Dict[str, Any]) -> None:
+    def _log_incident(self, data: dict[str, Any]) -> None:
         """Log incident to file and optionally Discord."""
 
         # 1. File Log
         log_line = json.dumps(data)
         log_path = self.honeycomb_path / "incident_log.jsonl"
-        with open(log_path, 'a') as f:
+        with open(log_path, "a") as f:
             f.write(log_line + "\n")
 
         # 2. Discord Log
@@ -249,19 +237,16 @@ class PaymentGate:
         # Construct message
         message = ""
         if data.get("type") == "refund":
-            message = f"💸 **Refund Issued**\nUser: `{
-                data.get('user')}`\nAmount: `${
-                data.get('amount')}`\nReason: {
-                data.get('reason')}"
+            message = f"💸 **Refund Issued**\nUser: `{data.get('user')}`\nAmount: `${
+                data.get('amount')
+            }`\nReason: {data.get('reason')}"
         elif data.get("type") == "slashing":
-            message = f"⚔️ **Node Slashed**\nNode: `{
-                data.get('node_id')}`\nAmount: `{
-                data.get('slash_amount')}` tokens"
+            message = f"⚔️ **Node Slashed**\nNode: `{data.get('node_id')}`\nAmount: `{
+                data.get('slash_amount')
+            }` tokens"
 
-        try:
+        with contextlib.suppress(Exception):
             requests.post(webhook_url, json={"content": message}, timeout=2)
-        except Exception:
-            pass  # Fail silently for logging
 
     def _is_verbose_logging(self) -> bool:
         """Check if verbose logging is enabled."""
@@ -269,7 +254,7 @@ class PaymentGate:
             return False
 
         try:
-            with open(self.state_path, 'r') as f:
+            with open(self.state_path) as f:
                 state = json.load(f)
             return state.get("settings", {}).get("verbose_logging", False)
         except Exception:

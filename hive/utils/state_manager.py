@@ -11,15 +11,16 @@ Features:
 - Race condition mitigation (via atomic writes/locking).
 """
 
-import json
-import hmac
 import hashlib
+import hmac
+import json
 import os
-from pathlib import Path
-from typing import Any, Dict, Optional
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
 
 from hive.utils.storage_adapter import StorageAdapter
+
 
 class StateManager:
     """
@@ -30,7 +31,7 @@ class StateManager:
     # IN PRODUCTION: MUST be set via env var HIVE_SECRET_KEY
     DEFAULT_SECRET = "dev_secret_key_change_me_in_prod"
 
-    def __init__(self, hive_path: Optional[Path] = None):
+    def __init__(self, hive_path: Path | None = None):
         """Initialize the manager."""
         if hive_path is None:
             # Assume we are in hive/utils/state_manager.py
@@ -45,13 +46,13 @@ class StateManager:
         self.secret_key = os.environ.get("HIVE_SECRET_KEY", self.DEFAULT_SECRET).encode()
         self.storage = StorageAdapter(self.honeycomb_path)
 
-    def _sign_data(self, data: Dict[str, Any]) -> str:
+    def _sign_data(self, data: dict[str, Any]) -> str:
         """Generate HMAC signature for data."""
         # Sort keys to ensure consistent serialization
         serialized = json.dumps(data, sort_keys=True).encode()
         return hmac.new(self.secret_key, serialized, hashlib.sha256).hexdigest()
 
-    def write_state(self, state_data: Dict[str, Any], bee_type: str) -> None:
+    def write_state(self, state_data: dict[str, Any], bee_type: str) -> None:
         """
         Write state with cryptographic signature.
         """
@@ -68,14 +69,14 @@ class StateManager:
         envelope = {
             "data": state_data,
             "signature": signature,
-            "ver": "1.0" # Version of signing protocol
+            "ver": "1.0",  # Version of signing protocol
         }
 
         # 3. Write via Storage Adapter
         # Note: StorageAdapter handles atomicity for File, and atomic sets for Firestore
         self.storage.write("state.json", envelope)
 
-    def read_state(self) -> Dict[str, Any]:
+    def read_state(self) -> dict[str, Any]:
         """
         Read and verify state.
         Returns the inner data if valid, raises SecurityError if tampered.

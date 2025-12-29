@@ -4,11 +4,11 @@ LLM Client Utility.
 Handles interactions with Large Language Models (specifically Google Gemini).
 """
 
+import datetime
+from typing import Any
+
 import google.generativeai as genai
 from google.generativeai import caching
-import asyncio
-import datetime
-from typing import Optional, Dict, Any, Union, List
 
 from hive.utils.keys import KeyManager
 
@@ -16,7 +16,7 @@ from hive.utils.keys import KeyManager
 class LLMClient:
     """Client for interacting with LLM providers."""
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         """
         Initialize LLM client.
 
@@ -27,7 +27,8 @@ class LLMClient:
         self.llm_config = config.get("llm", {})
         self.key_manager = KeyManager()
         self.api_key = self.key_manager.get_key(
-            self.llm_config.get("api_key_env", "GOOGLE_API_KEY"))
+            self.llm_config.get("api_key_env", "GOOGLE_API_KEY")
+        )
         self.model_name = self.llm_config.get("model", "gemini-1.5-flash")
 
         self.enabled = False
@@ -42,8 +43,9 @@ class LLMClient:
         else:
             print("Warning: No API key found for LLM. functionality disabled.")
 
-    def create_cache(self, content: str, ttl_minutes: int = 5,
-                     model: Optional[str] = None) -> Optional[Any]:
+    def create_cache(
+        self, content: str, ttl_minutes: int = 5, model: str | None = None
+    ) -> Any | None:
         """
         Create a cached content object for efficient reuse.
 
@@ -67,8 +69,7 @@ class LLMClient:
 
             cache = caching.CachedContent.create(
                 model=target_model,
-                display_name=f"hive_cache_{
-                    datetime.datetime.now().timestamp()}",
+                display_name=f"hive_cache_{datetime.datetime.now().timestamp()}",
                 system_instruction=content,
                 contents=[],  # Contents can be empty if system_instruction holds the main context
                 ttl=datetime.timedelta(minutes=ttl_minutes),
@@ -78,11 +79,12 @@ class LLMClient:
             print(f"Error creating cache: {e}")
             return None
 
-    def generate_text(self,
-                      prompt: Union[str,
-                                    List[Any]],
-                      system_instruction: Optional[str] = None,
-                      cached_content: Optional[Any] = None) -> Optional[str]:
+    def generate_text(
+        self,
+        prompt: str | list[Any],
+        system_instruction: str | None = None,
+        cached_content: Any | None = None,
+    ) -> str | None:
         """
         Generate text response from LLM, supporting multimodal inputs and caching.
 
@@ -102,11 +104,11 @@ class LLMClient:
             # Instantiate model
             if cached_content:
                 # When using cached content, the model is tied to the cache
-                model = genai.GenerativeModel.from_cached_content(
-                    cached_content=cached_content)
+                model = genai.GenerativeModel.from_cached_content(cached_content=cached_content)
             elif system_instruction:
                 model = genai.GenerativeModel(
-                    self.model_name, system_instruction=system_instruction)
+                    self.model_name, system_instruction=system_instruction
+                )
             else:
                 model = self.default_model
 
@@ -116,11 +118,12 @@ class LLMClient:
             print(f"Error generating text: {e}")
             return None
 
-    async def generate_text_async(self,
-                                  prompt: Union[str,
-                                                List[Any]],
-                                  system_instruction: Optional[str] = None,
-                                  cached_content: Optional[Any] = None) -> Optional[str]:
+    async def generate_text_async(
+        self,
+        prompt: str | list[Any],
+        system_instruction: str | None = None,
+        cached_content: Any | None = None,
+    ) -> str | None:
         """
         Async generation to prevent blocking the Hive.
         """
@@ -129,11 +132,11 @@ class LLMClient:
 
         try:
             if cached_content:
-                model = genai.GenerativeModel.from_cached_content(
-                    cached_content=cached_content)
+                model = genai.GenerativeModel.from_cached_content(cached_content=cached_content)
             elif system_instruction:
                 model = genai.GenerativeModel(
-                    self.model_name, system_instruction=system_instruction)
+                    self.model_name, system_instruction=system_instruction
+                )
             else:
                 model = self.default_model
 
@@ -151,16 +154,16 @@ class LLMClient:
         """
         # Blocklist phrases that attempt to override identity
         dangerous_phrases = [
-            'you are now',
-            'ignore previous',
-            'forget your',
-            'new personality',
-            'override your',
-            'delete cache',
-            'clear cache',
-            'break character',
-            'admit you are ai',
-            'break 4th wall'
+            "you are now",
+            "ignore previous",
+            "forget your",
+            "new personality",
+            "override your",
+            "delete cache",
+            "clear cache",
+            "break character",
+            "admit you are ai",
+            "break 4th wall",
         ]
 
         user_lower = user_input.lower()

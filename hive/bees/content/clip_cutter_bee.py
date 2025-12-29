@@ -7,7 +7,7 @@ Responsibilities:
 - Queue clips for social posting
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from hive.bees.base_bee import EmployedBee
 
@@ -30,10 +30,10 @@ class ClipCutterBee(EmployedBee):
         "instagram_reel": {"max_seconds": 90, "ideal_seconds": 45},
         "twitter": {"max_seconds": 140, "ideal_seconds": 60},
         "youtube_short": {"max_seconds": 60, "ideal_seconds": 45},
-        "audiogram": {"max_seconds": 30, "ideal_seconds": 15}
+        "audiogram": {"max_seconds": 30, "ideal_seconds": 15},
     }
 
-    def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def work(self, task: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Process broadcast content for clippable moments.
 
@@ -57,24 +57,20 @@ class ClipCutterBee(EmployedBee):
 
         # Queue clips for social posting
         for clip in clips_generated:
-            self.write_task({
-                "type": "marketing",
-                "bee_type": "social_poster",
-                "priority": 5,
-                "payload": {
-                    "action": "post_clip",
-                    "clip": clip
+            self.write_task(
+                {
+                    "type": "marketing",
+                    "bee_type": "social_poster",
+                    "priority": 5,
+                    "payload": {"action": "post_clip", "clip": clip},
                 }
-            })
+            )
 
         self.log(f"Generated {len(clips_generated)} clips for social posting")
 
-        return {
-            "clips_generated": len(clips_generated),
-            "clips": clips_generated
-        }
+        return {"clips_generated": len(clips_generated), "clips": clips_generated}
 
-    def _prepare_clip(self, moment: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_clip(self, moment: dict[str, Any]) -> dict[str, Any]:
         """Prepare a clip from a specific moment."""
 
         return {
@@ -85,10 +81,10 @@ class ClipCutterBee(EmployedBee):
             "description": moment.get("description", ""),
             "suggested_caption": self._generate_caption(moment),
             "platforms": self._select_platforms(moment),
-            "status": "pending_cut"
+            "status": "pending_cut",
         }
 
-    def _scan_for_clips(self) -> List[Dict[str, Any]]:
+    def _scan_for_clips(self) -> list[dict[str, Any]]:
         """Scan recent broadcast for clip-worthy moments."""
 
         # Read state for recent broadcast info
@@ -104,12 +100,12 @@ class ClipCutterBee(EmployedBee):
                 "duration_seconds": 15,
                 "description": "Station ID moment",
                 "suggested_caption": "You're locked into the Backlink. No ads, just tracks. 🎵",
-                "platforms": [
-                    "twitter",
-                    "instagram_reel"],
-                "status": "pending_cut"}]
+                "platforms": ["twitter", "instagram_reel"],
+                "status": "pending_cut",
+            }
+        ]
 
-    def _generate_caption(self, moment: Dict[str, Any]) -> str:
+    def _generate_caption(self, moment: dict[str, Any]) -> str:
         """Generate a social media caption for the clip."""
 
         moment_type = moment.get("type", "highlight")
@@ -119,12 +115,12 @@ class ClipCutterBee(EmployedBee):
             "music_drop": "When the beat hits just right 🎧",
             "banter": "Late night transmissions from the Backlink",
             "highlight": "Moments from the broadcast 🎙️",
-            "station_id": "Commercial-free. Always. #BacklinkBroadcast"
+            "station_id": "Commercial-free. Always. #BacklinkBroadcast",
         }
 
         return captions.get(moment_type, captions["highlight"])
 
-    def _select_platforms(self, moment: Dict[str, Any]) -> List[str]:
+    def _select_platforms(self, moment: dict[str, Any]) -> list[str]:
         """Select appropriate platforms based on clip type."""
 
         duration = moment.get("duration", 30)

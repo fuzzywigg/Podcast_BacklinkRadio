@@ -1,16 +1,16 @@
-
-import os
 import json
-from typing import Dict, Any, Optional, List
+import os
+from typing import Any
+
 from google import genai
 from google.genai import types
-from pydantic import BaseModel, create_model
+
 
 class Gemini3Client:
     """
     Wrapper for Gemini 3 API with support for Thinking Level and Thought Signatures.
     """
-    
+
     def __init__(self, model_name: str = "gemini-2.0-flash-exp"):
         """
         Initialize the Gemini 3 Client.
@@ -30,17 +30,17 @@ class Gemini3Client:
         self.last_thought_signature = None
 
     def generate_content(
-        self, 
-        prompt: str, 
+        self,
+        prompt: str,
         system_instruction: str = None,
         thinking_level: str = "low",
-        response_schema: Optional[Dict[str, Any]] = None,
+        response_schema: dict[str, Any] | None = None,
         use_thought_signature: bool = False,
-        tools: Optional[List[Dict[str, Any]]] = None
-    ) -> Dict[str, Any]:
+        tools: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         """
         Generate content using Gemini 3 features.
-        
+
         Args:
             prompt: User input.
             system_instruction: System role/goal.
@@ -52,60 +52,56 @@ class Gemini3Client:
         Returns:
             Dict containing text response or parsed JSON.
         """
-        
-        config_args = {
-            "thinking_config": types.ThinkingConfig(thinking_level=thinking_level)
-        }
+
+        config_args = {"thinking_config": types.ThinkingConfig(thinking_level=thinking_level)}
 
         if tools:
             config_args["tools"] = tools
 
         # Handle Structured Output
         if response_schema:
-             config_args["response_mime_type"] = "application/json"
-             # In a real impl, we'd convert the dict schema to pydantic or use raw schema if supported
-             # For now, we pass the schema dict directly if the SDK supports it, or rely on prompt engineering + MIME type
-             config_args["response_schema"] = response_schema
+            config_args["response_mime_type"] = "application/json"
+            # In a real impl, we'd convert the dict schema to pydantic or use raw schema if supported
+            # For now, we pass the schema dict directly if the SDK supports it, or rely on prompt engineering + MIME type
+            config_args["response_schema"] = response_schema
 
         config = types.GenerateContentConfig(**config_args)
-        
+
         # Construct message parts
         contents = []
 
         if use_thought_signature and self.last_thought_signature:
-             # Opaque thought signature handling would go here
-             # Currently simplistic as per docs (implicit in conversation history for chat, explicit for tools)
-             pass
+            # Opaque thought signature handling would go here
+            # Currently simplistic as per docs (implicit in conversation history for chat, explicit for tools)
+            pass
 
         # Call API
         try:
             response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-                config=config
+                model=self.model_name, contents=prompt, config=config
             )
-            
+
             # Capture thought signature for next turn (if present)
             # This is a simplification; real handling requires parsing parts
-            # self.last_thought_signature = response.candidates[0].content.parts[0].thought_signature 
+            # self.last_thought_signature = response.candidates[0].content.parts[0].thought_signature
 
             if response_schema:
-                 return json.loads(response.text)
-            
+                return json.loads(response.text)
+
             return {"text": response.text}
 
         except Exception as e:
             return {"error": str(e)}
 
-    def generate_image(self, prompt: str, aspect_ratio: str = "1:1") -> Optional[str]:
+    def generate_image(self, prompt: str, aspect_ratio: str = "1:1") -> str | None:
         """
         Generate an image using Imagen 3 via Gemini API (if available).
         Currently a placeholder for future 'Low Lift' activation.
-        
+
         Args:
            prompt: The image description.
            aspect_ratio: '1:1', '16:9', '9:16'
-           
+
         Returns:
            URL or base64 string of image, or None if failed.
         """
@@ -124,8 +120,9 @@ class Gemini3Client:
         Async context manager for a bidirectional live session with Gemini.
         Returns a websocket connection ready to send/receive Bidi RPCs.
         """
-        import websockets  # Lazy import
         import json
+
+        import websockets  # Lazy import
 
         target_model = model or self.model_name
         # Note: The host and path might vary based on the exact Alpha version.
@@ -140,18 +137,16 @@ class Gemini3Client:
                 setup_msg = {
                     "setup": {
                         "model": f"models/{target_model}",
-                        "generation_config": {
-                            "response_modalities": ["AUDIO"]
-                        }
+                        "generation_config": {"response_modalities": ["AUDIO"]},
                     }
                 }
                 await ws.send(json.dumps(setup_msg))
-                
+
                 # 2. Wait for Setup Complete (simplified handshake)
-                # In a robust app, we'd wait for specific response, but here we yield immediately 
+                # In a robust app, we'd wait for specific response, but here we yield immediately
                 # effectively handing control to the caller (Main Service)
                 yield ws
-                
+
         except Exception as e:
             print(f"Gemini Live Connect Error: {e}")
             raise

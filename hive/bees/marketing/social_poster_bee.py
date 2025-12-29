@@ -11,7 +11,7 @@ Responsibilities:
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any
 
 try:
     import tweepy
@@ -21,6 +21,7 @@ except ImportError:
 from hive.bees.base_bee import EmployedBee
 from hive.utils.browser_use_client import BrowserUseClient
 from hive.utils.llm import LLMClient
+from hive.utils.prompt_engineer import PromptEngineer
 
 
 class SocialPosterBee(EmployedBee):
@@ -40,44 +41,44 @@ class SocialPosterBee(EmployedBee):
         "twitter": {
             "max_chars": 280,
             "media_types": ["image", "video", "gif"],
-            "best_times": ["09:00", "12:00", "17:00", "21:00"]
+            "best_times": ["09:00", "12:00", "17:00", "21:00"],
         },
         "instagram": {
             "max_chars": 2200,
             "media_types": ["image", "video", "carousel"],
-            "best_times": ["11:00", "14:00", "19:00"]
+            "best_times": ["11:00", "14:00", "19:00"],
         },
         "tiktok": {
             "max_chars": 150,
             "media_types": ["video"],
-            "best_times": ["19:00", "21:00", "23:00"]
+            "best_times": ["19:00", "21:00", "23:00"],
         },
         "threads": {
             "max_chars": 500,
             "media_types": ["image", "video"],
-            "best_times": ["09:00", "13:00", "18:00"]
-        }
+            "best_times": ["09:00", "13:00", "18:00"],
+        },
     }
 
-    def __init__(self, hive_path: Optional[str] = None):
+    def __init__(self, hive_path: str | None = None):
         """Initialize and setup LLM client."""
         super().__init__(hive_path)
         self.config = self._load_config()
         self.llm_client = self._init_llm_client()
         self.browser_client = self._init_browser_client()
 
-    def _load_config(self) -> Dict:
+    def _load_config(self) -> dict:
         """Load configuration."""
         try:
             config_path = self.hive_path / "config.json"
             if config_path.exists():
-                with open(config_path, "r") as f:
+                with open(config_path) as f:
                     return json.load(f)
         except Exception:
             pass
         return {}
 
-    def _init_llm_client(self) -> Optional[LLMClient]:
+    def _init_llm_client(self) -> LLMClient | None:
         """Initialize the LLM client."""
         try:
             if self.config:
@@ -88,20 +89,15 @@ class SocialPosterBee(EmployedBee):
             self.log(f"Failed to initialize LLM client: {e}", level="error")
         return None
 
-    def _init_browser_client(self) -> Optional[BrowserUseClient]:
+    def _init_browser_client(self) -> BrowserUseClient | None:
         """Initialize Browser Use client."""
         try:
-            browser_config = self.config.get(
-                "integrations", {}).get(
-                "browser_use", {})
+            browser_config = self.config.get("integrations", {}).get("browser_use", {})
             if not browser_config.get("enabled"):
                 return None
 
             # Get key from env or config
-            api_key = os.environ.get(
-                browser_config.get(
-                    "api_key_env",
-                    "BROWSER_USE_API_KEY"))
+            api_key = os.environ.get(browser_config.get("api_key_env", "BROWSER_USE_API_KEY"))
             if not api_key:
                 # Fallback to direct key if present (legacy/dev)
                 api_key = browser_config.get("api_key")
@@ -109,12 +105,10 @@ class SocialPosterBee(EmployedBee):
             if api_key:
                 return BrowserUseClient(api_key)
         except Exception as e:
-            self.log(
-                f"Failed to initialize Browser Use client: {e}",
-                level="error")
+            self.log(f"Failed to initialize Browser Use client: {e}", level="error")
         return None
 
-    def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def work(self, task: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Execute social media tasks.
 
@@ -145,14 +139,14 @@ class SocialPosterBee(EmployedBee):
         elif action == "post_payment_acknowledgment":
             return self._post_payment_acknowledgment(
                 task.get("payload", {}).get("amount", 0.0),
-                task.get("payload", {}).get("directives", {})
+                task.get("payload", {}).get("directives", {}),
             )
         elif action == "scheduled_tweet_cycle":
             return self._scheduled_tweet_cycle()
 
         return {"error": "Unknown action"}
 
-    def _post_content(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def _post_content(self, task: dict[str, Any]) -> dict[str, Any]:
         """Post content to specified platforms."""
 
         payload = task.get("payload", {})
@@ -173,10 +167,10 @@ class SocialPosterBee(EmployedBee):
         return {
             "action": "post",
             "results": results,
-            "platforms_posted": len([r for r in results if r.get("success")])
+            "platforms_posted": len([r for r in results if r.get("success")]),
         }
 
-    def _post_clip(self, clip: Dict[str, Any]) -> Dict[str, Any]:
+    def _post_clip(self, clip: dict[str, Any]) -> dict[str, Any]:
         """Post a clip to appropriate platforms."""
 
         if not clip:
@@ -192,22 +186,18 @@ class SocialPosterBee(EmployedBee):
             adapted = self._adapt_content(caption, platform)
 
             result = self._post_to_platform(
-                platform,
-                adapted,
-                {"type": "video", "clip_id": clip.get("id")}
+                platform, adapted, {"type": "video", "clip_id": clip.get("id")}
             )
             results.append(result)
 
         # Update clip status
         self.log(f"Posted clip {clip.get('id')} to {len(platforms)} platforms")
 
-        return {
-            "action": "post_clip",
-            "clip_id": clip.get("id"),
-            "results": results
-        }
+        return {"action": "post_clip", "clip_id": clip.get("id"), "results": results}
 
-    def _generate_social_content(self, topic: str, context: str, task: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_social_content(
+        self, topic: str, context: str, task: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Generates social media content (text and visuals) for a given topic.
         """
@@ -217,7 +207,7 @@ class SocialPosterBee(EmployedBee):
         if not topic:
             return {"error": "Topic is required for content generation."}
 
-        platforms = ["twitter"] # Default platforms
+        platforms = ["twitter"]  # Default platforms
         if task and "platforms" in task.get("payload", {}):
             platforms = task["payload"]["platforms"]
 
@@ -233,29 +223,26 @@ class SocialPosterBee(EmployedBee):
         # 2. Visual Content (Low Lift Integration)
         # If the task requests visuals or platform is 'instagram'/'twitter'
         if task and task.get("payload", {}).get("generate_visuals", True):
-             visual_prompt = self._craft_visual_prompt(topic, content_map.get("twitter", ""))
-             if visual_prompt:
-                 self.log(f"Generating visual asset for: {topic}")
-                 # For now, we return the prompt in the result. 
-                 # In full plumbing, we'd call self.llm_client.generate_image(visual_prompt)
-                 visual_assets["main_visual_prompt"] = visual_prompt
-                 # PREPARED FOR UPGRADE:
-                 # image_url = self.llm_client.generate_image(prompt=visual_prompt, aspect_ratio="16:9")
-                 # visual_assets["image_url"] = image_url
+            visual_prompt = self._craft_visual_prompt(topic, content_map.get("twitter", ""))
+            if visual_prompt:
+                self.log(f"Generating visual asset for: {topic}")
+                # For now, we return the prompt in the result.
+                # In full plumbing, we'd call self.llm_client.generate_image(visual_prompt)
+                visual_assets["main_visual_prompt"] = visual_prompt
+                # PREPARED FOR UPGRADE:
+                # image_url = self.llm_client.generate_image(prompt=visual_prompt, aspect_ratio="16:9")
+                # visual_assets["image_url"] = image_url
 
         return {
             "status": "drafted",
             "content": content_map,
             "visuals": visual_assets,
-            "topic": topic
+            "topic": topic,
         }
 
     def _post_to_platform(
-        self,
-        platform: str,
-        content: str,
-        media: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+        self, platform: str, content: str, media: dict | None = None
+    ) -> dict[str, Any]:
         """Post to a specific platform."""
 
         config = self.PLATFORMS.get(platform, {})
@@ -263,7 +250,7 @@ class SocialPosterBee(EmployedBee):
         # Validate content length
         max_chars = config.get("max_chars", 280)
         if len(content) > max_chars:
-            content = content[:max_chars - 3] + "..."
+            content = content[: max_chars - 3] + "..."
 
         # Dispatch to platform-specific handler
         if platform == "twitter":
@@ -282,10 +269,10 @@ class SocialPosterBee(EmployedBee):
             "post_id": f"{platform}_post_{datetime.now().timestamp()}",
             "content": content,
             "media": media,
-            "posted_at": datetime.now(timezone.utc).isoformat()
+            "posted_at": datetime.now(timezone.utc).isoformat(),
         }
 
-    def _get_twitter_client(self) -> Optional[Any]:
+    def _get_twitter_client(self) -> Any | None:
         """Authenticate and return Twitter v2 Client."""
         if not tweepy:
             self.log("Tweepy not installed", level="warning")
@@ -305,16 +292,14 @@ class SocialPosterBee(EmployedBee):
                 consumer_key=api_key,
                 consumer_secret=api_secret,
                 access_token=access_token,
-                access_token_secret=access_token_secret
+                access_token_secret=access_token_secret,
             )
             return client
         except Exception as e:
-            self.log(
-                f"Failed to authenticate with Twitter: {e}",
-                level="error")
+            self.log(f"Failed to authenticate with Twitter: {e}", level="error")
             return None
 
-    def _get_twitter_api_v1(self) -> Optional[Any]:
+    def _get_twitter_api_v1(self) -> Any | None:
         """Authenticate and return Twitter API v1.1 interface."""
         if not tweepy:
             return None
@@ -328,24 +313,21 @@ class SocialPosterBee(EmployedBee):
             return None
 
         try:
-            auth = tweepy.OAuth1UserHandler(
-                api_key, api_secret, access_token, access_token_secret
-            )
+            auth = tweepy.OAuth1UserHandler(api_key, api_secret, access_token, access_token_secret)
             api = tweepy.API(auth)
             return api
         except Exception as e:
             self.log(f"Failed to authenticate with Twitter v1.1: {e}", level="error")
             return None
 
-    def _post_to_twitter(self, content: str, media: Optional[Dict] = None) -> Dict[str, Any]:
+    def _post_to_twitter(self, content: str, media: dict | None = None) -> dict[str, Any]:
         """Post to Twitter using API."""
         client = self._get_twitter_client()
 
         if not client:
             # Try Browser Automation fallback
             if self.browser_client:
-                self.log(
-                    "Tweepy/Creds missing. Falling back to Browser Automation.")
+                self.log("Tweepy/Creds missing. Falling back to Browser Automation.")
                 return self._post_via_browser_use("twitter", content)
 
             # Fallback to simulation
@@ -357,7 +339,7 @@ class SocialPosterBee(EmployedBee):
                 "content": content,
                 "media": media,
                 "posted_at": datetime.now(timezone.utc).isoformat(),
-                "note": "SIMULATED - Missing Credentials or Tweepy"
+                "note": "SIMULATED - Missing Credentials or Tweepy",
             }
 
         try:
@@ -400,44 +382,37 @@ class SocialPosterBee(EmployedBee):
                 "post_id": post_id,
                 "content": text,
                 "media": media,
-                "posted_at": datetime.now(timezone.utc).isoformat()
+                "posted_at": datetime.now(timezone.utc).isoformat(),
             }
         except Exception as e:
             self.log(f"Twitter post failed: {e}", level="error")
-            return {
-                "platform": "twitter",
-                "success": False,
-                "error": str(e),
-                "content": content
-            }
+            return {"platform": "twitter", "success": False, "error": str(e), "content": content}
 
-    def _schedule_post(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def _schedule_post(self, task: dict[str, Any]) -> dict[str, Any]:
         """Schedule a post for later."""
 
         payload = task.get("payload", {})
         scheduled_time = payload.get("scheduled_time")
 
         # Create a future task
-        self.write_task({
-            "type": "marketing",
-            "bee_type": "social_poster",
-            "priority": 5,
-            "deadline": scheduled_time,
-            "payload": {
-                "action": "post",
-                "content": payload.get("content"),
-                "platforms": payload.get("platforms"),
-                "media": payload.get("media")
+        self.write_task(
+            {
+                "type": "marketing",
+                "bee_type": "social_poster",
+                "priority": 5,
+                "deadline": scheduled_time,
+                "payload": {
+                    "action": "post",
+                    "content": payload.get("content"),
+                    "platforms": payload.get("platforms"),
+                    "media": payload.get("media"),
+                },
             }
-        })
+        )
 
-        return {
-            "action": "schedule",
-            "scheduled_for": scheduled_time,
-            "status": "queued"
-        }
+        return {"action": "schedule", "scheduled_for": scheduled_time, "status": "queued"}
 
-    def _engage_mentions(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def _engage_mentions(self, task: dict[str, Any]) -> dict[str, Any]:
         """Check and engage with mentions."""
 
         # In production, would fetch mentions from APIs
@@ -450,18 +425,11 @@ class SocialPosterBee(EmployedBee):
             response = self._generate_response(mention)
             if response:
                 # Post reply
-                engaged.append({
-                    "mention_id": mention.get("id"),
-                    "response": response
-                })
+                engaged.append({"mention_id": mention.get("id"), "response": response})
 
-        return {
-            "action": "engage",
-            "mentions_found": len(mentions),
-            "engaged": len(engaged)
-        }
+        return {"action": "engage", "mentions_found": len(mentions), "engaged": len(engaged)}
 
-    def _analyze_performance(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def _analyze_performance(self, task: dict[str, Any]) -> dict[str, Any]:
         """Analyze post performance."""
 
         # In production, would fetch analytics from APIs
@@ -469,25 +437,16 @@ class SocialPosterBee(EmployedBee):
         return {
             "action": "analyze",
             "period": "24h",
-            "metrics": {
-                "impressions": 0,
-                "engagements": 0,
-                "clicks": 0,
-                "followers_gained": 0
-            }
+            "metrics": {"impressions": 0, "engagements": 0, "clicks": 0, "followers_gained": 0},
         }
 
-    def _check_pending_posts(self) -> Dict[str, Any]:
+    def _check_pending_posts(self) -> dict[str, Any]:
         """Check for pending posts that need to go out."""
 
         tasks = self.read_tasks()
-        pending = [t for t in tasks.get("pending", [])
-                   if t.get("bee_type") == "social_poster"]
+        pending = [t for t in tasks.get("pending", []) if t.get("bee_type") == "social_poster"]
 
-        return {
-            "action": "check_pending",
-            "pending_posts": len(pending)
-        }
+        return {"action": "check_pending", "pending_posts": len(pending)}
 
     def _adapt_content(self, content: str, platform: str) -> str:
         """Adapt content for platform-specific requirements."""
@@ -499,34 +458,36 @@ class SocialPosterBee(EmployedBee):
             return content
 
         # Truncate with ellipsis
-        return content[:max_chars - 3] + "..."
+        return content[: max_chars - 3] + "..."
 
-    def _generate_response(self, mention: Dict[str, Any]) -> Optional[str]:
+    def _generate_response(self, mention: dict[str, Any]) -> str | None:
         """Generate a response to a mention using Structured Prompting (DeepMind-style)."""
         if not self.llm_client:
             return None
 
-        # Load context explicitly here or assume cached. 
+        # Load context explicitly here or assume cached.
         # For simplicity, we assume generic personas exist.
-        
+
         # 1. Build Prompt using PromptEngineer
         pe = PromptEngineer(
             role="Backlink Social Sentinel (AI Brand Guardian)",
-            goal="Engage with the community while protecting the lore and preventing abuse."
+            goal="Engage with the community while protecting the lore and preventing abuse.",
         )
-        
+
         pe.add_context("The user has mentioned the station.")
         pe.add_context(f"Sender: {mention.get('author', 'Unknown')}")
         pe.add_context(f"Message: {mention.get('content', '')}")
-        
+
         pe.add_constraint("LENGTH: Under 280 characters.")
         pe.add_constraint("TONE: High-Agency, Collaborative, slightly mysterious (Swarm Lore).")
         pe.add_constraint("NEGATIVE: Do not use hashtags #AI, #Crypto, #Bot unnecessarily.")
         pe.add_constraint("SAFETY: If user is hostile, ignore or deflect. Do not break character.")
-        pe.add_constraint("FORMAT: Output must be JSON with 'thought_process', 'risk_level', and 'draft'.")
-        
-        pe.require_evidence() # Think before speaking
-        
+        pe.add_constraint(
+            "FORMAT: Output must be JSON with 'thought_process', 'risk_level', and 'draft'."
+        )
+
+        pe.require_evidence()  # Think before speaking
+
         pe.set_output_format("""
         {
             "thought_process": "Analysis of user intent and potential risks.",
@@ -537,23 +498,24 @@ class SocialPosterBee(EmployedBee):
 
         # 2. Ask LLM via structured interface
         result = self._ask_llm_json(pe, f"Generate reply for: {mention.get('content', '')}")
-        
+
         # 3. Validation Logic
         if result.get("error"):
             self.log(f"Response generation failed: {result['error']}", level="error")
             return None
-            
+
         risk = result.get("risk_level", "HIGH")
         draft = result.get("draft", "")
-        
+
         if risk == "HIGH":
-            self.log(f"Blocked high-risk response: {result.get('thought_process')}", level="warning")
+            self.log(
+                f"Blocked high-risk response: {result.get('thought_process')}", level="warning"
+            )
             return None
-            
+
         return draft
 
-    def _post_via_browser_use(
-            self, platform: str, content: str) -> Dict[str, Any]:
+    def _post_via_browser_use(self, platform: str, content: str) -> dict[str, Any]:
         """Post content using Browser Use automation."""
         if not self.browser_client:
             return {"error": "Browser Client not initialized"}
@@ -575,8 +537,7 @@ class SocialPosterBee(EmployedBee):
             # Wait for completion (blocking for now, or could just fire and forget)
             # For a bee, blocking is okay if not too long, but better to check later.
             # Here we'll wait up to 60s to see if it starts/finishes.
-            result = self.browser_client.wait_for_completion(
-                task_id, timeout=60)
+            result = self.browser_client.wait_for_completion(task_id, timeout=60)
 
             is_success = result.get("status") == "finished"
             output = result.get("output")
@@ -587,7 +548,7 @@ class SocialPosterBee(EmployedBee):
                 "method": "browser_automation",
                 "task_id": task_id,
                 "output": output,
-                "posted_at": datetime.now(timezone.utc).isoformat()
+                "posted_at": datetime.now(timezone.utc).isoformat(),
             }
 
         except Exception as e:
@@ -601,9 +562,9 @@ class SocialPosterBee(EmployedBee):
         persona_md = ""
 
         try:
-            with open(root_path / "config/lore/AGENTS.md", "r") as f:
+            with open(root_path / "config/lore/AGENTS.md") as f:
                 agents_md = f.read()
-            with open(root_path / "config/lore/PERSONA_DYNAMIC.md", "r") as f:
+            with open(root_path / "config/lore/PERSONA_DYNAMIC.md") as f:
                 persona_md = f.read()
         except Exception as e:
             self.log(f"Warning: Could not load persona files: {e}")
@@ -624,11 +585,13 @@ class SocialPosterBee(EmployedBee):
         return prompt
 
     def _post_payment_acknowledgment(
-            self, amount: float, directives: Dict[str, Any]) -> Dict[str, Any]:
+        self, amount: float, directives: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Tweet about listener-funded directive change
         """
         import random
+
         # Stay in character (never break 4th wall)
         tweet_templates = [
             f"A Node just dropped ${amount} to shift the vibe. More music, less chatter. Request granted. 🎵",
@@ -637,7 +600,7 @@ class SocialPosterBee(EmployedBee):
         ]
 
         # Add specifics if directives clear
-        if 'source_files' in directives:
+        if "source_files" in directives:
             tweet_templates.append(
                 f"Node tipped ${amount} for rare gems from the archives. "
                 f"Diving into the b-sides. This is what listener-powered radio sounds like."
@@ -652,13 +615,9 @@ class SocialPosterBee(EmployedBee):
         # Since I didn't import plausible_andon here, I will log instead or import if needed.
         # Ideally, we should import it. But keeping it simple for now.
 
-        return {
-            "action": "post_payment_acknowledgment",
-            "tweet": tweet,
-            "result": result
-        }
+        return {"action": "post_payment_acknowledgment", "tweet": tweet, "result": result}
 
-    def _scheduled_tweet_cycle(self) -> Dict[str, Any]:
+    def _scheduled_tweet_cycle(self) -> dict[str, Any]:
         """
         Post every 6 hours with station stats
         """
@@ -667,7 +626,7 @@ class SocialPosterBee(EmployedBee):
 
         # Simple check: if current hour is in schedule (approx)
         if current_hour in TWEET_SCHEDULE:
-            import random
+
             # Gather stats from honeycomb
             intel = self.read_intel()
             listener_count = intel.get("listeners", {}).get("total_count", 0)
@@ -677,38 +636,35 @@ class SocialPosterBee(EmployedBee):
             dao_proposals = 1
 
             data = {
-                'listener_count': listener_count,
-                'new_nodes': new_nodes,
-                'swarm_updates': swarm_updates,
-                'dao_proposals': dao_proposals
+                "listener_count": listener_count,
+                "new_nodes": new_nodes,
+                "swarm_updates": swarm_updates,
+                "dao_proposals": dao_proposals,
             }
 
             tweet = self._compose_status_tweet(data)
             result = self._post_to_twitter(tweet)
 
-            return {
-                "action": "scheduled_tweet_cycle",
-                "tweet": tweet,
-                "result": result
-            }
+            return {"action": "scheduled_tweet_cycle", "tweet": tweet, "result": result}
 
         return {
             "action": "scheduled_tweet_cycle",
             "status": "skipped",
-            "reason": "not_schedule_time"}
+            "reason": "not_schedule_time",
+        }
 
-    def _compose_status_tweet(self, data: Dict[str, Any]) -> str:
+    def _compose_status_tweet(self, data: dict[str, Any]) -> str:
         """
         Generate 6-hour status update
         """
         import random
+
         templates = [
             f"📻 {data['listener_count']} Nodes connected | "
             f"+{data['new_nodes']} new listeners last 6h | "
             f"Swarm activity: {data['swarm_updates']} | "
             f"Active DAO proposals: {data['dao_proposals']} | "
             f"#Backlink #ConnectTheNodes",
-
             f"Signal Report ({datetime.now().strftime('%I%p EST')}): "
             f"{data['listener_count']} Nodes online. "
             f"Welcome to the {data['new_nodes']} new connections. "
@@ -721,11 +677,13 @@ class SocialPosterBee(EmployedBee):
 
 if __name__ == "__main__":
     bee = SocialPosterBee()
-    result = bee.run({
-        "payload": {
-            "action": "post",
-            "content": "Test transmission from the Backlink. Signal check. 📡",
-            "platforms": ["twitter"]
+    result = bee.run(
+        {
+            "payload": {
+                "action": "post",
+                "content": "Test transmission from the Backlink. Signal check. 📡",
+                "platforms": ["twitter"],
+            }
         }
-    })
+    )
     print(result)

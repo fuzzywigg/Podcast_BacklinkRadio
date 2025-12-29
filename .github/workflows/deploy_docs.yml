@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - 'README.md'
-      - 'hive/honeycomb/wisdom.json'
+      - "docs/**"
+      - "mkdocs.yml"
+      - "README.md"
+      - "hive/honeycomb/wisdom.json"
 
 permissions:
   contents: write
@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: 3.x
 
-      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV 
+      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
 
       - uses: actions/cache@v4
         with:
@@ -39,6 +39,14 @@ jobs:
 
       - name: Install dependencies
         run: pip install mkdocs-material
+
+      - name: Copy Wisdom and Readme
+        run: |
+          mkdir -p docs/api
+          mkdir -p docs/lore
+          cp hive/honeycomb/wisdom.json docs/api/wisdom.json
+          cp README.md docs/index.md
+          cp config/lore/*.md docs/lore/
 
       - name: Deploy to GitHub Pages
         run: mkdocs gh-deploy --force
