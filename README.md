@@ -169,13 +169,15 @@ Bees don't talk to each other. They leave traces in the honeycomb that other bee
 ### ABC Pattern
 
 Based on Artificial Bee Colony optimization:
+
 * **Scout bees** explore and discover
 * **Employed bees** work on known resources
 * **Onlooker bees** evaluate and select
 
 ### The DJ Reads, The Hive Writes
 
-- Hive bees gather intel, prep content, track trends
+* Hive bees gather intel, prep content, track trends
+
 * They write everything to the honeycomb
 * The DJ reads the honeycomb for context during broadcasts
 * The DJ stays in character; the hive does the work
@@ -235,3 +237,39 @@ The Hive is preparing to connect with the broader Andon FM ecosystem:
 1. **Stripe**: Real-time song purchasing via `payment_intent` webhooks. (See `Brain/STRIPE_INTEGRATION_SPEC.md`)
 2. **Live365**: Direct encoder control for physical audio output.
 3. **Supabase**: S3-compatible asset storage for the music library.
+
+### Phase 3: Intelligence Upgrade (Live)
+
+The Hive has been upgraded with **Gemini 2.0** capabilities:
+
+1. **Owl Voice (Live API)**: Real-time, low-latency voice interface via WebSockets (`/ws/stream`). Talk to the Owl directly.
+2. **Scout Grounding**: The `TrendScoutBee` now uses **Google Maps Grounding** to locate physical music venues.
+3. **Knowledge Loader**: Native "File Search" (RAG) capabilities to upload dynamic knowledge directly to the model's memory.
+
+## FIREBASE CONFIGURATION
+
+The project uses **Google Cloud Firestore** (Native Mode). We have formalized the configuration for use with the [Firebase CLI](https://firebase.google.com/docs/cli).
+
+### Prerequisites
+
+* `npm install -g firebase-tools`
+
+### Local Emulation
+
+You can run a local Firestore instance for testing without hitting the production database:
+
+```bash
+firebase emulators:start
+```
+
+This will start a Firestore emulator at `localhost:8082` and a UI at `localhost:4000`.
+To force the Python app to use the emulator, set the environment variable:
+`FIRESTORE_EMULATOR_HOST="localhost:8082"`
+
+### deploying Rules & Indexes
+
+To update the security rules or indexes in production:
+
+```bash
+firebase deploy --only firestore
+```

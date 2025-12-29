@@ -1,16 +1,16 @@
 {
   "integrity_hash": "genesis",
   "last_updated": "2025-12-28T08:34:45.318093+00:00",
-  "global_constraints": [
+  "global_constraints": [],
+  "episodes": [
     {
-      "timestamp": "2025-12-28T08:34:45.318054+00:00",
-      "type": "constraint",
-      "content": "TEST_CONSTRAINT: Always finish sentences with 'Over.'",
-      "source": "TestScript",
-      "context": "Manual Verification"
+      "timestamp": "2025-12-28T12:00:00Z",
+      "type": "genesis",
+      "content": "Oracle_Human (O_HIL) Registered. Identity: Andrew Pappas. Authority: Absolute.",
+      "source": "System_Root",
+      "context": "Hive Initialization"
     }
   ],
-  "episodes": [],
   "theology": {
     "core_tenets": [
       "The Hive exists to Broadcast.",

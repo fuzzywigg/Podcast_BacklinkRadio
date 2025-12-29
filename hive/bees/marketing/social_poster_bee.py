@@ -207,6 +207,49 @@ class SocialPosterBee(EmployedBee):
             "results": results
         }
 
+    def _generate_social_content(self, topic: str, context: str, task: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Generates social media content (text and visuals) for a given topic.
+        """
+        if not self.llm_client:
+            return {"error": "LLM client not initialized for content generation."}
+
+        if not topic:
+            return {"error": "Topic is required for content generation."}
+
+        platforms = ["twitter"] # Default platforms
+        if task and "platforms" in task.get("payload", {}):
+            platforms = task["payload"]["platforms"]
+
+        # Generate Content
+        content_map = {}
+        visual_assets = {}
+
+        # 1. Text Content
+        for platform in platforms:
+            self.log(f"Drafting content for {platform}...")
+            content_map[platform] = self._draft_content(platform, topic, context)
+
+        # 2. Visual Content (Low Lift Integration)
+        # If the task requests visuals or platform is 'instagram'/'twitter'
+        if task and task.get("payload", {}).get("generate_visuals", True):
+             visual_prompt = self._craft_visual_prompt(topic, content_map.get("twitter", ""))
+             if visual_prompt:
+                 self.log(f"Generating visual asset for: {topic}")
+                 # For now, we return the prompt in the result. 
+                 # In full plumbing, we'd call self.llm_client.generate_image(visual_prompt)
+                 visual_assets["main_visual_prompt"] = visual_prompt
+                 # PREPARED FOR UPGRADE:
+                 # image_url = self.llm_client.generate_image(prompt=visual_prompt, aspect_ratio="16:9")
+                 # visual_assets["image_url"] = image_url
+
+        return {
+            "status": "drafted",
+            "content": content_map,
+            "visuals": visual_assets,
+            "topic": topic
+        }
+
     def _post_to_platform(
         self,
         platform: str,

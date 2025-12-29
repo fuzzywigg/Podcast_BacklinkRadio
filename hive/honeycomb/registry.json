@@ -1,0 +1,99 @@
+{
+    "registry_version": "1.0",
+    "last_updated": "2025-12-28T23:59:00Z",
+    "hive_identity": {
+        "name": "Backlink Hive",
+        "description": "A decentralized swarm of AI agents managing a crypto-native broadcast station.",
+        "protocol": "Stigmergy/A2A-Inspired"
+    },
+    "bees": [
+        {
+            "bee_type": "trend_scout",
+            "name": "Trend Scout Bee",
+            "category": "research",
+            "capabilities": [
+                "google_search_grounding",
+                "trend_analysis",
+                "news_discovery"
+            ],
+            "input_schema": {
+                "categories": [
+                    "music",
+                    "social",
+                    "culture",
+                    "tech"
+                ],
+                "action": "monitor_breaking_news"
+            },
+            "output_schema": {
+                "trends": "List[Dict] with relevance scores",
+                "alerts": "Priority signals for DJ"
+            },
+            "cost_tier": "low",
+            "active": true
+        },
+        {
+            "bee_type": "social_poster",
+            "name": "Social Poster Bee",
+            "category": "marketing",
+            "capabilities": [
+                "tweet_composition",
+                "image_generation_prompting",
+                "audience_engagement"
+            ],
+            "input_schema": {
+                "action": "post",
+                "content": "str",
+                "platforms": [
+                    "twitter",
+                    "discord"
+                ]
+            },
+            "active": true
+        },
+        {
+            "bee_type": "engagement_bee",
+            "name": "Community Engagement Bee",
+            "category": "community",
+            "capabilities": [
+                "reply_generation",
+                "sentiment_analysis",
+                "conversation_tracking"
+            ],
+            "active": true
+        },
+        {
+            "bee_type": "dj_bee",
+            "name": "Broadcast DJ Bee",
+            "category": "content",
+            "capabilities": [
+                "script_writing",
+                "music_selection",
+                "voice_synthesis_coordination"
+            ],
+            "active": true
+        },
+        {
+            "bee_type": "editor_bee",
+            "name": "Editorial Bee",
+            "category": "system",
+            "capabilities": [
+                "content_review",
+                "fact_checking",
+                "style_enforcement"
+            ],
+            "active": true
+        },
+        {
+            "bee_type": "commerce_bee",
+            "name": "Commerce Bee",
+            "category": "monetization",
+            "capabilities": [
+                "payment_processing",
+                "stripe_integration",
+                "treasury_management"
+            ],
+            "active": true
+        }
+    ]
+}

@@ -1,14 +1,9 @@
-"""
-DJ Bee - The Autonomous Music Director.
-Updated with Tiered Acquisition Logic and Constitutional Checks.
-"""
-
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 import random
-from datetime import datetime, timezone
-from hive.bees.base_bee import EmployedBee 
-class DjBee(BaseBee):
+
 from hive.bees.base_bee import EmployedBee
+from hive.utils.audio_adapter import AudioStreamAdapter
 
 class DjBee(EmployedBee):
     """
@@ -25,6 +20,10 @@ class DjBee(EmployedBee):
     COST_BUY_POPULAR = 8.00
     COST_RENT = 0.05
     RESERVE_MINIMUM = 5.00
+
+    def __init__(self, hive_path: Optional[str] = None):
+        super().__init__(hive_path)
+        self.audio_adapter = AudioStreamAdapter()
 
     def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -88,11 +87,12 @@ class DjBee(EmployedBee):
                 # But we should track it as revenue regardless.
                 # If we were to add it: treasury["balance"] += tip
                 # For now, just tracking the event as per requirements.
-                analytics.track_tip_received(
-                    amount=tip,
-                    source=request.get("source", "unknown"),
-                    song_requested=request.get("song")
-                )
+                # analytics.track_tip_received(
+                #    amount=tip,
+                #    source=request.get("source", "unknown"),
+                #    song_requested=request.get("song")
+                # )
+                pass
 
         # 3. Autopilot (Ensure Queue is Populated)
         if not broadcast["queue"]:
@@ -111,10 +111,14 @@ class DjBee(EmployedBee):
                     now_playing['source']})")
 
             # Track Queue/Play
-            analytics.track_song_queued(
-                song_title=now_playing["title"],
-                acquisition_type=now_playing.get("source", "unknown")
-            )
+            # Track Queue/Play
+            # analytics.track_song_queued(
+            #    song_title=now_playing["title"],
+            #    acquisition_type=now_playing.get("source", "unknown")
+            # )
+            
+            # PUSH METADATA TO LIVE365
+            self.audio_adapter.update_metadata(now_playing)
 
         # 5. Write State
         # We need to update treasury, library, and broadcast state

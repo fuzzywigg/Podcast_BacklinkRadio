@@ -33,7 +33,8 @@ class TrendScoutBee(ScoutBee):
         {"name": "spotify_viral", "type": "music", "priority": "high"},
         {"name": "reddit_music", "type": "community", "priority": "medium"},
         {"name": "music_news", "type": "industry", "priority": "medium"},
-        {"name": "cultural_moments", "type": "zeitgeist", "priority": "high"}
+        {"name": "cultural_moments", "type": "zeitgeist", "priority": "high"},
+        {"name": "trending_venues", "type": "location", "priority": "medium"}
     ]
 
     def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -221,62 +222,149 @@ class TrendScoutBee(ScoutBee):
             return self._scout_social_trends(source_name)
         elif source["type"] == "zeitgeist":
             return self._scout_cultural_moments(source_name)
+        elif source["type"] == "location":
+            return self._scout_venues(source_name)
 
         return []
+    
+    def _perform_grounded_scout(self, query: str, context: str) -> List[Dict[str, Any]]:
+        """
+        Use Gemini 3 with Google Search Grounding to find real trends.
+        """
+        if not self.llm_client:
+             return []
+
+        pe = PromptEngineer(
+            role="Trend Research Officer",
+            goal=f"Identify trending {context} topics using Google Search."
+        )
+        pe.add_constraint(f"QUERY: {query}")
+        pe.add_constraint("RETURN: JSON list of objects with 'title', 'description', 'relevance' (0-1), 'url'.")
+        pe.set_output_format('{"trends": [{"title": "...", "description": "...", "relevance": 0.9, "url": "..."}]}')
+        
+        system_prompt = pe.build_system_prompt()
+        full_prompt = f"{system_prompt}\n\nUSER QUERY: {query}"
+        
+        try:
+            # Inject Google Search Tool
+            response = self.llm_client.generate_content(
+                prompt=full_prompt,
+                thinking_level="low",
+                response_schema=None,
+                tools=[{'google_search': {}}] 
+            )
+            
+            data = PromptEngineer.parse_json_output(response.get("text", "{}"))
+            return data.get("trends", [])
+
+        except Exception as e:
+            self.log(f"Grounded Search failed: {e}", level="error")
+            return []
+
+    def _perform_map_scout(self, query: str, context: str) -> List[Dict[str, Any]]:
+        """
+        Use Gemini 3 with Google Maps Grounding to find physical locations.
+        """
+        if not self.llm_client:
+             return []
+
+        pe = PromptEngineer(
+            role="Venue Scout",
+            goal=f"Identify real physical locations for: {context}."
+        )
+        pe.add_constraint(f"QUERY: {query}")
+        pe.add_constraint("RETURN: JSON list of objects with 'title', 'address', 'rating', 'place_id'.")
+        pe.set_output_format('{"venues": [{"title": "...", "address": "...", "rating": 4.5, "place_id": "..."}]}')
+        
+        system_prompt = pe.build_system_prompt()
+        full_prompt = f"{system_prompt}\n\nUSER QUERY: {query}"
+        
+        try:
+            # Inject Google Maps Tool
+            response = self.llm_client.generate_content(
+                prompt=full_prompt,
+                thinking_level="low",
+                response_schema=None,
+                tools=[{'google_maps_grounding': {}}] 
+            )
+            
+            data = PromptEngineer.parse_json_output(response.get("text", "{}"))
+            return data.get("venues", [])
+
+        except Exception as e:
+            self.log(f"Grounded Maps Search failed: {e}", level="error")
+            return []
 
     def _scout_music_trends(self, source: str) -> List[Dict[str, Any]]:
-        """Scout music-specific trends."""
-
-        # Placeholder - would integrate with Spotify/Apple Music APIs
-        return [
-            {
-                "source": source,
-                "type": "music",
-                "title": "New viral track emerging",
-                "description": "Track gaining momentum on streaming platforms",
-                "relevance": 0.8,
-                "priority": "normal",
-                "discovered_at": datetime.now(timezone.utc).isoformat(),
-                "actionable": True,
-                "action_suggestion": "Consider adding to playlist rotation"
-            }
-        ]
+        """Scout music-specific trends via Search."""
+        trends = self._perform_grounded_scout(
+             "latest viral music tracks and spotify charts this hour", 
+             "music"
+        )
+        # Adapt format
+        return [{
+            "source": source,
+            "type": "music",
+            "title": t.get("title"),
+            "description": t.get("description"),
+            "relevance": t.get("relevance", 0.8),
+            "priority": "normal",
+            "url": t.get("url"),
+            "discovered_at": datetime.now(timezone.utc).isoformat()
+        } for t in trends]
 
     def _scout_social_trends(self, source: str) -> List[Dict[str, Any]]:
-        """Scout social media trends."""
-
-        # Placeholder - would integrate with Twitter/X API
-        return [
-            {
-                "source": source,
-                "type": "social",
-                "title": "Music-related hashtag trending",
-                "description": "Community discussion around music topic",
-                "relevance": 0.6,
-                "priority": "normal",
-                "discovered_at": datetime.now(timezone.utc).isoformat(),
-                "actionable": True,
-                "action_suggestion": "Potential talking point for broadcast"
-            }
-        ]
+        """Scout social media trends via Search."""
+        trends = self._perform_grounded_scout(
+             "trending twitter hashtags and social media discussions right now", 
+             "social"
+        )
+        return [{
+            "source": source,
+            "type": "social",
+            "title": t.get("title"),
+            "description": t.get("description"),
+            "relevance": t.get("relevance", 0.7),
+            "priority": "normal",
+            "url": t.get("url"),
+            "discovered_at": datetime.now(timezone.utc).isoformat()
+        } for t in trends]
 
     def _scout_cultural_moments(self, source: str) -> List[Dict[str, Any]]:
-        """Scout broader cultural moments."""
+        """Scout cultural moments via Search."""
+        trends = self._perform_grounded_scout(
+             "major pop culture news and entertainment headlines today", 
+             "culture"
+        )
+        return [{
+            "source": source,
+            "type": "cultural",
+            "title": t.get("title"),
+            "description": t.get("description"),
+            "relevance": t.get("relevance", 0.9),
+            "priority": "high",
+            "url": t.get("url"),
+            "discovered_at": datetime.now(timezone.utc).isoformat()
+        } for t in trends]
 
-        # Placeholder - would aggregate news and cultural feeds
-        return [
-            {
-                "source": source,
-                "type": "cultural",
-                "title": "Cultural moment detected",
-                "description": "Significant event in music/entertainment",
-                "relevance": 0.7,
-                "priority": "normal",
-                "discovered_at": datetime.now(timezone.utc).isoformat(),
-                "actionable": True,
-                "action_suggestion": "Worth mentioning on air if relevant"
-            }
-        ]
+    def _scout_venues(self, source: str) -> List[Dict[str, Any]]:
+        """Scout trending venues via Google Maps."""
+        # For demo purposes, we search for venues in a specific city, e.g., Austin
+        # In the future, this could be dynamic based on listener metrics
+        trends = self._perform_map_scout(
+             "trending music venues and cafes in Austin, TX", 
+             "venues"
+        )
+        return [{
+            "source": source,
+            "type": "venue",
+            "title": t.get("title"),
+            "description": t.get("address"), # Map address to description
+            "relevance": t.get("rating", 3.0) / 5.0, # Normalize rating to 0-1
+            "priority": "medium",
+            "url": f"https://www.google.com/maps/place/?q=place_id:{t.get('place_id')}",
+            "discovered_at": datetime.now(timezone.utc).isoformat()
+        } for t in trends]
 
     def _rank_trends(
             self, trends: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

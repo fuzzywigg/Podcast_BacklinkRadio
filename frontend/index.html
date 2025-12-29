@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backlink Hive | Nano Banana</title>
+    <style>
+        :root {
+            --bg-color: #0f0f12;
+            --card-bg: #1a1a1f;
+            --accent: #ffd700;
+            /* Banana Gold */
+            --text-main: #e0e0e0;
+            --text-dim: #888;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+        }
+
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            background-color: #4caf50;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .offline {
+            background-color: #f44336;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .now-playing-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin: 0.5rem 0;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            background-color: var(--accent);
+            color: #000;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        pre {
+            background: #111;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            color: #0f0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <div>
+                <h1 style="margin:0">Backlink Hive</h1>
+                <small style="color:var(--text-dim)">v1.1.0 (Nano Banana)</small>
+            </div>
+            <div>
+                <span id="system-status" class="status-dot offline"></span>
+                <span id="status-text">OFFLINE</span>
+            </div>
+        </header>
+
+        <!-- Now Playing Card -->
+        <div class="card">
+            <div class="meta-row">
+                <span>ON AIR</span>
+                <span id="listener-count">-- Listeners</span>
+            </div>
+            <div id="now-playing" class="now-playing-title">Waiting for signal...</div>
+            <div class="meta-row">
+                <span id="track-source">--</span>
+                <span id="track-duration">--:--</span>
+            </div>
+        </div>
+
+        <!-- Treasury Card -->
+        <div class="card">
+            <h2>Treasury</h2>
+            <div class="meta-row" style="margin-bottom: 1rem;">
+                <span>Balance:</span>
+                <span id="treasury-balance" style="color:#fff; font-weight:bold">$0.00</span>
+            </div>
+            <a href="https://buy.stripe.com/test_mode_link_placeholder" target="_blank">
+                <button class="btn">Donate / Request Song ($5)</button>
+            </a>
+        </div>
+
+        <!-- Debug Log -->
+        <div class="card">
+            <h3>Hive Intel (Live)</h3>
+            <pre id="debug-log">Loading...</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        async function pollHive() {
+            try {
+                // 1. Check Status
+                const statusRes = await fetch(`${API_BASE}/status`);
+                const statusData = await statusRes.json();
+
+                const isAlive = statusData.queen_status === 'alive';
+                document.getElementById('system-status').className = `status-dot ${isAlive ? '' : 'offline'}`;
+                document.getElementById('status-text').innerText = isAlive ? 'ONLINE' : 'OFFLINE';
+
+                // 2. Fetch Intel (Now Playing, etc)
+                const intelRes = await fetch(`${API_BASE}/intel`);
+                const intel = await intelRes.json();
+
+                // Update Debug Log
+                document.getElementById('debug-log').innerText = JSON.stringify(intel, null, 2);
+
+                // Update UI
+                if (intel.broadcast_state && intel.broadcast_state.now_playing) {
+                    const track = intel.broadcast_state.now_playing;
+                    document.getElementById('now-playing').innerText = `${track.title} - ${track.artist || 'Unknown'}`;
+                    document.getElementById('track-source').innerText = `Source: ${track.source || 'Auto'}`;
+                } else {
+                    document.getElementById('now-playing').innerText = "Silence...";
+                }
+
+                if (intel.treasury) {
+                    document.getElementById('treasury-balance').innerText = `$${intel.treasury.balance.toFixed(2)}`;
+                }
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('system-status').className = 'status-dot offline';
+                document.getElementById('status-text').innerText = 'ERROR';
+            }
+        }
+
+        // Poll every 3 seconds
+        setInterval(pollHive, 3000);
+        pollHive(); // Initial
+    </script>
+
+</body>
+
+</html>

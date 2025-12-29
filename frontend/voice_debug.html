@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owl Voice Debugger</title>
+    <style>
+        body {
+            background: #111;
+            color: #0f0;
+            font-family: monospace;
+            padding: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background: #333;
+            color: #fff;
+            border: 1px solid #0f0;
+            cursor: pointer;
+        }
+
+        button.active {
+            background: #0f0;
+            color: #000;
+        }
+
+        #status {
+            margin-top: 10px;
+            color: #888;
+        }
+
+        #log {
+            border: 1px solid #333;
+            height: 300px;
+            overflow-y: scroll;
+            margin-top: 20px;
+            padding: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🦉 Owl Voice Interface</h1>
+    <p>Debug interface for WebSocket Live Streaming</p>
+
+    <button id="recordBtn">Hold to Talk</button>
+    <div id="status">Ready</div>
+    <div id="log"></div>
+
+    <script>
+        let ws;
+        let audioContext;
+        let processor;
+        let input;
+        let globalStream;
+
+        const recordBtn = document.getElementById('recordBtn');
+        const statusDiv = document.getElementById('status');
+        const logDiv = document.getElementById('log');
+
+        function log(msg) {
+            logDiv.textContent += msg + '\n';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Initialize WebSocket
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/stream`;
+
+        function connect() {
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                log("Connected to Hive Voice Stream");
+                statusDiv.textContent = "Connected";
+                recordBtn.disabled = false;
+            };
+
+            ws.onmessage = (event) => {
+                log(`Server: ${event.data}`);
+            };
+
+            ws.onclose = () => {
+                log("Disconnected. Reconnecting...");
+                statusDiv.textContent = "Disconnected";
+                setTimeout(connect, 3000);
+            };
+
+            ws.onerror = (err) => {
+                log(`Error: ${err}`);
+            };
+        }
+
+        connect();
+
+        async function startRecording() {
+            if (!audioContext) {
+                audioContext = new AudioContext({ sampleRate: 16000 }); // Downsample to 16k usually better for streaming
+            }
+
+            try {
+                globalStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                input = audioContext.createMediaStreamSource(globalStream);
+
+                // Use AudioWorklet in production, simplified ScriptProcessor for debug
+                processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+                input.connect(processor);
+                processor.connect(audioContext.destination);
+
+                processor.onaudioprocess = (e) => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        const inputData = e.inputBuffer.getChannelData(0);
+                        // Convert float32 to int16 PCM
+                        const pcmData = floatTo16BitPCM(inputData);
+                        ws.send(pcmData);
+                    }
+                };
+
+                statusDiv.textContent = "Broadcasting...";
+                recordBtn.classList.add('active');
+            } catch (err) {
+                log(`Mic Error: ${err}`);
+            }
+        }
+
+        function stopRecording() {
+            if (processor) {
+                processor.disconnect();
+                input.disconnect();
+                statusDiv.textContent = "Stopped";
+                recordBtn.classList.remove('active');
+            }
+            if (globalStream) {
+                globalStream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        function floatTo16BitPCM(output, offset = 0) {
+            const buffer = new ArrayBuffer(output.length * 2);
+            const view = new DataView(buffer);
+            for (let i = 0; i < output.length; i++, offset += 2) {
+                const s = Math.max(-1, Math.min(1, output[i]));
+                view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true); // Little endian
+            }
+            return buffer;
+        }
+
+        recordBtn.onmousedown = startRecording;
+        recordBtn.onmouseup = stopRecording;
+        recordBtn.ontouchstart = (e) => { e.preventDefault(); startRecording(); };
+        recordBtn.ontouchend = (e) => { e.preventDefault(); stopRecording(); };
+
+    </script>
+</body>
+
+</html>

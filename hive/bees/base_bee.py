@@ -46,6 +46,15 @@ class BaseBee(ABC):
             hive_path: Path to the root hive directory.
             gateway: Instance of ConstitutionalGateway for governance checks.
         """
+        # Logging setup
+        self.logger = logging.getLogger(self.BEE_NAME)
+        if not self.logger.handlers:
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter(f'[%(asctime)s] [{self.BEE_TYPE.upper()}] %(message)s')
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+            self.logger.setLevel(logging.INFO)
+
         if hive_path is None:
             # Default to hive directory relative to this file
             hive_path = Path(__file__).parent.parent.parent
@@ -57,8 +66,17 @@ class BaseBee(ABC):
 
         # Generate Unique Bee ID
         self.bee_id = f"{self.BEE_TYPE}_{str(uuid.uuid4())[:8]}"
+        
+        # Logic Brain (Gemini 3)
+        from hive.utils.gemini_client import Gemini3Client
+        try:
+            self.llm_client = Gemini3Client()
+        except Exception as e:
+             self.llm_client = None
+             self.logger.warning(f"Gemini 3 Client failed to initialize: {e}")
 
         # Initialize State Manager
+
         self.state_manager = StateManager(self.hive_path)
         
         # Initialize Storage Adapter
@@ -67,14 +85,6 @@ class BaseBee(ABC):
         # Initialize Wisdom Manager (System 3)
         self.wisdom_manager = WisdomManager(self.hive_path)
 
-        # Logging setup
-        self.logger = logging.getLogger(self.BEE_NAME)
-        if not self.logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter(f'[%(asctime)s] [{self.BEE_TYPE.upper()}] %(message)s')
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
-            self.logger.setLevel(logging.INFO)
 
     @abstractmethod
     def work(self, task: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -504,13 +514,16 @@ class BaseBee(ABC):
 
     def _ask_llm_json(self, prompt_engineer: PromptEngineer, user_input: str) -> Dict[str, Any]:
         """
-        Structured LLM Query.
+        Structured LLM Query using Gemini 3 Native Structured Output.
         Args:
             prompt_engineer: Configured PromptEngineer instance.
             user_input: The user/event trigger text.
         Returns:
             Dict parsed from JSON.
         """
+        if not self.llm_client:
+            return {"error": "LLM Client not initialized"}
+
         # 0. Inject System 3 Wisdom (Episodic Memory)
         try:
             wisdom = self.wisdom_manager.get_relevant_wisdom()
@@ -531,19 +544,22 @@ class BaseBee(ABC):
         system_prompt = prompt_engineer.build_system_prompt()
         
         try:
-            # We construct a message list for the chat model
-            # Assuming self.llm_client.chat implies a method that takes history
-            # If the client is simple text-in-text-out, we concat.
+            # Prepare schema for Gemini 3
+            # We assume prompt_engineer has a new method or we extract it purely from text for now
+            # For this step, we use the text-based prompting but enable thinking_level="low" for speed
+            # or "high" for complex logic.
             
-            # For this repo's simple client wrapper (likely):
-            full_prompt = f"{system_prompt}\n\nUSER INPUT: {user_input}"
+            response = self.llm_client.generate_content(
+                prompt=f"{system_prompt}\n\nUSER INPUT: {user_input}",
+                thinking_level="low", # Default to low for speed, subclass can override
+                response_schema=None # We are sticking to robust text parsing + prompt engineering for now to avoid schema Strictness hell
+            )
             
-            # Call the LLM (using existing method)
-            # Note: We rely on the model obeying the system prompt format instructions
-            response_text = self.llm_client.generate(full_prompt)
-            
+            if "error" in response:
+                 return response
+                 
             # Parse
-            return PromptEngineer.parse_json_output(response_text)
+            return PromptEngineer.parse_json_output(response.get("text", ""))
             
         except Exception as e:
             self.log(f"LLM Structure Failure: {e}", level="error")

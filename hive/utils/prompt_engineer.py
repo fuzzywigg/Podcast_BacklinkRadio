@@ -23,6 +23,11 @@ class PromptEngineer:
         self.context_items.append(context)
         return self
 
+    def add_section(self, title: str):
+        """Add a labeled section header to the prompt."""
+        self.context_items.append(f"\n--- {title.upper()} ---")
+        return self
+
     def add_constraint(self, constraint: str):
         """Add a strict boundary/constraint."""
         self.constraints.append(constraint)

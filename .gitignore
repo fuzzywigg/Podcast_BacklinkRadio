@@ -143,6 +143,11 @@ cache/
 hive/config/oracle.json
 *.cache
 
+# Firebase
+.firebase/
+firebase-debug.log
+firebaserc
+
 # Temporary files
 tmp/
 temp/
