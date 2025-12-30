@@ -199,6 +199,46 @@ class TrendScoutBee(ScoutBee):
             ]
         return []
 
+    async def _perform_visual_scout(self, url: str, goal: str) -> dict[str, Any]:
+        """
+        Skyvern-Style Visual Navigation using Chrome DevTools MCP.
+        
+        Args:
+            url: The target website.
+            goal: What to find (e.g. "Find the top trending hashtag").
+            
+        Returns:
+            Extracted data payload.
+        """
+        if not self.llm_client:
+            return {"error": "No LLM"}
+
+        pe = PromptEngineer(role="Visual Scout", goal=goal)
+        pe.add_context("You are controlling a browser via Chrome DevTools.")
+        pe.add_context(f"Target URL: {url}")
+        pe.add_constraint("STRATEGY: Use Visual Anchors. Identify elements by screen coordinates if selectors fail.")
+        pe.add_constraint("RETURN: JSON with 'action' (click/type/finish) and 'reasoning'.")
+        
+        # This interaction loop mimics the Skyvern agent loop
+        # In a real implementation, this would loop until 'finish'
+        # For this Phase, we define the capability structure.
+        
+        vis_prompt = pe.build_system_prompt()
+        
+        # We would inject the MCP tools here: [Browser.navigate, Browser.click, etc.]
+        # For now, we simulate the first step of the reasoning chain
+        
+        try:
+            response = self.llm_client.generate_content(
+                prompt=f"{vis_prompt}\n\nGOAL: {goal}",
+                thinking_level="low",
+                tools=[{"google_search": {}}] # Placeholder for MCP tools
+            )
+            return PromptEngineer.parse_json_output(response.get("text", "{}"))
+        except Exception as e:
+            self.log(f"Visual Scout Failed: {e}", level="error")
+            return {}
+
     def _scout_source(self, source: dict[str, Any]) -> list[dict[str, Any]]:
         """Scout a specific source for trends."""
 

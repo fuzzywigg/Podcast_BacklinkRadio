@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+  # ─────────────────────────────────────────────────────────────
+  # SOVEREIGN BRAIN (LocalAI)
+  # ─────────────────────────────────────────────────────────────
+  local-ai:
+    image: quay.io/go-skynet/local-ai:latest
+    container_name: hive-sovereign-brain
+    ports:
+      - "8080:8080"
+    environment:
+      - MODELS_PATH=/models
+      - THREADS=4
+    volumes:
+      - ./models:/models
+      - ./images:/tmp/generated/images # For image generation storage
+    command:
+      [
+        "/usr/bin/local-ai",
+        "--models-path",
+        "/models",
+        "--context-size",
+        "700",
+        "--threads",
+        "4",
+      ]
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8080/readyz"]
+    #   interval: 1m
+    #   timeout: 2m
+    #   retries: 5
+
+  # ─────────────────────────────────────────────────────────────
+  # SOVEREIGN BODY (MinIO)
+  # ─────────────────────────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: hive-sovereign-body
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=hive_admin
+      - MINIO_ROOT_PASSWORD=hive_sovereign_key_change_me
+    volumes:
+      - ./data/minio:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # ─────────────────────────────────────────────────────────────
+  # GRAPH MEMORY (Neo4j / Cognee Backend - Optional)
+  # ─────────────────────────────────────────────────────────────
+  # neo4j:
+  #   image: neo4j:5.11
+  #   container_name: hive-graph-memory
+  #   ports:
+  #     - "7474:7474"
+  #     - "7687:7687"
+  #   environment:
+  #     - NEO4J_AUTH=neo4j/hive_memory_key
+  #   volumes:
+  #     - ./data/neo4j:/data

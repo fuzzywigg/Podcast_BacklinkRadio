@@ -1,33 +1,76 @@
 import json
 import os
+import logging
 from typing import Any
 
-from google import genai
-from google.genai import types
+# Conditional imports
+try:
+    from google import genai
+    from google.genai import types
+except ImportError:
+    genai = None
 
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
+
+logger = logging.getLogger("gemini_client")
 
 class Gemini3Client:
     """
     Wrapper for Gemini 3 API with support for Thinking Level and Thought Signatures.
+    Now updated to support Sovereign (LocalAI) backend via OpenAI compatibility.
     """
 
     def __init__(self, model_name: str = "gemini-2.0-flash-exp"):
         """
-        Initialize the Gemini 3 Client.
-        defaults to 2.0-flash-exp until 3-pro-preview is widely available/stable
-        change default to 'gemini-3-pro-preview' when ready.
+        Initialize the Client. Checks GOVERNANCE_AI_MODEL to decide backend.
         """
-        self.api_key = os.environ.get("GEMINI_API_KEY")
-        if not self.api_key:
-            # Fallback for old env var
-            self.api_key = os.environ.get("GOOGLE_API_KEY")
+        self.backend = "google"
+        self.client = None
+        self.model_name = model_name
+        
+        # Check Configuration
+        # We reuse the gov config or a simpler GENAI_BACKEND flag
+        self.gov_model = os.environ.get("GOVERNANCE_AI_MODEL", "gemini-pro-3")
+        self.local_endpoint = os.environ.get("GOVERNANCE_AI_ENDPOINT", "http://localhost:8080/v1")
 
-        if not self.api_key:
+        if self.gov_model == "local":
+            self._init_local_backend()
+        else:
+            self._init_google_backend()
+
+    def _init_local_backend(self):
+        """Initialize OpenAI client pointing to LocalAI."""
+        if not OpenAI:
+            logger.error("OpenAI sdk not installed. Cannot use LocalAI.")
+            return
+
+        self.backend = "local"
+        # LocalAI doesn't strictly need a real key, but OpenAI client might check for one
+        api_key = os.environ.get("LOCALAI_API_KEY", "sk-xxx-local") 
+        
+        self.client = OpenAI(
+            base_url=self.local_endpoint,
+            api_key=api_key
+        )
+        # Use a model name expected by LocalAI or just pass 'gpt-3.5-turbo' as generic alias
+        # Often LocalAI requires the specific model filename or alias loaded
+        self.model_name = "gpt-4" # Generic fallback or use mapped name
+
+    def _init_google_backend(self):
+        """Initialize Google GenAI client."""
+        if not genai:
+            logger.error("Google genai sdk not installed.")
+            return
+
+        api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        if not api_key:
             raise ValueError("GEMINI_API_KEY or GOOGLE_API_KEY not found in environment.")
 
-        self.client = genai.Client(api_key=self.api_key)
-        self.model_name = model_name
-        self.last_thought_signature = None
+        self.client = genai.Client(api_key=api_key)
+        self.backend = "google"
 
     def generate_content(
         self,
@@ -39,101 +82,106 @@ class Gemini3Client:
         tools: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         """
-        Generate content using Gemini 3 features.
-
-        Args:
-            prompt: User input.
-            system_instruction: System role/goal.
-            thinking_level: "low", "high", "minimal", "medium".
-            response_schema: dict describing the desired JSON output structure.
-            use_thought_signature: If True, includes previous thought signature (if any).
-            tools: List of tools to enable (e.g. [{'google_search': {}}]).
-
-        Returns:
-            Dict containing text response or parsed JSON.
+        Generate content using the configured backend.
         """
-
-        config_args = {"thinking_config": types.ThinkingConfig(thinking_level=thinking_level)}
-
-        if tools:
-            config_args["tools"] = tools
-
-        # Handle Structured Output
-        if response_schema:
-            config_args["response_mime_type"] = "application/json"
-            # In a real impl, we'd convert the dict schema to pydantic or use raw schema if supported
-            # For now, we pass the schema dict directly if the SDK supports it, or rely on prompt engineering + MIME type
-            config_args["response_schema"] = response_schema
-
-        config = types.GenerateContentConfig(**config_args)
-
-        # Construct message parts
-        contents = []
-
-        if use_thought_signature and self.last_thought_signature:
-            # Opaque thought signature handling would go here
-            # Currently simplistic as per docs (implicit in conversation history for chat, explicit for tools)
-            pass
-
-        # Call API
-        try:
-            response = self.client.models.generate_content(
-                model=self.model_name, contents=prompt, config=config
+        if self.backend == "local":
+            return self._generate_local(prompt, system_instruction, response_schema)
+        else:
+            return self._generate_google(
+                prompt, system_instruction, thinking_level, response_schema, use_thought_signature, tools
             )
 
-            # Capture thought signature for next turn (if present)
-            # This is a simplification; real handling requires parsing parts
-            # self.last_thought_signature = response.candidates[0].content.parts[0].thought_signature
+    def _generate_local(self, prompt: str, system_instruction: str, response_schema: dict | None) -> dict:
+        """Execute via LocalAI (OpenAI compatible)."""
+        messages = []
+        if system_instruction:
+            messages.append({"role": "system", "content": system_instruction})
+        messages.append({"role": "user", "content": prompt})
 
+        try:
+            # Check if JSON mode is requested
+            response_format = None
             if response_schema:
-                return json.loads(response.text)
+                response_format = {"type": "json_object"}
 
-            return {"text": response.text}
+            completion = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                response_format=response_format
+            )
+            
+            content = completion.choices[0].message.content
+            if response_schema:
+                try:
+                    return json.loads(content)
+                except json.JSONDecodeError:
+                    return {"error": "Failed to parse JSON from LocalAI", "raw": content}
+            
+            return {"text": content}
 
         except Exception as e:
             return {"error": str(e)}
 
+    def _generate_google(self, prompt, system_instruction, thinking_level, response_schema, use_thought_signature, tools):
+        """Execute via Google GenAI."""
+        if not self.client:
+             return {"error": "Google Client not initialized"}
+
+        config_args = {"thinking_config": types.ThinkingConfig(thinking_level=thinking_level)}
+        if tools:
+            config_args["tools"] = tools
+
+        if response_schema:
+            config_args["response_mime_type"] = "application/json"
+            config_args["response_schema"] = response_schema
+
+        config = types.GenerateContentConfig(**config_args)
+        
+        # In newer SDK, system_instruction might be part of config or method
+        # We assume it goes into contents as 'model' role or config
+        # For simplicity in this wrapper, if system instruction is present, we prepend it or use config
+        # types.GenerateContentConfig has system_instruction in some versions
+        if system_instruction:
+            # check SDK version support or prepend
+             config.system_instruction = system_instruction
+
+        try:
+            response = self.client.models.generate_content(
+                model=self.model_name, contents=prompt, config=config
+            )
+            
+            if response_schema:
+                try:
+                    return json.loads(response.text)
+                except:
+                    return {"text": response.text} # Fallback
+            
+            return {"text": response.text}
+        
+        except Exception as e:
+            return {"error": str(e)}
+
     def generate_image(self, prompt: str, aspect_ratio: str = "1:1") -> str | None:
-        """
-        Generate an image using Imagen 3 via Gemini API (if available).
-        Currently a placeholder for future 'Low Lift' activation.
-
-        Args:
-           prompt: The image description.
-           aspect_ratio: '1:1', '16:9', '9:16'
-
-        Returns:
-           URL or base64 string of image, or None if failed.
-        """
-        # TODO: Implement actual Imagen 3 wrapper when 'google-genai' SDK stabilizes image support
-        # logic:
-        # response = self.client.models.generate_images(
-        #    model='imagen-3.0-generate-001',
-        #    prompt=prompt,
-        #    config=types.GenerateImagesConfig(number_of_images=1, aspect_ratio=aspect_ratio)
-        # )
-        # return response.generated_images[0].image.uri
+        # TODO: Implement actual Imagen 3 wrapper
         return None
 
     async def live_connect(self, model: str = None):
         """
         Async context manager for a bidirectional live session with Gemini.
-        Returns a websocket connection ready to send/receive Bidi RPCs.
+        Note: LocalAI might not support Bidi RPCs yet.
         """
-        import json
+        if self.backend == "local":
+             # Wait for LocalAI Websocket support
+             raise NotImplementedError("Live Connect not supported on LocalAI yet")
 
-        import websockets  # Lazy import
-
+        import websockets
         target_model = model or self.model_name
-        # Note: The host and path might vary based on the exact Alpha version.
-        # Using the standard path from the cookbook for v1alpha.
         host = "generativelanguage.googleapis.com"
-        path = f"/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key={self.api_key}"
+        path = f"/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key={self.client.api_key}"
         url = f"wss://{host}{path}"
 
         try:
             async with websockets.connect(url) as ws:
-                # 1. Send Setup Message
                 setup_msg = {
                     "setup": {
                         "model": f"models/{target_model}",
@@ -141,12 +189,7 @@ class Gemini3Client:
                     }
                 }
                 await ws.send(json.dumps(setup_msg))
-
-                # 2. Wait for Setup Complete (simplified handshake)
-                # In a robust app, we'd wait for specific response, but here we yield immediately
-                # effectively handing control to the caller (Main Service)
                 yield ws
-
         except Exception as e:
             print(f"Gemini Live Connect Error: {e}")
             raise

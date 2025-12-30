@@ -24,3 +24,5 @@ uvicorn>=0.20.0
 
 # Persistence
 google-cloud-firestore>=2.11.0
+cognee>=0.1.0
+networkx>=3.0.0
