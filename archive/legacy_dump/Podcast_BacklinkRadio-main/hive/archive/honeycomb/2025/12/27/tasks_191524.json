@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Task queue - work that needs doing"
+  },
+  "pending": [],
+  "in_progress": [],
+  "completed": [],
+  "failed": [],
+  "recurring": [
+    {
+      "id": "social_post_check",
+      "bee_type": "social",
+      "schedule": "*/15 * * * *",
+      "description": "Check if content ready for posting",
+      "enabled": true
+    },
+    {
+      "id": "listener_scan",
+      "bee_type": "research",
+      "schedule": "*/5 * * * *",
+      "description": "Scan for new listener intel",
+      "enabled": true
+    },
+    {
+      "id": "trend_monitor",
+      "bee_type": "scout",
+      "schedule": "0 * * * *",
+      "description": "Hourly trend check",
+      "enabled": true
+    },
+    {
+      "id": "sponsor_pipeline",
+      "bee_type": "monetization",
+      "schedule": "0 9 * * *",
+      "description": "Daily sponsor outreach review",
+      "enabled": true
+    }
+  ],
+  "task_schema": {
+    "id": "string (uuid)",
+    "type": "string (content|technical|marketing|monetization|community|research)",
+    "bee_type": "string (specific bee to handle)",
+    "priority": "number (1-10, 10=urgent)",
+    "created_at": "ISO timestamp",
+    "created_by": "string (bee or system)",
+    "deadline": "ISO timestamp or null",
+    "payload": "object (task-specific data)",
+    "status": "pending|in_progress|completed|failed",
+    "result": "object or null",
+    "attempts": "number",
+    "max_attempts": "number (default 3)"
+  }
+}

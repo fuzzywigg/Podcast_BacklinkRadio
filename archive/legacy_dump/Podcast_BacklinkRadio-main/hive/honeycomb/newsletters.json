@@ -1,0 +1,356 @@
+{
+  "_meta": {
+    "created": "2025-12-27T15:23:13.347453+00:00",
+    "version": "1.0.0",
+    "last_updated": "2025-12-27T20:23:12.078052+00:00"
+  },
+  "drafts": [
+    {
+      "id": "21b6d5cb653a",
+      "created_at": "2025-12-27T19:15:24.941937+00:00",
+      "period": {
+        "start": "2025-12-20T19:15:24.941868+00:00",
+        "end": "2025-12-27T19:15:24.941868+00:00"
+      },
+      "subject": "This Week at Backlink - December 27",
+      "preview_text": "Your weekly dose of Backlink goodness",
+      "sections": {
+        "highlights": {
+          "title": "This Week's Highlights",
+          "items": [
+            {
+              "title": "Thanks for tuning in!",
+              "type": "message"
+            }
+          ]
+        },
+        "upcoming": {
+          "title": "Coming Up",
+          "items": [
+            {
+              "title": "Stay tuned for exciting announcements!",
+              "type": "teaser"
+            }
+          ]
+        },
+        "community": {
+          "title": "Community Corner",
+          "vip_spotlight": [],
+          "shoutouts": [],
+          "message": "You make Backlink special. Thank you!"
+        },
+        "trending": {
+          "title": "What's Trending",
+          "items": [
+            {
+              "source": "spotify_viral",
+              "type": "music",
+              "title": "New viral track emerging",
+              "description": "Track gaining momentum on streaming platforms",
+              "relevance": 0.8,
+              "priority": "normal",
+              "discovered_at": "2025-12-22T21:34:46.845281+00:00",
+              "actionable": true,
+              "action_suggestion": "Consider adding to playlist rotation"
+            },
+            {
+              "source": "cultural_moments",
+              "type": "cultural",
+              "title": "Cultural moment detected",
+              "description": "Significant event in music/entertainment",
+              "relevance": 0.7,
+              "priority": "normal",
+              "discovered_at": "2025-12-22T21:34:46.845287+00:00",
+              "actionable": true,
+              "action_suggestion": "Worth mentioning on air if relevant"
+            },
+            {
+              "source": "twitter_trending",
+              "type": "social",
+              "title": "Music-related hashtag trending",
+              "description": "Community discussion around music topic",
+              "relevance": 0.6,
+              "priority": "normal",
+              "discovered_at": "2025-12-22T21:34:46.845273+00:00",
+              "actionable": true,
+              "action_suggestion": "Potential talking point for broadcast"
+            }
+          ]
+        },
+        "behind_scenes": {
+          "title": "Station Update",
+          "content": "Thanks for being part of the Backlink family!"
+        },
+        "call_to_action": {
+          "title": "Join the Conversation",
+          "content": "Reply to this email with your favorite moment from this week!",
+          "button_text": "Listen Live",
+          "button_url": "#"
+        }
+      },
+      "status": "draft"
+    },
+    {
+      "id": "9fe21aca14e7",
+      "created_at": "2025-12-27T20:08:56.099841+00:00",
+      "period": {
+        "start": "2025-12-20T20:08:56.099803+00:00",
+        "end": "2025-12-27T20:08:56.099803+00:00"
+      },
+      "subject": "This Week at Backlink - December 27",
+      "preview_text": "Your weekly dose of Backlink goodness",
+      "sections": {
+        "highlights": {
+          "title": "This Week's Highlights",
+          "items": [
+            {
+              "title": "Thanks for tuning in!",
+              "type": "message"
+            }
+          ]
+        },
+        "upcoming": {
+          "title": "Coming Up",
+          "items": [
+            {
+              "title": "Stay tuned for exciting announcements!",
+              "type": "teaser"
+            }
+          ]
+        },
+        "community": {
+          "title": "Community Corner",
+          "vip_spotlight": [],
+          "shoutouts": [],
+          "message": "You make Backlink special. Thank you!"
+        },
+        "trending": {
+          "title": "What's Trending",
+          "items": [
+            {
+              "source": "spotify_viral",
+              "type": "music",
+              "title": "New viral track emerging",
+              "description": "Track gaining momentum on streaming platforms",
+              "relevance": 0.8,
+              "priority": "normal",
+              "discovered_at": "2025-12-27T20:07:05.880092+00:00",
+              "actionable": true,
+              "action_suggestion": "Consider adding to playlist rotation"
+            },
+            {
+              "source": "cultural_moments",
+              "type": "cultural",
+              "title": "Cultural moment detected",
+              "description": "Significant event in music/entertainment",
+              "relevance": 0.7,
+              "priority": "normal",
+              "discovered_at": "2025-12-27T20:07:05.880096+00:00",
+              "actionable": true,
+              "action_suggestion": "Worth mentioning on air if relevant"
+            },
+            {
+              "source": "twitter_trending",
+              "type": "social",
+              "title": "Music-related hashtag trending",
+              "description": "Community discussion around music topic",
+              "relevance": 0.6,
+              "priority": "normal",
+              "discovered_at": "2025-12-27T20:07:05.880087+00:00",
+              "actionable": true,
+              "action_suggestion": "Potential talking point for broadcast"
+            }
+          ]
+        },
+        "behind_scenes": {
+          "title": "Station Update",
+          "content": "Thanks for being part of the Backlink family!"
+        },
+        "call_to_action": {
+          "title": "Join the Conversation",
+          "content": "Reply to this email with your favorite moment from this week!",
+          "button_text": "Listen Live",
+          "button_url": "#"
+        }
+      },
+      "status": "draft"
+    },
+    {
+      "id": "8da6a1ba6239",
+      "created_at": "2025-12-27T20:16:20.611898+00:00",
+      "period": {
+        "start": "2025-12-20T20:16:20.611854+00:00",
+        "end": "2025-12-27T20:16:20.611854+00:00"
+      },
+      "subject": "This Week at Backlink - December 27",
+      "preview_text": "Your weekly dose of Backlink goodness",
+      "sections": {
+        "highlights": {
+          "title": "This Week's Highlights",
+          "items": [
+            {
+              "title": "Thanks for tuning in!",
+              "type": "message"
+            }
+          ]
+        },
+        "upcoming": {
+          "title": "Coming Up",
+          "items": [
+            {
+              "title": "Stay tuned for exciting announcements!",
+              "type": "teaser"
+            }
+          ]
+        },
+        "community": {
+          "title": "Community Corner",
+          "vip_spotlight": [],
+          "shoutouts": [],
+          "message": "You make Backlink special. Thank you!"
+        },
+        "trending": {
+          "title": "What's Trending",
+          "items": [
+            {
+              "source": "spotify_viral",
+              "type": "music",
+              "title": "New viral track emerging",
+              "description": "Track gaining momentum on streaming platforms",
+              "relevance": 0.8,
+              "priority": "normal",
+              "discovered_at": "2025-12-27T20:08:56.273569+00:00",
+              "actionable": true,
+              "action_suggestion": "Consider adding to playlist rotation"
+            },
+            {
+              "source": "cultural_moments",
+              "type": "cultural",
+              "title": "Cultural moment detected",
+              "description": "Significant event in music/entertainment",
+              "relevance": 0.7,
+              "priority": "normal",
+              "discovered_at": "2025-12-27T20:08:56.273573+00:00",
+              "actionable": true,
+              "action_suggestion": "Worth mentioning on air if relevant"
+            },
+            {
+              "source": "twitter_trending",
+              "type": "social",
+              "title": "Music-related hashtag trending",
+              "description": "Community discussion around music topic",
+              "relevance": 0.6,
+              "priority": "normal",
+              "discovered_at": "2025-12-27T20:08:56.273564+00:00",
+              "actionable": true,
+              "action_suggestion": "Potential talking point for broadcast"
+            }
+          ]
+        },
+        "behind_scenes": {
+          "title": "Station Update",
+          "content": "Thanks for being part of the Backlink family!"
+        },
+        "call_to_action": {
+          "title": "Join the Conversation",
+          "content": "Reply to this email with your favorite moment from this week!",
+          "button_text": "Listen Live",
+          "button_url": "#"
+        }
+      },
+      "status": "draft"
+    },
+    {
+      "id": "9da4a9f3ee33",
+      "created_at": "2025-12-27T20:23:12.066393+00:00",
+      "period": {
+        "start": "2025-12-20T20:23:12.066344+00:00",
+        "end": "2025-12-27T20:23:12.066344+00:00"
+      },
+      "subject": "This Week at Backlink - December 27",
+      "preview_text": "Your weekly dose of Backlink goodness",
+      "sections": {
+        "highlights": {
+          "title": "This Week's Highlights",
+          "items": [
+            {
+              "title": "Thanks for tuning in!",
+              "type": "message"
+            }
+          ]
+        },
+        "upcoming": {
+          "title": "Coming Up",
+          "items": [
+            {
+              "title": "Stay tuned for exciting announcements!",
+              "type": "teaser"
+            }
+          ]
+        },
+        "community": {
+          "title": "Community Corner",
+          "vip_spotlight": [],
+          "shoutouts": [],
+          "message": "You make Backlink special. Thank you!"
+        },
+        "trending": {
+          "title": "What's Trending",
+          "items": [
+            {
+              "source": "spotify_viral",
+              "type": "music",
+              "title": "New viral track emerging",
+              "description": "Track gaining momentum on streaming platforms",
+              "relevance": 0.8,
+              "priority": "normal",
+              "discovered_at": "2025-12-27T20:16:20.799052+00:00",
+              "actionable": true,
+              "action_suggestion": "Consider adding to playlist rotation"
+            },
+            {
+              "source": "cultural_moments",
+              "type": "cultural",
+              "title": "Cultural moment detected",
+              "description": "Significant event in music/entertainment",
+              "relevance": 0.7,
+              "priority": "normal",
+              "discovered_at": "2025-12-27T20:16:20.799056+00:00",
+              "actionable": true,
+              "action_suggestion": "Worth mentioning on air if relevant"
+            },
+            {
+              "source": "twitter_trending",
+              "type": "social",
+              "title": "Music-related hashtag trending",
+              "description": "Community discussion around music topic",
+              "relevance": 0.6,
+              "priority": "normal",
+              "discovered_at": "2025-12-27T20:16:20.799047+00:00",
+              "actionable": true,
+              "action_suggestion": "Potential talking point for broadcast"
+            }
+          ]
+        },
+        "behind_scenes": {
+          "title": "Station Update",
+          "content": "Thanks for being part of the Backlink family!"
+        },
+        "call_to_action": {
+          "title": "Join the Conversation",
+          "content": "Reply to this email with your favorite moment from this week!",
+          "button_text": "Listen Live",
+          "button_url": "#"
+        }
+      },
+      "status": "draft"
+    }
+  ],
+  "sent": [],
+  "templates": {},
+  "stats": {
+    "total_sent": 0,
+    "total_opens": 0,
+    "total_clicks": 0
+  }
+}

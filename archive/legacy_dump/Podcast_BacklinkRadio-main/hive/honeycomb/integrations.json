@@ -1,0 +1,49 @@
+{
+  "connections": [],
+  "webhooks": [],
+  "sync_jobs": [],
+  "api_keys": {},
+  "health_checks": [
+    {
+      "total_connections": 0,
+      "healthy": 0,
+      "unhealthy": 0,
+      "results": [],
+      "checked_at": "2025-12-27T19:15:24.775852+00:00"
+    },
+    {
+      "total_connections": 0,
+      "healthy": 0,
+      "unhealthy": 0,
+      "results": [],
+      "checked_at": "2025-12-27T20:07:05.809355+00:00"
+    },
+    {
+      "total_connections": 0,
+      "healthy": 0,
+      "unhealthy": 0,
+      "results": [],
+      "checked_at": "2025-12-27T20:08:56.061361+00:00"
+    },
+    {
+      "total_connections": 0,
+      "healthy": 0,
+      "unhealthy": 0,
+      "results": [],
+      "checked_at": "2025-12-27T20:16:20.567006+00:00"
+    },
+    {
+      "total_connections": 0,
+      "healthy": 0,
+      "unhealthy": 0,
+      "results": [],
+      "checked_at": "2025-12-27T20:23:12.024263+00:00"
+    }
+  ],
+  "stats": {
+    "total_connections": 0,
+    "active_connections": 0,
+    "total_syncs": 0,
+    "failed_syncs": 0
+  }
+}

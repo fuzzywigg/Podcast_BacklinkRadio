@@ -1,0 +1,43 @@
+{
+  "jobs": [],
+  "presets": {
+    "broadcast_standard": {
+      "normalize_lufs": -16,
+      "peak_limit": -1,
+      "sample_rate": 44100,
+      "bit_depth": 16,
+      "format": "mp3",
+      "bitrate": 192
+    },
+    "podcast": {
+      "normalize_lufs": -19,
+      "peak_limit": -1,
+      "sample_rate": 44100,
+      "bit_depth": 16,
+      "format": "mp3",
+      "bitrate": 128
+    },
+    "high_quality": {
+      "normalize_lufs": -14,
+      "peak_limit": -0.5,
+      "sample_rate": 48000,
+      "bit_depth": 24,
+      "format": "wav",
+      "bitrate": null
+    },
+    "voice_only": {
+      "normalize_lufs": -18,
+      "peak_limit": -1,
+      "eq_preset": "voice_clarity",
+      "noise_reduction": true,
+      "format": "mp3",
+      "bitrate": 96
+    }
+  },
+  "queue": [],
+  "stats": {
+    "total_processed": 0,
+    "total_duration_seconds": 0,
+    "by_preset": {}
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "scripts": [
+    {
+      "id": "bit_20251227_200705",
+      "type": "comedy_bit",
+      "topic": "",
+      "style": "observational",
+      "target_duration_seconds": 60,
+      "created_at": "2025-12-27T20:07:05.845123+00:00",
+      "status": "draft",
+      "content": {
+        "setup": "[SETUP - Establish premise about ]",
+        "build": "[BUILD - Escalate with 2-3 observations]",
+        "punch": "[PUNCH - Deliver unexpected twist/callback]",
+        "tag": "[TAG - Optional extra laugh]"
+      },
+      "notes": {
+        "trends_considered": [],
+        "energy_level": "medium",
+        "requires_sound_effect": false
+      }
+    },
+    {
+      "id": "bit_20251227_200856",
+      "type": "comedy_bit",
+      "topic": "",
+      "style": "observational",
+      "target_duration_seconds": 60,
+      "created_at": "2025-12-27T20:08:56.117553+00:00",
+      "status": "draft",
+      "content": {
+        "setup": "[SETUP - Establish premise about ]",
+        "build": "[BUILD - Escalate with 2-3 observations]",
+        "punch": "[PUNCH - Deliver unexpected twist/callback]",
+        "tag": "[TAG - Optional extra laugh]"
+      },
+      "notes": {
+        "trends_considered": [],
+        "energy_level": "medium",
+        "requires_sound_effect": false
+      }
+    },
+    {
+      "id": "bit_20251227_201620",
+      "type": "comedy_bit",
+      "topic": "",
+      "style": "observational",
+      "target_duration_seconds": 60,
+      "created_at": "2025-12-27T20:16:20.630910+00:00",
+      "status": "draft",
+      "content": {
+        "setup": "[SETUP - Establish premise about ]",
+        "build": "[BUILD - Escalate with 2-3 observations]",
+        "punch": "[PUNCH - Deliver unexpected twist/callback]",
+        "tag": "[TAG - Optional extra laugh]"
+      },
+      "notes": {
+        "trends_considered": [],
+        "energy_level": "medium",
+        "requires_sound_effect": false
+      }
+    },
+    {
+      "id": "bit_20251227_202312",
+      "type": "comedy_bit",
+      "topic": "",
+      "style": "observational",
+      "target_duration_seconds": 60,
+      "created_at": "2025-12-27T20:23:12.085283+00:00",
+      "status": "draft",
+      "content": {
+        "setup": "[SETUP - Establish premise about ]",
+        "build": "[BUILD - Escalate with 2-3 observations]",
+        "punch": "[PUNCH - Deliver unexpected twist/callback]",
+        "tag": "[TAG - Optional extra laugh]"
+      },
+      "notes": {
+        "trends_considered": [],
+        "energy_level": "medium",
+        "requires_sound_effect": false
+      }
+    }
+  ],
+  "templates": {},
+  "performance": {},
+  "last_updated": "2025-12-27T20:23:12.096959+00:00"
+}

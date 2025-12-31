@@ -1,0 +1,220 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Pollen memory - successful patterns for bee generations",
+    "last_updated": "2025-12-27T20:23:12.010193+00:00"
+  },
+  "entries": [
+    {
+      "id": "3c1bbf0fdd2d3369",
+      "bee_type": "TestBee",
+      "task_type": "test_task",
+      "model": {
+        "entities": [
+          "TestBee",
+          "user:123"
+        ],
+        "constraints": [
+          "test constraint"
+        ],
+        "possible_actions": [
+          "process",
+          "skip"
+        ]
+      },
+      "result_summary": {
+        "success": true,
+        "output": "test"
+      },
+      "success_score": 0.85,
+      "timestamp": "2025-12-27T09:20:15.264881+00:00",
+      "lineage_version": "1.0.0",
+      "tags": [
+        "TestBee",
+        "validation",
+        "test",
+        "test_task"
+      ],
+      "recall_count": 38,
+      "last_recalled": "2025-12-27T19:12:45.787656+00:00"
+    },
+    {
+      "id": "667c6f600dfe0d93",
+      "bee_type": "TestBee",
+      "task_type": "test_task",
+      "model": {
+        "entities": [
+          "test_entity"
+        ],
+        "constraints": [
+          "must be positive"
+        ],
+        "possible_actions": [
+          "process",
+          "skip"
+        ]
+      },
+      "result_summary": {
+        "success": true,
+        "summary": "Test worked"
+      },
+      "success_score": 0.85,
+      "timestamp": "2025-12-27T12:17:23.708864+00:00",
+      "lineage_version": "1.0.0",
+      "tags": [
+        "test_task",
+        "unit_test",
+        "TestBee",
+        "test"
+      ],
+      "recall_count": 38,
+      "last_recalled": "2025-12-27T19:12:45.787656+00:00"
+    },
+    {
+      "id": "8c9f92f49cb0ab8d",
+      "bee_type": "AnalyticsBee",
+      "task_type": "unknown",
+      "model": {
+        "task_type": "unknown",
+        "entities": [
+          "analytics"
+        ],
+        "state_variables": {
+          "broadcast_status": "offline",
+          "pending_alerts": 0,
+          "listener_count": 0
+        },
+        "possible_actions": [
+          "process",
+          "skip",
+          "defer",
+          "escalate"
+        ],
+        "constraints": [
+          "Must pass Constitutional Gateway check",
+          "Cannot route funds to non-treasury wallets",
+          "Must sanitize public inputs"
+        ],
+        "pollen_sources": [
+          {
+            "id": "3c1bbf0fdd2d3369",
+            "model": {
+              "entities": [
+                "TestBee",
+                "user:123"
+              ],
+              "constraints": [
+                "test constraint"
+              ],
+              "possible_actions": [
+                "process",
+                "skip"
+              ]
+            },
+            "success_score": 0.85,
+            "bee_type": "TestBee"
+          },
+          {
+            "id": "667c6f600dfe0d93",
+            "model": {
+              "entities": [
+                "test_entity"
+              ],
+              "constraints": [
+                "must be positive"
+              ],
+              "possible_actions": [
+                "process",
+                "skip"
+              ]
+            },
+            "success_score": 0.85,
+            "bee_type": "TestBee"
+          }
+        ],
+        "defined_at": "2025-12-27T19:12:45.789055+00:00",
+        "defined_by": "analytics_195fe23a"
+      },
+      "result_summary": {
+        "success": null,
+        "summary": "{'action': 'dashboard', 'dashboard': {'generated_at': '2025-12-27T19:12:45.792688+00:00', 'station_status': {'is_live': False, 'current_track': None, 'persona_mode': 'day', 'stream_health': 'unknown',"
+      },
+      "success_score": 0.7,
+      "timestamp": "2025-12-27T19:12:45.793523+00:00",
+      "lineage_version": "1.0.0",
+      "tags": [
+        "unknown",
+        "AnalyticsBee"
+      ],
+      "recall_count": 0,
+      "last_recalled": null
+    }
+  ],
+  "index": {
+    "by_bee_type": {
+      "TestBee": [
+        "3c1bbf0fdd2d3369",
+        "667c6f600dfe0d93"
+      ],
+      "AnalyticsBee": [
+        "8c9f92f49cb0ab8d"
+      ]
+    },
+    "by_task_type": {
+      "test_task": [
+        "3c1bbf0fdd2d3369",
+        "667c6f600dfe0d93"
+      ],
+      "unknown": [
+        "8c9f92f49cb0ab8d"
+      ]
+    },
+    "by_tag": {
+      "TestBee": [
+        "3c1bbf0fdd2d3369",
+        "667c6f600dfe0d93"
+      ],
+      "validation": [
+        "3c1bbf0fdd2d3369"
+      ],
+      "test": [
+        "3c1bbf0fdd2d3369",
+        "667c6f600dfe0d93"
+      ],
+      "test_task": [
+        "3c1bbf0fdd2d3369",
+        "667c6f600dfe0d93"
+      ],
+      "unit_test": [
+        "667c6f600dfe0d93"
+      ],
+      "unknown": [
+        "8c9f92f49cb0ab8d"
+      ],
+      "AnalyticsBee": [
+        "8c9f92f49cb0ab8d"
+      ]
+    }
+  },
+  "stats": {
+    "total_entries": 3,
+    "total_recalls": 76,
+    "top_patterns": [
+      {
+        "id": "3c1bbf0fdd2d3369",
+        "bee_type": "TestBee",
+        "score": 0.85
+      },
+      {
+        "id": "667c6f600dfe0d93",
+        "bee_type": "TestBee",
+        "score": 0.85
+      },
+      {
+        "id": "8c9f92f49cb0ab8d",
+        "bee_type": "AnalyticsBee",
+        "score": 0.7
+      }
+    ]
+  }
+}

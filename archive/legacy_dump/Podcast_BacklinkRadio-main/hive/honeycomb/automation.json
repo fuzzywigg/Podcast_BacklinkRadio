@@ -1,0 +1,61 @@
+{
+  "queue": [],
+  "failsafe_content": {},
+  "schedule": [],
+  "logs": [
+    {
+      "timestamp": "2025-12-27T20:07:05.749966+00:00",
+      "event_type": "check_issues",
+      "details": {
+        "issues": [
+          {
+            "type": "low_queue",
+            "severity": "warning",
+            "items": 0
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-12-27T20:08:55.969567+00:00",
+      "event_type": "check_issues",
+      "details": {
+        "issues": [
+          {
+            "type": "low_queue",
+            "severity": "warning",
+            "items": 0
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-12-27T20:16:20.461050+00:00",
+      "event_type": "check_issues",
+      "details": {
+        "issues": [
+          {
+            "type": "low_queue",
+            "severity": "warning",
+            "items": 0
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-12-27T20:23:11.943080+00:00",
+      "event_type": "check_issues",
+      "details": {
+        "issues": [
+          {
+            "type": "low_queue",
+            "severity": "warning",
+            "items": 0
+          }
+        ]
+      }
+    }
+  ],
+  "current_state": "normal",
+  "last_check": "2025-12-27T20:23:11.933160+00:00"
+}

@@ -1,0 +1,43 @@
+{
+  "licenses": [],
+  "tracks": [],
+  "royalty_reports": [],
+  "compliance_checks": [
+    {
+      "timestamp": "2025-12-27T19:15:24.802820+00:00",
+      "compliant": true,
+      "issues": [],
+      "warnings": []
+    },
+    {
+      "timestamp": "2025-12-27T20:07:05.823804+00:00",
+      "compliant": true,
+      "issues": [],
+      "warnings": []
+    },
+    {
+      "timestamp": "2025-12-27T20:08:56.076071+00:00",
+      "compliant": true,
+      "issues": [],
+      "warnings": []
+    },
+    {
+      "timestamp": "2025-12-27T20:16:20.583350+00:00",
+      "compliant": true,
+      "issues": [],
+      "warnings": []
+    },
+    {
+      "timestamp": "2025-12-27T20:23:12.038847+00:00",
+      "compliant": true,
+      "issues": [],
+      "warnings": []
+    }
+  ],
+  "stats": {
+    "total_licenses": 0,
+    "active_licenses": 0,
+    "tracks_cleared": 0,
+    "royalties_paid": 0
+  }
+}
