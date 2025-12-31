@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "last_updated": "2025-12-24T04:37:58.266062+00:00",
-    "last_updated_by": "stream_monitor_3fd7fed3",
+    "last_updated": "2025-12-31T04:33:14.476135+00:00",
+    "last_updated_by": "queen",
     "description": "Live station state - the current moment"
   },
   "broadcast": {
@@ -97,7 +97,7 @@
     "bitrate_kbps": 128
   },
   "queen": {
-    "last_heartbeat": "2025-12-23T20:47:02.704353+00:00",
+    "last_heartbeat": "2025-12-31T04:33:14.475023+00:00",
     "status": "alive"
   },
   "scheduler": {

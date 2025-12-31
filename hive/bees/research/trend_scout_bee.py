@@ -217,6 +217,7 @@ class TrendScoutBee(ScoutBee):
         pe.add_context("You are controlling a browser via Chrome DevTools.")
         pe.add_context(f"Target URL: {url}")
         pe.add_constraint("STRATEGY: Use Visual Anchors. Identify elements by screen coordinates if selectors fail.")
+        pe.add_constraint("You are FORBIDDEN from generating Python code. You must output JSON for all tool actions.")
         pe.add_constraint("RETURN: JSON with 'action' (click/type/finish) and 'reasoning'.")
         
         # This interaction loop mimics the Skyvern agent loop

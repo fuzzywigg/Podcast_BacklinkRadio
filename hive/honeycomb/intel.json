@@ -2,7 +2,7 @@
   "_meta": {
     "version": "1.0.0",
     "description": "Accumulated knowledge - the hive memory",
-    "last_updated": "2025-12-29T05:48:42.830116+00:00"
+    "last_updated": "2025-12-31T04:33:31.210404+00:00"
   },
   "listeners": {
     "_schema": {
@@ -348,28 +348,7 @@
     }
   },
   "trends": {
-    "current": [
-      {
-        "source": "trending_venues",
-        "type": "venue",
-        "title": "The White Horse",
-        "description": "500 Comal St, Austin, TX",
-        "relevance": 0.9400000000000001,
-        "priority": "medium",
-        "url": "https://www.google.com/maps/place/?q=place_id:ChIJa_...",
-        "discovered_at": "2025-12-29T05:48:42.815601+00:00"
-      },
-      {
-        "source": "trending_venues",
-        "type": "venue",
-        "title": "Mohawk Austin",
-        "description": "912 Red River St, Austin, TX",
-        "relevance": 0.9199999999999999,
-        "priority": "medium",
-        "url": "https://www.google.com/maps/place/?q=place_id:ChIJb...",
-        "discovered_at": "2025-12-29T05:48:42.815611+00:00"
-      }
-    ],
+    "current": [],
     "archive": [
       {
         "source": "spotify_viral",
@@ -436,9 +415,49 @@
         "discovered_at": "2025-12-22T21:34:46.845273+00:00",
         "actionable": true,
         "action_suggestion": "Potential talking point for broadcast"
+      },
+      {
+        "source": "trending_venues",
+        "type": "venue",
+        "title": "The White Horse",
+        "description": "500 Comal St, Austin, TX",
+        "relevance": 0.9400000000000001,
+        "priority": "medium",
+        "url": "https://www.google.com/maps/place/?q=place_id:ChIJa_...",
+        "discovered_at": "2025-12-29T05:48:42.815601+00:00"
+      },
+      {
+        "source": "trending_venues",
+        "type": "venue",
+        "title": "Mohawk Austin",
+        "description": "912 Red River St, Austin, TX",
+        "relevance": 0.9199999999999999,
+        "priority": "medium",
+        "url": "https://www.google.com/maps/place/?q=place_id:ChIJb...",
+        "discovered_at": "2025-12-29T05:48:42.815611+00:00"
+      },
+      {
+        "source": "trending_venues",
+        "type": "venue",
+        "title": "The White Horse",
+        "description": "500 Comal St, Austin, TX",
+        "relevance": 0.9400000000000001,
+        "priority": "medium",
+        "url": "https://www.google.com/maps/place/?q=place_id:ChIJa_...",
+        "discovered_at": "2025-12-31T04:27:35.985333+00:00"
+      },
+      {
+        "source": "trending_venues",
+        "type": "venue",
+        "title": "Mohawk Austin",
+        "description": "912 Red River St, Austin, TX",
+        "relevance": 0.9199999999999999,
+        "priority": "medium",
+        "url": "https://www.google.com/maps/place/?q=place_id:ChIJb...",
+        "discovered_at": "2025-12-31T04:27:35.985360+00:00"
       }
     ],
-    "last_scan": "2025-12-29T05:48:42.830102+00:00"
+    "last_scan": "2025-12-31T04:33:31.210397+00:00"
   },
   "content_performance": {
     "top_clips": [],

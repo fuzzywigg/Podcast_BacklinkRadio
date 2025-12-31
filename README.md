@@ -166,6 +166,10 @@ The **Queen** schedules and triggers bees but doesn't micromanage.
 
 Bees don't talk to each other. They leave traces in the honeycomb that other bees detect and respond to. Like real bees with pheromones.
 
+### Tool Call Standard
+
+**ALL** tool calls and structured outputs from LLMs must remain in **JSON** format. Do not use Python code blocks for tool execution or data return unless explicitly strictly required by a specific specialized agent.
+
 ### ABC Pattern
 
 Based on Artificial Bee Colony optimization:

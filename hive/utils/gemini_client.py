@@ -134,8 +134,6 @@ class Gemini3Client:
         if response_schema:
             config_args["response_mime_type"] = "application/json"
             config_args["response_schema"] = response_schema
-
-        config = types.GenerateContentConfig(**config_args)
         
         # In newer SDK, system_instruction might be part of config or method
         # We assume it goes into contents as 'model' role or config
@@ -144,6 +142,7 @@ class Gemini3Client:
         if system_instruction:
             # check SDK version support or prepend
              config.system_instruction = system_instruction
+
 
         try:
             response = self.client.models.generate_content(

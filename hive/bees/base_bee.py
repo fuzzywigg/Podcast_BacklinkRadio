@@ -522,6 +522,10 @@ class BaseBee(ABC):
             self.log(f"Wisdom retrieval failed: {w_err}", level="warning")
 
         system_prompt = prompt_engineer.build_system_prompt()
+        
+        # Enforce Global JSON Preference
+        prompt_engineer.add_constraint("OUTPUT MUST BE RAW JSON. NO PYTHON CODE BLOCKS.")
+        system_prompt = prompt_engineer.build_system_prompt()
 
         try:
             # Prepare schema for Gemini 3
