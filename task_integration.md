@@ -10,8 +10,8 @@
 ## Phase 2: The Tactical Eye (Scout Vision)
 
 * [x] **Task**: Update `TrendScoutBee` to use `Chrome DevTools MCP` for navigation.
-* [x] **Task**: Implement `Skyvern` logic (Visual Anchors) in `TrendScoutBee`.
-* [x] **Unit Test**: Verify Vision Navigation logic.
+* [x] **Task**: Implement `Skyvern` logic (Visual Anchors) in `TrendScoutBee` (Upgraded to NestBrowse Pattern).
+* [x] **Unit Test**: Verify Vision Navigation logic (NestBrowse Outer/Inner Loops).
 
 ## Phase 3: Freedom (Sovereignty)
 

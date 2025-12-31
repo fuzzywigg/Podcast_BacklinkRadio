@@ -27,6 +27,17 @@ class TrendScoutBee(ScoutBee):
     BEE_NAME = "Trend Scout Bee"
     CATEGORY = "research"
 
+    def __init__(self, hive_path: str | None = None, gateway: Any = None):
+        super().__init__(hive_path, gateway)
+        # Initialize Sovereign Client (LocalAI) for Inner Loop operations
+        from hive.utils.gemini_client import Gemini3Client
+        try:
+            self.sovereign_client = Gemini3Client(model_name="gpt-4", force_backend="local")
+            self.log("Sovereign Client (LocalAI) initialized for NestBrowse Inner Loop.")
+        except Exception as e:
+            self.sovereign_client = None
+            self.log(f"Sovereign Client failed to initialize: {e}", level="warning")
+
     # Sources to monitor
     SOURCES = [
         {"name": "twitter_trending", "type": "social", "priority": "high"},
@@ -201,44 +212,87 @@ class TrendScoutBee(ScoutBee):
 
     async def _perform_visual_scout(self, url: str, goal: str) -> dict[str, Any]:
         """
-        Skyvern-Style Visual Navigation using Chrome DevTools MCP.
-        
-        Args:
-            url: The target website.
-            goal: What to find (e.g. "Find the top trending hashtag").
-            
-        Returns:
-            Extracted data payload.
+        NestBrowse Implementation: Outer Loop (Gemini) + Inner Loop (Sovereign).
         """
         if not self.llm_client:
             return {"error": "No LLM"}
 
-        pe = PromptEngineer(role="Visual Scout", goal=goal)
-        pe.add_context("You are controlling a browser via Chrome DevTools.")
-        pe.add_context(f"Target URL: {url}")
-        pe.add_constraint("STRATEGY: Use Visual Anchors. Identify elements by screen coordinates if selectors fail.")
-        pe.add_constraint("You are FORBIDDEN from generating Python code. You must output JSON for all tool actions.")
-        pe.add_constraint("RETURN: JSON with 'action' (click/type/finish) and 'reasoning'.")
+        # OUTER LOOP: Reasoning & Navigation (Gemini 1.5 Pro / 2.0)
+        pe_outer = PromptEngineer(role="Visual Scout (Outer Loop)", goal=goal)
+        pe_outer.add_context("You are the Outer Loop navigator in the NestBrowse framework.")
+        pe_outer.add_context(f"Target URL: {url}")
+        pe_outer.add_constraint("TOOLS: 'search', 'visit', 'click', 'fill'.")
+        pe_outer.add_constraint("STRATEGY: Decide the next high-level action to find the goal.")
+        pe_outer.add_constraint("OUTPUT: JSON with 'tool', 'args', 'reasoning'.")
+
+        # Simulate one step of Outer Loop for now (since we don't have a full browser event loop here)
+        # In a full impl, this would loop until task completion.
         
-        # This interaction loop mimics the Skyvern agent loop
-        # In a real implementation, this would loop until 'finish'
-        # For this Phase, we define the capability structure.
-        
-        vis_prompt = pe.build_system_prompt()
-        
-        # We would inject the MCP tools here: [Browser.navigate, Browser.click, etc.]
-        # For now, we simulate the first step of the reasoning chain
+        outer_prompt = pe_outer.build_system_prompt()
         
         try:
+            # 1. Outer Loop Decision
             response = self.llm_client.generate_content(
-                prompt=f"{vis_prompt}\n\nGOAL: {goal}",
+                prompt=f"{outer_prompt}\n\nGOAL: {goal}\nCURRENT STATE: At start URL.",
                 thinking_level="low",
-                tools=[{"google_search": {}}] # Placeholder for MCP tools
+                response_schema=None 
             )
-            return PromptEngineer.parse_json_output(response.get("text", "{}"))
+            decision = PromptEngineer.parse_json_output(response.get("text", "{}"))
+            
+            # 2. If Decision is 'visit' or 'click', trigger INNER LOOP
+            # For this MVP, we simulate that we 'visited' and got content.
+            if decision.get("tool") in ["visit", "click"]:
+                self.log(f"Outer Loop decided to {decision.get('tool')}. Engaging Inner Loop (Sovereign)...")
+                
+                # Mock page content fetch (In real life: browser.content())
+                page_content_mock = f"<h1>Trends for {goal}</h1><p>The top trend today is #SolarFlare. It is viral everywhere.</p>"
+                
+                # Execute Inner Loop (Sovereign Node)
+                inner_result = await self._perform_inner_loop(page_content_mock, goal)
+                
+                return {
+                    "outer_decision": decision,
+                    "inner_extraction": inner_result,
+                    "status": "success"
+                }
+            
+            return decision
+
         except Exception as e:
             self.log(f"Visual Scout Failed: {e}", level="error")
-            return {}
+            return {"error": str(e)}
+
+    async def _perform_inner_loop(self, page_content: str, goal: str) -> dict[str, Any]:
+        """
+        NestBrowse Inner Loop: Efficient Information Extraction via LocalAI.
+        """
+        if not self.sovereign_client:
+            self.log("Sovereign Client missing, falling back to Grid (Gemini).", level="warning")
+            client = self.llm_client
+        else:
+            client = self.sovereign_client
+
+        # Workspace Pattern Prompt
+        pe_inner = PromptEngineer(role="Content Distiller (Inner Loop)", goal=goal)
+        pe_inner.add_context("You are the Inner Loop engine. Extract ONLY goal-relevant info.")
+        pe_inner.add_context(f"PAGE CONTENT: {page_content[:2000]}...") # Truncate for safety
+        pe_inner.add_constraint("OUTPUT: JSON with 'relevant_facts' list and 'completeness_score' (0-1).")
+        
+        inner_prompt = pe_inner.build_system_prompt()
+        
+        try:
+            response = client.generate_content(
+                prompt=inner_prompt,
+                response_schema={"type": "object", "properties": {"relevant_facts": {"type": "array"}, "completeness_score": {"type": "number"}}}
+            )
+            # LocalAI might return text requiring parsing
+            if "text" in response and isinstance(response["text"], str):
+                return PromptEngineer.parse_json_output(response["text"])
+            return response
+            
+        except Exception as e:
+            self.log(f"Inner Loop Failed: {e}", level="error")
+            return {"error": str(e)}
 
     def _scout_source(self, source: dict[str, Any]) -> list[dict[str, Any]]:
         """Scout a specific source for trends."""

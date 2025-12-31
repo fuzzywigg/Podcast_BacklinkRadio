@@ -23,9 +23,12 @@ class Gemini3Client:
     Now updated to support Sovereign (LocalAI) backend via OpenAI compatibility.
     """
 
-    def __init__(self, model_name: str = "gemini-2.0-flash-exp"):
+    def __init__(self, model_name: str = "gemini-2.0-flash-exp", force_backend: str | None = None):
         """
         Initialize the Client. Checks GOVERNANCE_AI_MODEL to decide backend.
+        Args:
+            model_name: The model to use.
+            force_backend: Explicitly set "local" or "google" to override env vars.
         """
         self.backend = "google"
         self.client = None
@@ -36,7 +39,15 @@ class Gemini3Client:
         self.gov_model = os.environ.get("GOVERNANCE_AI_MODEL", "gemini-pro-3")
         self.local_endpoint = os.environ.get("GOVERNANCE_AI_ENDPOINT", "http://localhost:8080/v1")
 
-        if self.gov_model == "local":
+        # Determine backend: Explicit force > Env Var > Default (Google)
+        if force_backend:
+            self.backend = force_backend
+        elif self.gov_model == "local":
+            self.backend = "local"
+        else:
+            self.backend = "google"
+
+        if self.backend == "local":
             self._init_local_backend()
         else:
             self._init_google_backend()
